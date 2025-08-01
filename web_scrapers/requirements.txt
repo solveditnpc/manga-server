@@ -1,0 +1,7 @@
+httpx[http2]
+beautifulsoup4
+img2pdf
+Pillow
+playwright
+flask
+gunicorn
