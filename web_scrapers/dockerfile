@@ -1,9 +1,0 @@
-FROM python:3.10-slim
-WORKDIR /app
-ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
-RUN playwright install --with-deps
-COPY . .
-RUN chmod +x ./start.sh
-CMD ["./start.sh"]
