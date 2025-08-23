@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manga Library</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --card-bg: #2c2c2c;
+            --text-color: #f0f0f0;
+            --accent-color: #5a9;
+            --tag-bg: #444;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            margin: 0;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h1 {
+            text-align: center;
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+        }
+        .search-actions-container {
+            display: flex;
+            flex-direction: column; 
+            max-width: 800px;
+            margin: 0 auto 2.5rem auto;
+            gap: 0.75rem; 
+        }
+        .search-bar-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        #search-bar {
+            flex-grow: 1;
+            margin: 0; 
+            padding: 12px 15px;
+            font-size: 1rem;
+            color: var(--text-color);
+            background-color: var(--card-bg);
+            border: 1px solid var(--tag-bg);
+            border-radius: 25px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        #search-bar:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(85, 170, 153, 0.5);
+        }
+        .action-button {
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            background-color: #2a8c7a; 
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            white-space: nowrap;
+        }
+        .action-button:hover {
+            background-color: #3aa08d;
+        }
+        .action-button-delete {
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            background-color: #c0392b; 
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            width: 100%; 
+        }
+        .action-button-delete:hover {
+            background-color: #e74c3c;
+        }
+        #pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .page-btn {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--tag-bg);
+            padding: 8px 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 0.9rem;
+        }
+        .page-btn:hover:not(:disabled) {
+            background-color: var(--tag-bg);
+        }
+        .page-btn.active {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+            font-weight: bold;
+            border-color: var(--accent-color);
+        }
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .page-ellipsis {
+            padding: 8px 5px;
+            color: var(--tag-bg);
+        }
+        #library {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        .manga-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .manga-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+        }
+        .manga-card img {
+            width: 100%;
+            height: 280px;
+            object-fit: cover;
+            display: block;
+        }
+        .manga-info {
+            padding: 1rem;
+        }
+        .manga-info h3 {
+            margin: 0 0 0.5rem;
+            font-size: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .manga-info p {
+            margin: 0;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: none;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .modal-content {
+            position: relative;
+            margin: 5% auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 1100px;
+        }
+        .close-button {
+            position: fixed;
+            top: 15px;
+            right: 35px;
+            font-size: 2.5rem;
+            color: white;
+            cursor: pointer;
+            z-index: 1005;
+        }
+        #details-top {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        #details-cover {
+            width: 100%;
+            border-radius: 8px;
+        }
+        #details-info h2 {
+            margin-top: 0;
+            font-size: 1.8rem;
+        }
+        .manga-id-display {
+            background-color: var(--tag-bg);
+            color: var(--accent-color);
+            padding: 4px 10px;
+            border-radius: 5px;
+            display: inline-block;
+            cursor: pointer;
+            font-family: monospace;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
+            user-select: none;
+        }
+        #details-tags .tag-group {
+            margin-bottom: 1rem;
+        }
+        .tag-group-title {
+            font-weight: bold;
+            margin-right: 8px;
+            opacity: 0.8;
+        }
+        #details-tags .tag {
+            display: inline-block;
+            background-color: var(--tag-bg);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            margin: 2px;
+        }
+        #details-thumbnails {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+        #details-thumbnails img {
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        #details-thumbnails img:hover {
+            opacity: 0.8;
+        }
+        .missing-page {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #111;
+            border: 1px dashed var(--tag-bg);
+            border-radius: 5px;
+            font-size: 0.9rem;
+            color: #888;
+            aspect-ratio: 150 / 210;
+        }
+        #viewer-modal .modal-content {
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            max-width: 100vw;
+            background: none;
+        }
+        #viewer-content {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #viewer-image {
+            max-width: 100vw;
+            max-height: 100vh;
+            object-fit: contain;
+        }
+        .nav-area {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 50%;
+            z-index: 1002;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #prev-area {
+            left: 0;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>'), auto;
+        }
+        #next-area {
+            right: 0;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>'), auto;
+        }
+        #viewer-nav {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 5px 15px;
+            border-radius: 10px;
+            z-index: 1003;
+        }
+        #add-form, #delete-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        #add-input, #delete-input {
+            padding: 12px 15px;
+            font-size: 1rem;
+            color: var(--text-color);
+            background-color: var(--card-bg);
+            border: 1px solid var(--tag-bg);
+            border-radius: 8px;
+            outline: none;
+        }
+        #add-status, #delete-status {
+            margin-top: 1rem;
+            text-align: center;
+            min-height: 1.2em;
+        }
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            h1 { font-size: 1.8rem; }
+            #search-bar { margin-bottom: 2rem; }
+            #library { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
+            .modal-content { width: 95%; }
+            #details-top { grid-template-columns: 1fr; text-align: center; }
+            #details-cover { max-width: 250px; margin: 0 auto; }
+            #details-info h2 { font-size: 1.5rem; }
+            #details-thumbnails { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>My Manga Library</h1>
+        <div class="search-actions-container">
+            <div class="search-bar-container">
+                <input type="search" id="search-bar" placeholder="Search title, artist, tags, ID...">
+                <button id="add-new-btn" class="action-button">Add New</button>
+            </div>
+            <button id="delete-btn" class="action-button-delete">Delete</button>
+        </div>
+        
+        <div id="pagination-container"></div>
+
+        <div id="library"></div>
+    </div>
+
+    <div id="details-modal" class="modal">
+        <span class="close-button" id="close-details">&times;</span>
+        <div class="modal-content">
+            <div id="details-top">
+                <img id="details-cover" src="">
+                <div id="details-info">
+                    <h2 id="details-title"></h2>
+                    <p id="details-author"></p>
+                    <p id="details-manga-id" class="manga-id-display"></p>
+                    <div id="details-tags"></div>
+                    <p id="details-pages"></p>
+                </div>
+            </div>
+            <hr>
+            <h3>Pages</h3>
+            <div id="details-thumbnails"></div>
+        </div>
+    </div>
+
+    <div id="viewer-modal" class="modal">
+        <span class="close-button" id="close-viewer">&times;</span>
+        <div class="modal-content">
+            <div id="viewer-content">
+                <div id="prev-area" class="nav-area"></div>
+                <div id="next-area" class="nav-area"></div>
+                <img id="viewer-image" src="" alt="Manga Page">
+                <div id="viewer-nav">
+                    <span id="page-counter"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="add-modal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+             <span class="close-button" id="close-add">&times;</span>
+             <h2>Add New Manga</h2>
+             <p>Enter a Manga ID, Author Name, or Author URL to queue for download.</p>
+             <form id="add-form">
+                 <input type="text" id="add-input" placeholder="e.g., 123456, john doe, or a URL" required>
+                 <button type="submit" id="add-submit-btn" class="action-button">Queue Download</button>
+             </form>
+             <div id="add-status"></div>
+        </div>
+    </div>
+
+    <div id="delete-modal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+             <span class="close-button" id="close-delete">&times;</span>
+             <h2>Delete Manga</h2>
+             <p>Enter the Manga ID of the item you wish to permanently delete. This action cannot be undone.</p>
+             <form id="delete-form">
+                 <input type="text" id="delete-input" placeholder="Enter one or more IDs, e.g., 123, 456" required>
+                 <button type="submit" id="delete-submit-btn" class="action-button-delete">Confirm Deletion</button>
+             </form>
+             <div id="delete-status"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const library = document.getElementById('library');
+            const searchBar = document.getElementById('search-bar');
+            
+            const preloadedMangaIds = new Set();
+            let debounceTimeout;
+            let fullMangaList = []; 
+            let currentMangaPages = [];
+            let currentPageIndex = 0; 
+            let currentPage = 1;
+            const itemsPerPage = 24;
+
+            const addModal = document.getElementById('add-modal');
+            const addNewBtn = document.getElementById('add-new-btn');
+            const closeAddBtn = document.getElementById('close-add');
+            const addForm = document.getElementById('add-form');
+            const addInput = document.getElementById('add-input');
+            const addStatus = document.getElementById('add-status');
+
+            const deleteModal = document.getElementById('delete-modal');
+            const deleteBtn = document.getElementById('delete-btn');
+            const closeDeleteBtn = document.getElementById('close-delete');
+            const deleteForm = document.getElementById('delete-form');
+            const deleteInput = document.getElementById('delete-input');
+            const deleteStatus = document.getElementById('delete-status');
+            
+            function delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            function updateURL() {
+                const query = searchBar.value.trim();
+                const params = new URLSearchParams(window.location.search);
+                if (query) {
+                    params.set('q', query);
+                } else {
+                    params.delete('q');
+                }
+                
+                if (currentPage > 1) {
+                    params.set('page', currentPage);
+                } else {
+                    params.delete('page');
+                }
+
+                const newUrl = `${window.location.pathname}?${params.toString()}`;
+                window.history.pushState({ path: newUrl }, '', newUrl);
+            }
+
+            async function fetchAndRender(query = '') {
+                const apiUrl = query.trim()
+                    ? `/api/search?q=${encodeURIComponent(query)}`
+                    : '/api/mangas';
+                try {
+                    const response = await fetch(apiUrl);
+                    fullMangaList = await response.json();
+                    
+                    renderCurrentPage();
+                    renderPaginationControls();
+                } catch (error) {
+                    console.error('Failed to fetch mangas:', error);
+                    library.innerHTML = '<p style="text-align:center;">Failed to load library.</p>';
+                    document.getElementById('pagination-container').innerHTML = '';
+                }
+            }
+
+            searchBar.addEventListener('input', (e) => {
+                clearTimeout(debounceTimeout);
+                debounceTimeout = setTimeout(() => {
+                    const query = e.target.value;
+                    currentPage = 1; // Reset to page 1 for new search
+                    fetchAndRender(query);
+                    updateURL(); // Update URL on search
+                }, 300);
+            });
+            
+            function renderCurrentPage() {
+                library.innerHTML = '';
+                if (fullMangaList.length === 0) {
+                    library.innerHTML = '<p style="text-align:center;">No results found.</p>';
+                    return;
+                }
+
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = startIndex + itemsPerPage;
+                const pageItems = fullMangaList.slice(startIndex, endIndex);
+
+                pageItems.forEach(manga => {
+                    const card = document.createElement('div');
+                    card.className = 'manga-card';
+                    const relativePath = manga.download_path.replace('/data/', '');
+                    const coverPath = manga.cover_image
+                        ? `/mangas/${relativePath}/${manga.cover_image}`
+                        : 'https://placehold.co/200x280/2c2c2c/f0f0f0?text=No+Cover';
+                    card.innerHTML = `
+                        <img src="${coverPath}" alt="${manga.title}" onerror="this.onerror=null;this.src='https://placehold.co/200x280/2c2c2c/f0f0f0?text=No+Cover';">
+                        <div class="manga-info">
+                            <h3>${manga.title}</h3>
+                            <p>${manga.author || 'Unknown Artist'}</p>
+                        </div>`;
+                    card.addEventListener('click', () => openDetailsModal(manga));
+                    library.appendChild(card);
+                });
+            }
+
+            function renderPaginationControls() {
+                const paginationContainer = document.getElementById('pagination-container');
+                paginationContainer.innerHTML = '';
+                const totalPages = Math.ceil(fullMangaList.length / itemsPerPage);
+
+                if (totalPages <= 1) return;
+
+                function createButton(text, pageNum) {
+                    const btn = document.createElement('button');
+                    btn.className = 'page-btn';
+                    btn.textContent = text;
+                    if (pageNum) {
+                        btn.dataset.page = pageNum;
+                        if (pageNum === currentPage) btn.classList.add('active');
+                        
+                        btn.addEventListener('click', () => {
+                            currentPage = pageNum;
+                            updateURL(); // Update URL on page change
+                            renderCurrentPage();
+                            renderPaginationControls();
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        });
+                    }
+                    return btn;
+                }
+                
+                const prevBtn = createButton('Prev', currentPage > 1 ? currentPage - 1 : null);
+                if (currentPage === 1) prevBtn.disabled = true;
+                paginationContainer.appendChild(prevBtn);
+
+                const pageRange = 2;
+                let addedStartEllipsis = false;
+                let addedEndEllipsis = false;
+
+                for (let i = 1; i <= totalPages; i++) {
+                    if (i === 1 || i === totalPages || (i >= currentPage - pageRange && i <= currentPage + pageRange)) {
+                        paginationContainer.appendChild(createButton(i, i));
+                    } else if (i < currentPage && !addedStartEllipsis) {
+                        const ellipsis = document.createElement('span');
+                        ellipsis.className = 'page-ellipsis';
+                        ellipsis.textContent = '...';
+                        paginationContainer.appendChild(ellipsis);
+                        addedStartEllipsis = true;
+                    } else if (i > currentPage && !addedEndEllipsis) {
+                        const ellipsis = document.createElement('span');
+                        ellipsis.className = 'page-ellipsis';
+                        ellipsis.textContent = '...';
+                        paginationContainer.appendChild(ellipsis);
+                        addedEndEllipsis = true;
+                    }
+                }
+                
+                const nextBtn = createButton('Next', currentPage < totalPages ? currentPage + 1 : null);
+                if (currentPage === totalPages) nextBtn.disabled = true;
+                paginationContainer.appendChild(nextBtn);
+            }
+
+            function openDetailsModal(manga) {
+                const detailsModal = document.getElementById('details-modal');
+                const relativePath = manga.download_path.replace('/data/', '');
+                
+                document.getElementById('details-cover').src = manga.cover_image
+                    ? `/mangas/${relativePath}/${manga.cover_image}`
+                    : 'https://placehold.co/300x420/2c2c2c/f0f0f0?text=No+Cover';
+                document.getElementById('details-title').textContent = manga.title;
+                document.getElementById('details-author').textContent = `by ${manga.author || 'Unknown Artist'}`;
+                document.getElementById('details-pages').textContent = `${manga.total_pages} pages`;
+
+                const mangaIdEl = document.getElementById('details-manga-id');
+                mangaIdEl.textContent = `#${manga.manga_id}`;
+                mangaIdEl.onclick = () => {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = manga.manga_id;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        mangaIdEl.textContent = 'Copied!';
+                        setTimeout(() => { mangaIdEl.textContent = `#${manga.manga_id}`; }, 1500);
+                    } catch (err) {
+                        console.error('Failed to copy ID:', err);
+                    }
+                    document.body.removeChild(textArea);
+                };
+
+                const tagsContainer = document.getElementById('details-tags');
+                tagsContainer.innerHTML = '';
+                if (manga.tags && manga.tags.length > 2) {
+                    const parsedTags = JSON.parse(manga.tags);
+                    const groupedTags = parsedTags.reduce((acc, tag) => {
+                        const type = tag.type.charAt(0).toUpperCase() + tag.type.slice(1);
+                        if (!acc[type]) { acc[type] = []; }
+                        acc[type].push(tag.name);
+                        return acc;
+                    }, {});
+                    for (const type in groupedTags) {
+                        const tagGroupDiv = document.createElement('div');
+                        tagGroupDiv.className = 'tag-group';
+                        const groupTitle = document.createElement('span');
+                        groupTitle.className = 'tag-group-title';
+                        groupTitle.textContent = `${type}:`;
+                        tagGroupDiv.appendChild(groupTitle);
+                        groupedTags[type].forEach(tagName => {
+                            const tagEl = document.createElement('span');
+                            tagEl.className = 'tag';
+                            tagEl.textContent = tagName;
+                            tagGroupDiv.appendChild(tagEl);
+                        });
+                        tagsContainer.appendChild(tagGroupDiv);
+                    }
+                }
+
+                const thumbnailsContainer = document.getElementById('details-thumbnails');
+                thumbnailsContainer.innerHTML = '';
+                if (manga.page_files && manga.page_files.length > 0) {
+                    const maxThumbnails = Math.min(manga.page_files.length, 12);
+                    for (let i = 0; i < maxThumbnails; i++) {
+                        const filename = manga.page_files[i];
+                        let thumb;
+                        if (filename) {
+                            thumb = document.createElement('img');
+                            thumb.src = `/mangas/${relativePath}/${filename}`;
+                            thumb.onerror = () => { thumb.src = 'https://placehold.co/150x210/2c2c2c/f0f0f0?text=Error'; };
+                            thumb.addEventListener('click', () => openViewer(manga, i));
+                        } else {
+                            thumb = document.createElement('div');
+                            thumb.className = 'missing-page';
+                            thumb.textContent = `Page ${i + 1} Missing`;
+                        }
+                        thumbnailsContainer.appendChild(thumb);
+                    }
+                }
+                detailsModal.style.display = 'block';
+            }
+            
+            function preloadMangaImages(manga) {
+                if (!manga.page_files || preloadedMangaIds.has(manga.manga_id)) {
+                    return; 
+                }
+
+                const relativePath = manga.download_path.replace('/data/', '');
+                
+                for (let i = 12; i < manga.page_files.length; i++) {
+                    const filename = manga.page_files[i];
+                    if (filename) {
+                        const img = new Image(); 
+                        img.src = `/mangas/${relativePath}/${filename}`; 
+                    }
+                }
+                
+                preloadedMangaIds.add(manga.manga_id); 
+            }
+
+            function openViewer(manga, startIndex = 0) {
+                if (!manga.page_files || manga.page_files.length === 0) return;
+                const relativePath = manga.download_path.replace('/data/', '');
+                currentMangaPages = manga.page_files.map(file => file ? `/mangas/${relativePath}/${file}` : null);
+                currentPageIndex = startIndex;
+                updateViewer();
+                document.getElementById('viewer-modal').style.display = 'flex';
+
+                preloadMangaImages(manga);
+            }
+
+            function updateViewer() {
+                if (currentMangaPages.length === 0) return;
+                const viewerImage = document.getElementById('viewer-image');
+                const pageCounter = document.getElementById('page-counter');
+                const currentPageFile = currentMangaPages[currentPageIndex];
+                viewerImage.style.display = currentPageFile ? 'block' : 'none';
+                if (currentPageFile) viewerImage.src = currentPageFile;
+                pageCounter.textContent = currentPageFile
+                    ? `${currentPageIndex + 1} / ${currentMangaPages.length}`
+                    : `Page ${currentPageIndex + 1} is Missing`;
+            }
+
+            function changePage(direction) {
+                const newIndex = currentPageIndex + direction;
+                if (newIndex >= 0 && newIndex < currentMangaPages.length) {
+                    currentPageIndex = newIndex;
+                    updateViewer();
+                }
+            }
+
+            addNewBtn.addEventListener('click', () => {
+                addModal.style.display = 'block';
+                addInput.value = '';
+                addStatus.textContent = '';
+                addInput.focus();
+            });
+
+            closeAddBtn.addEventListener('click', () => {
+                addModal.style.display = 'none';
+            });
+
+            addForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const inputValue = addInput.value.trim();
+                if (!inputValue) return;
+
+                addStatus.style.color = 'var(--text-color)';
+                let payload = {};
+                
+                const isOnlyIds = /^[0-9\s,]+$/.test(inputValue);
+
+                if (inputValue.startsWith('http')) {
+                    payload = { author: inputValue };
+                    addStatus.textContent = 'Sending request for author URL...';
+                } else if (isOnlyIds) {
+                } else {
+                    payload = { author: inputValue };
+                    addStatus.textContent = `Sending request for author: ${inputValue}...`;
+                }
+
+
+                if (payload.author) {
+                    try {
+                        const response = await fetch('/api/download', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload),
+                        });
+                        const result = await response.json();
+                        if (!response.ok) throw new Error(result.error || 'Request failed');
+                        addStatus.textContent = result.message || 'Success! Added to queue.';
+                        addStatus.style.color = 'var(--accent-color)';
+                    } catch (error) {
+                        addStatus.textContent = `Error: ${error.message}`;
+                        addStatus.style.color = '#e74c3c';
+                    }
+                    setTimeout(() => {
+                        addModal.style.display = 'none';
+                        fetchAndRender();
+                    }, 2000);
+
+                } else {
+                    const mangaIds = inputValue.split(',').map(id => parseInt(id.trim(), 10)).filter(id => !isNaN(id));
+                     if (mangaIds.length === 0) {
+                        addStatus.textContent = 'Error: No valid Manga IDs found.';
+                        addStatus.style.color = '#e74c3c';
+                        return;
+                    }
+                    
+                    let successful = 0;
+                    let failed = 0;
+                    for (const id of mangaIds) {
+                        addStatus.textContent = `Queueing ID ${id}... (${successful + failed + 1}/${mangaIds.length})`;
+                        try {
+                            const response = await fetch('/api/download', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ manga_id: id }),
+                            });
+                            if (!response.ok) throw new Error(`ID ${id} failed`);
+                            successful++;
+                        } catch (error) {
+                            console.error(error);
+                            failed++;
+                        }
+                        await delay(300);
+                    }
+
+                    let finalMessage = `Queued ${successful} of ${mangaIds.length} manga.`;
+                    if (failed > 0) finalMessage += ` ${failed} failed.`;
+                    addStatus.textContent = finalMessage;
+                    addStatus.style.color = failed > 0 ? '#e74c3c' : 'var(--accent-color)';
+                    
+                    setTimeout(() => {
+                        addModal.style.display = 'none';
+                        fetchAndRender();
+                    }, 2500);
+                }
+            });
+
+            deleteBtn.addEventListener('click', () => {
+                deleteModal.style.display = 'block';
+                deleteInput.value = '';
+                deleteStatus.textContent = '';
+                deleteInput.focus();
+            });
+
+            closeDeleteBtn.addEventListener('click', () => {
+                deleteModal.style.display = 'none';
+            });
+
+            deleteForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const inputValue = deleteInput.value.trim();
+                if (!inputValue) return;
+
+                const mangaIds = inputValue.split(',').map(id => parseInt(id.trim(), 10)).filter(id => !isNaN(id));
+
+                if (mangaIds.length === 0) {
+                    deleteStatus.textContent = 'Error: No valid Manga IDs entered.';
+                    deleteStatus.style.color = '#e74c3c';
+                    return;
+                }
+
+                deleteStatus.style.color = 'var(--text-color)';
+                let successful = 0;
+                let failed = 0;
+                for (const id of mangaIds) {
+                    deleteStatus.textContent = `Deleting ID ${id}... (${successful + failed + 1}/${mangaIds.length})`;
+                    try {
+                        const response = await fetch(`/api/mangas/${id}`, { method: 'DELETE' });
+                        if (!response.ok) throw new Error(`ID ${id} failed`);
+                        successful++;
+                    } catch (error) {
+                        console.error(error);
+                        failed++;
+                    }
+                    await delay(300); 
+                }
+                
+                let finalMessage = `Deleted ${successful} of ${mangaIds.length} manga.`;
+                if (failed > 0) finalMessage += ` ${failed} failed.`;
+                
+                deleteStatus.textContent = finalMessage;
+                deleteStatus.style.color = failed > 0 ? '#e74c3c' : 'var(--accent-color)';
+
+                setTimeout(() => {
+                    deleteModal.style.display = 'none';
+                    fetchAndRender();
+                }, 2500);
+            });
+
+            document.getElementById('close-details').addEventListener('click', () => { document.getElementById('details-modal').style.display = 'none'; });
+            document.getElementById('close-viewer').addEventListener('click', () => { document.getElementById('viewer-modal').style.display = 'none'; });
+            document.getElementById('prev-area').addEventListener('click', () => changePage(-1));
+            document.getElementById('next-area').addEventListener('click', () => changePage(1));
+            
+            document.addEventListener('keydown', (e) => {
+                const viewerModal = document.getElementById('viewer-modal');
+                if (viewerModal.style.display === 'flex') {
+                    if (e.key === 'ArrowLeft') changePage(-1);
+                    if (e.key === 'ArrowRight') changePage(1);
+                }
+                if (e.key === 'Escape') {
+                    document.getElementById('details-modal').style.display = 'none';
+                    viewerModal.style.display = 'none';
+                    addModal.style.display = 'none';
+                    deleteModal.style.display = 'none'; 
+                }
+            });
+
+            function initializeApp() {
+                const params = new URLSearchParams(window.location.search);
+                const query = params.get('q') || '';
+                const page = parseInt(params.get('page'), 10) || 1;
+
+                searchBar.value = query;
+                currentPage = page;
+                
+                fetchAndRender(query);
+            }
+
+            initializeApp();
+        });
+    </script>
+</body>
+</html>
