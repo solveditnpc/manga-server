@@ -1,6 +1,3 @@
-#FRONTEND WILL BE AVALIABLE SOON
-
-
 # nhentai.xxx Manga Downloader & Server
 
 This project allows you to download manga from nhentai.xxx by author or from specific pages, and provides a web interface to view your collection.
@@ -50,6 +47,12 @@ docker compose up frontend
 ```
 
 This will build and start the web interface.
+
+### 4.1. You can also run scripts in the background to repair any mangas that are missing any pages
+TO do this , instead of running docker compose up web-scraper ,run the below 
+```bash 
+docker compose  up web-scraper python repairing_manga.py 
+```
 
 ### 5. Access the Web Interface
 
