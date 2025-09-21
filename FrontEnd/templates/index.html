@@ -56,20 +56,40 @@
             border-color: var(--accent-color);
             box-shadow: 0 0 0 3px rgba(85, 170, 153, 0.5);
         }
-        .action-button {
-            padding: 12px 20px;
+        .action-button, .search-button {
+            padding: 12px;
+            height: 48px;
             font-size: 1rem;
             font-weight: bold;
             color: white;
-            background-color: #2a8c7a; 
             border: none;
             border-radius: 25px;
             cursor: pointer;
             transition: background-color 0.2s;
             white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .action-button {
+            background-color: #2a8c7a; 
+            padding-left: 20px;
+            padding-right: 20px;
         }
         .action-button:hover {
             background-color: #3aa08d;
+        }
+        .search-button {
+            background-color: var(--accent-color); 
+            width: 48px;
+        }
+        .search-button:hover {
+            background-color: #6bb9a9;
+        }
+        .search-button svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
         }
         #pagination-container {
             display: flex;
@@ -116,12 +136,14 @@
             background-color: var(--card-bg);
             border-radius: 8px;
             overflow: hidden;
-            cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         .manga-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+        }
+        .card-clickable-area {
+            cursor: pointer;
         }
         .manga-card img {
             width: 100%;
@@ -159,6 +181,7 @@
             cursor: pointer;
             transition: background-color 0.2s, transform 0.2s, opacity 0.2s;
             opacity: 0;
+            z-index: 5;
         }
         .manga-card:hover .card-delete-btn {
             opacity: 1;
@@ -346,7 +369,7 @@
         @media (max-width: 768px) {
             .container { padding: 1rem; }
             h1 { font-size: 1.8rem; }
-            #search-bar { margin-bottom: 2rem; }
+            #search-bar { margin-bottom: 0; }
             #library { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
             .modal-content { width: 95%; }
             #details-top { grid-template-columns: 1fr; text-align: center; }
@@ -369,7 +392,10 @@
         <div class="search-actions-container">
             <div class="search-bar-container">
                 <input type="search" id="search-bar" placeholder="Search title, artist, tags, ID...">
-                <button id="add-new-btn" class="action-button">Add New</button>
+                <button id="search-btn" class="search-button" title="Search">
+                    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
+                </button>
+                <button id="add-new-btn" class="action-button">+New</button>
             </div>
         </div>
         
@@ -414,7 +440,7 @@
     <div id="add-modal" class="modal">
         <div class="modal-content" style="max-width: 500px;">
              <span class="close-button" id="close-add">&times;</span>
-             <h2>Add New Manga</h2>
+             <h2>+New Manga</h2>
              <p>Enter a Manga ID, Author Name, or Author URL to queue for download.</p>
              <form id="add-form">
                  <input type="text" id="add-input" placeholder="e.g., 123456, john doe, or a URL" required>
@@ -428,9 +454,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             const library = document.getElementById('library');
             const searchBar = document.getElementById('search-bar');
+            const searchBtn = document.getElementById('search-btn');
             
             const preloadedMangaIds = new Set();
-            let debounceTimeout;
             let fullMangaList = []; 
             let currentMangaPages = [];
             let currentPageIndex = 0; 
@@ -485,14 +511,18 @@
                 }
             }
 
-            searchBar.addEventListener('input', (e) => {
-                clearTimeout(debounceTimeout);
-                debounceTimeout = setTimeout(() => {
-                    const query = e.target.value;
-                    currentPage = 1; // Reset to page 1 for new search
-                    fetchAndRender(query);
-                    updateURL(); // Update URL on search
-                }, 300);
+            function performSearch() {
+                const query = searchBar.value;
+                currentPage = 1; 
+                fetchAndRender(query);
+                updateURL();
+            }
+
+            searchBtn.addEventListener('click', performSearch);
+            searchBar.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
             });
             
             function renderCurrentPage() {
@@ -509,7 +539,11 @@
                 pageItems.forEach(manga => {
                     const card = document.createElement('div');
                     card.className = 'manga-card';
-                    const relativePath = manga.download_path.replace('/data/', '');
+                    
+                    const clickableArea = document.createElement('div');
+                    clickableArea.className = 'card-clickable-area';
+
+                    const relativePath = manga.download_path.replace('/data/', '').split('/').map(encodeURIComponent).join('/');
                     const coverPath = manga.cover_image
                         ? `/mangas/${relativePath}/${manga.cover_image}`
                         : 'https://placehold.co/200x280/2c2c2c/f0f0f0?text=No+Cover';
@@ -530,17 +564,41 @@
                         }
                     }
 
-                    card.innerHTML = `
+                    clickableArea.innerHTML = `
                         <img src="${coverPath}" alt="${manga.title}" onerror="this.onerror=null;this.src='https://placehold.co/200x280/2c2c2c/f0f0f0?text=No+Cover';">
                         <div class="manga-info">
                             <h3>${manga.title}</h3>
                             <p>${manga.author || 'Unknown Artist'} &bull; ${language}</p>
                         </div>
-                        <button class="card-delete-btn" data-id="${manga.manga_id}" title="Delete Manga">
-                            <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>
-                        </button>
-                        `;
-                    card.addEventListener('click', () => openDetailsModal(manga));
+                    `;
+                    
+                    const deleteButton = document.createElement('button');
+                    deleteButton.className = 'card-delete-btn';
+                    deleteButton.dataset.id = manga.manga_id;
+                    deleteButton.title = 'Delete Manga';
+                    deleteButton.innerHTML = `<svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>`;
+                    
+                    deleteButton.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        
+                        if (window.confirm(`Are you sure you want to delete "${manga.title}"?`)) {
+                            try {
+                                const response = await fetch(`/api/mangas/${manga.manga_id}`, { method: 'DELETE' });
+                                if (!response.ok) {
+                                    throw new Error('Server responded with an error.');
+                                }
+                                window.location.reload();
+                            } catch (error) {
+                                console.error('Failed to delete manga:', error);
+                                alert('Could not delete the manga. Please check the console for errors.');
+                            }
+                        }
+                    });
+
+                    clickableArea.addEventListener('click', () => openDetailsModal(manga));
+                    
+                    card.appendChild(clickableArea);
+                    card.appendChild(deleteButton);
                     library.appendChild(card);
                 });
             }
@@ -562,7 +620,7 @@
                         
                         btn.addEventListener('click', () => {
                             currentPage = pageNum;
-                            updateURL(); // Update URL on page change
+                            updateURL();
                             renderCurrentPage();
                             renderPaginationControls();
                             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -604,7 +662,7 @@
 
             function openDetailsModal(manga) {
                 const detailsModal = document.getElementById('details-modal');
-                const relativePath = manga.download_path.replace('/data/', '');
+                const relativePath = manga.download_path.replace('/data/', '').split('/').map(encodeURIComponent).join('/');
                 
                 document.getElementById('details-cover').src = manga.cover_image
                     ? `/mangas/${relativePath}/${manga.cover_image}`
@@ -685,7 +743,7 @@
                     return; 
                 }
 
-                const relativePath = manga.download_path.replace('/data/', '');
+                const relativePath = manga.download_path.replace('/data/', '').split('/').map(encodeURIComponent).join('/');
                 
                 for (let i = 12; i < manga.page_files.length; i++) {
                     const filename = manga.page_files[i];
@@ -700,38 +758,17 @@
 
             function openViewer(manga, startIndex = 0) {
                 if (!manga.page_files || manga.page_files.length === 0) return;
-                const relativePath = manga.download_path.replace('/data/', '');
+                const relativePath = manga.download_path.replace('/data/', '').split('/').map(encodeURIComponent).join('/');
                 currentMangaPages = manga.page_files.map(file => file ? `/mangas/${relativePath}/${file}` : null);
                 currentPageIndex = startIndex;
                 updateViewer();
                 document.getElementById('viewer-modal').style.display = 'flex';
                 preloadMangaImages(manga);
-
-                pageCounter.addEventListener('click', () => {
-                    if (currentMangaPages.length === 0) return;
-
-                    const maxPage = currentMangaPages.length;
-                    const input = prompt(`Enter page number to jump to (1 - ${maxPage}):`);
-
-                    if (input === null || input.trim() === '') {
-                        return;
-                    }
-
-                    const pageNum = parseInt(input, 10);
-
-                    if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= maxPage) {
-                        currentPageIndex = pageNum - 1;
-                        updateViewer();
-                    } else {
-                        alert('Invalid page number.');
-                    }
-                });
             }
 
             function updateViewer() {
                 if (currentMangaPages.length === 0) return;
                 const viewerImage = document.getElementById('viewer-image');
-                const pageCounter = document.getElementById('page-counter');
                 const currentPageFile = currentMangaPages[currentPageIndex];
                 viewerImage.style.display = currentPageFile ? 'block' : 'none';
                 if (currentPageFile) viewerImage.src = currentPageFile;
@@ -773,46 +810,15 @@
                     payload = { author: inputValue };
                     addStatus.textContent = 'Sending request for author URL...';
                 } else if (isOnlyIds) {
-                    const mangaIds = inputValue.split(',').map(id => parseInt(id.trim(), 10)).filter(id => !isNaN(id));
-                    if (mangaIds.length > 0) {
-                        payload = { manga_ids: mangaIds }; 
-                    }
+                    // This branch is for numeric IDs
                 } else {
                     payload = { author: inputValue };
                     addStatus.textContent = `Sending request for author: ${inputValue}...`;
                 }
 
-                if (payload.manga_ids) {
-                    let successful = 0;
-                    let failed = 0;
-                    for (const id of payload.manga_ids) {
-                        addStatus.textContent = `Queueing ID ${id}... (${successful + failed + 1}/${payload.manga_ids.length})`;
-                        try {
-                            const response = await fetch('/api/download', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ manga_id: id }),
-                            });
-                            if (!response.ok) throw new Error(`ID ${id} failed`);
-                            successful++;
-                        } catch (error) {
-                            console.error(error);
-                            failed++;
-                        }
-                        await delay(300);
-                    }
 
-                    let finalMessage = `Queued ${successful} of ${payload.manga_ids.length} manga.`;
-                    if (failed > 0) finalMessage += ` ${failed} failed.`;
-                    addStatus.textContent = finalMessage;
-                    addStatus.style.color = failed > 0 ? '#e74c3c' : 'var(--accent-color)';
-                    
-                    setTimeout(() => {
-                        addModal.style.display = 'none';
-                        fetchAndRender();
-                    }, 2500);
-                } else if (payload.author) {
-                     try {
+                if (payload.author) {
+                    try {
                         const response = await fetch('/api/download', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -828,11 +834,45 @@
                     }
                     setTimeout(() => {
                         addModal.style.display = 'none';
-                        fetchAndRender();
+                        fetchAndRender(searchBar.value.trim());
                     }, 2000);
+
                 } else {
-                    addStatus.textContent = 'Error: Invalid input.';
-                    addStatus.style.color = '#e74c3c';
+                    const mangaIds = inputValue.split(',').map(id => parseInt(id.trim(), 10)).filter(id => !isNaN(id));
+                     if (mangaIds.length === 0) {
+                        addStatus.textContent = 'Error: No valid Manga IDs found.';
+                        addStatus.style.color = '#e74c3c';
+                        return;
+                    }
+                    
+                    let successful = 0;
+                    let failed = 0;
+                    for (const id of mangaIds) {
+                        addStatus.textContent = `Queueing ID ${id}... (${successful + failed + 1}/${mangaIds.length})`;
+                        try {
+                            const response = await fetch('/api/download', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ manga_id: id }),
+                            });
+                            if (!response.ok) throw new Error(`ID ${id} failed`);
+                            successful++;
+                        } catch (error) {
+                            console.error(error);
+                            failed++;
+                        }
+                        await delay(300);
+                    }
+
+                    let finalMessage = `Queued ${successful} of ${mangaIds.length} manga.`;
+                    if (failed > 0) finalMessage += ` ${failed} failed.`;
+                    addStatus.textContent = finalMessage;
+                    addStatus.style.color = failed > 0 ? '#e74c3c' : 'var(--accent-color)';
+                    
+                    setTimeout(() => {
+                        addModal.style.display = 'none';
+                        fetchAndRender(searchBar.value.trim());
+                    }, 2500);
                 }
             });
 
@@ -841,6 +881,26 @@
             document.getElementById('prev-area').addEventListener('click', () => changePage(-1));
             document.getElementById('next-area').addEventListener('click', () => changePage(1));
             
+            pageCounter.addEventListener('click', () => {
+                if (currentMangaPages.length === 0) return;
+
+                const maxPage = currentMangaPages.length;
+                const input = prompt(`Enter page number to jump to (1 - ${maxPage}):`);
+
+                if (input === null || input.trim() === '') {
+                    return;
+                }
+
+                const pageNum = parseInt(input, 10);
+
+                if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= maxPage) {
+                    currentPageIndex = pageNum - 1;
+                    updateViewer();
+                } else {
+                    alert('Invalid page number.');
+                }
+            });
+
             document.addEventListener('keydown', (e) => {
                 const viewerModal = document.getElementById('viewer-modal');
                 if (viewerModal.style.display === 'flex') {
@@ -851,30 +911,6 @@
                     document.getElementById('details-modal').style.display = 'none';
                     viewerModal.style.display = 'none';
                     addModal.style.display = 'none';
-                }
-            });
-
-            library.addEventListener('click', async (e) => {
-                const deleteButton = e.target.closest('.card-delete-btn');
-                if (deleteButton) {
-                    e.stopPropagation(); 
-                    
-                    const mangaId = deleteButton.dataset.id;
-                    const mangaCard = deleteButton.closest('.manga-card');
-                    const mangaTitle = mangaCard.querySelector('h3').textContent;
-
-                    if (window.confirm(`Are you sure you want to delete "${mangaTitle}"?`)) {
-                        try {
-                            const response = await fetch(`/api/mangas/${mangaId}`, { method: 'DELETE' });
-                            if (!response.ok) {
-                                throw new Error('Server responded with an error.');
-                            }
-                            fetchAndRender(searchBar.value.trim()); 
-                        } catch (error) {
-                            console.error('Failed to delete manga:', error);
-                            alert('Could not delete the manga. Please check the console for errors.');
-                        }
-                    }
                 }
             });
 
