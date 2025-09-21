@@ -71,21 +71,6 @@
         .action-button:hover {
             background-color: #3aa08d;
         }
-        .action-button-delete {
-            padding: 12px 20px;
-            font-size: 1rem;
-            font-weight: bold;
-            color: white;
-            background-color: #c0392b; 
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            width: 100%; 
-        }
-        .action-button-delete:hover {
-            background-color: #e74c3c;
-        }
         #pagination-container {
             display: flex;
             justify-content: center;
@@ -127,6 +112,7 @@
             gap: 1.5rem;
         }
         .manga-card {
+            position: relative;
             background-color: var(--card-bg);
             border-radius: 8px;
             overflow: hidden;
@@ -157,6 +143,34 @@
             margin: 0;
             font-size: 0.8rem;
             opacity: 0.7;
+        }
+        .card-delete-btn {
+            position: absolute;
+            bottom: 0.5rem;
+            right: 0.5rem;
+            width: 32px;
+            height: 32px;
+            background-color: #c0392b;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s, opacity 0.2s;
+            opacity: 0;
+        }
+        .manga-card:hover .card-delete-btn {
+            opacity: 1;
+        }
+        .card-delete-btn:hover {
+            background-color: #e74c3c;
+            transform: scale(1.1);
+        }
+        .card-delete-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: white;
         }
         .modal {
             position: fixed;
@@ -301,13 +315,21 @@
             border-radius: 10px;
             z-index: 1003;
         }
-        #add-form, #delete-form {
+        #page-counter {
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.2s;
+        }
+        #page-counter:hover {
+            color: var(--accent-color);
+        }
+        #add-form {
             display: flex;
             flex-direction: column;
             gap: 1rem;
             margin-top: 1.5rem;
         }
-        #add-input, #delete-input {
+        #add-input {
             padding: 12px 15px;
             font-size: 1rem;
             color: var(--text-color);
@@ -316,7 +338,7 @@
             border-radius: 8px;
             outline: none;
         }
-        #add-status, #delete-status {
+        #add-status {
             margin-top: 1rem;
             text-align: center;
             min-height: 1.2em;
@@ -331,6 +353,12 @@
             #details-cover { max-width: 250px; margin: 0 auto; }
             #details-info h2 { font-size: 1.5rem; }
             #details-thumbnails { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+            .manga-card .card-delete-btn {
+                opacity: 1;
+            }
+            .manga-info {
+                padding-right: 40px;
+            }
         }
     </style>
 </head>
@@ -343,7 +371,6 @@
                 <input type="search" id="search-bar" placeholder="Search title, artist, tags, ID...">
                 <button id="add-new-btn" class="action-button">Add New</button>
             </div>
-            <button id="delete-btn" class="action-button-delete">Delete</button>
         </div>
         
         <div id="pagination-container"></div>
@@ -397,19 +424,6 @@
         </div>
     </div>
 
-    <div id="delete-modal" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
-             <span class="close-button" id="close-delete">&times;</span>
-             <h2>Delete Manga</h2>
-             <p>Enter the Manga ID of the item you wish to permanently delete. This action cannot be undone.</p>
-             <form id="delete-form">
-                 <input type="text" id="delete-input" placeholder="Enter one or more IDs, e.g., 123, 456" required>
-                 <button type="submit" id="delete-submit-btn" class="action-button-delete">Confirm Deletion</button>
-             </form>
-             <div id="delete-status"></div>
-        </div>
-    </div>
-
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const library = document.getElementById('library');
@@ -429,13 +443,7 @@
             const addForm = document.getElementById('add-form');
             const addInput = document.getElementById('add-input');
             const addStatus = document.getElementById('add-status');
-
-            const deleteModal = document.getElementById('delete-modal');
-            const deleteBtn = document.getElementById('delete-btn');
-            const closeDeleteBtn = document.getElementById('close-delete');
-            const deleteForm = document.getElementById('delete-form');
-            const deleteInput = document.getElementById('delete-input');
-            const deleteStatus = document.getElementById('delete-status');
+            const pageCounter = document.getElementById('page-counter');
             
             function delay(ms) {
                 return new Promise(resolve => setTimeout(resolve, ms));
@@ -505,12 +513,33 @@
                     const coverPath = manga.cover_image
                         ? `/mangas/${relativePath}/${manga.cover_image}`
                         : 'https://placehold.co/200x280/2c2c2c/f0f0f0?text=No+Cover';
+
+                    let language = 'N/A';
+                    if (manga.tags) {
+                        try {
+                            const tagsArray = JSON.parse(manga.tags);
+                            const langTag = tagsArray.find(tag =>
+                                tag.type && tag.type.toLowerCase() === 'languages' &&
+                                tag.name && tag.name.toLowerCase() !== 'translated'
+                            );
+                            if (langTag) {
+                                language = langTag.name.charAt(0).toUpperCase() + langTag.name.slice(1);
+                            }
+                        } catch (e) {
+                            console.error(`Failed to parse tags for manga ID ${manga.manga_id}:`, manga.tags);
+                        }
+                    }
+
                     card.innerHTML = `
                         <img src="${coverPath}" alt="${manga.title}" onerror="this.onerror=null;this.src='https://placehold.co/200x280/2c2c2c/f0f0f0?text=No+Cover';">
                         <div class="manga-info">
                             <h3>${manga.title}</h3>
-                            <p>${manga.author || 'Unknown Artist'}</p>
-                        </div>`;
+                            <p>${manga.author || 'Unknown Artist'} &bull; ${language}</p>
+                        </div>
+                        <button class="card-delete-btn" data-id="${manga.manga_id}" title="Delete Manga">
+                            <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>
+                        </button>
+                        `;
                     card.addEventListener('click', () => openDetailsModal(manga));
                     library.appendChild(card);
                 });
@@ -676,8 +705,27 @@
                 currentPageIndex = startIndex;
                 updateViewer();
                 document.getElementById('viewer-modal').style.display = 'flex';
-
                 preloadMangaImages(manga);
+
+                pageCounter.addEventListener('click', () => {
+                    if (currentMangaPages.length === 0) return;
+
+                    const maxPage = currentMangaPages.length;
+                    const input = prompt(`Enter page number to jump to (1 - ${maxPage}):`);
+
+                    if (input === null || input.trim() === '') {
+                        return;
+                    }
+
+                    const pageNum = parseInt(input, 10);
+
+                    if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= maxPage) {
+                        currentPageIndex = pageNum - 1;
+                        updateViewer();
+                    } else {
+                        alert('Invalid page number.');
+                    }
+                });
             }
 
             function updateViewer() {
@@ -725,14 +773,46 @@
                     payload = { author: inputValue };
                     addStatus.textContent = 'Sending request for author URL...';
                 } else if (isOnlyIds) {
+                    const mangaIds = inputValue.split(',').map(id => parseInt(id.trim(), 10)).filter(id => !isNaN(id));
+                    if (mangaIds.length > 0) {
+                        payload = { manga_ids: mangaIds }; 
+                    }
                 } else {
                     payload = { author: inputValue };
                     addStatus.textContent = `Sending request for author: ${inputValue}...`;
                 }
 
+                if (payload.manga_ids) {
+                    let successful = 0;
+                    let failed = 0;
+                    for (const id of payload.manga_ids) {
+                        addStatus.textContent = `Queueing ID ${id}... (${successful + failed + 1}/${payload.manga_ids.length})`;
+                        try {
+                            const response = await fetch('/api/download', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ manga_id: id }),
+                            });
+                            if (!response.ok) throw new Error(`ID ${id} failed`);
+                            successful++;
+                        } catch (error) {
+                            console.error(error);
+                            failed++;
+                        }
+                        await delay(300);
+                    }
 
-                if (payload.author) {
-                    try {
+                    let finalMessage = `Queued ${successful} of ${payload.manga_ids.length} manga.`;
+                    if (failed > 0) finalMessage += ` ${failed} failed.`;
+                    addStatus.textContent = finalMessage;
+                    addStatus.style.color = failed > 0 ? '#e74c3c' : 'var(--accent-color)';
+                    
+                    setTimeout(() => {
+                        addModal.style.display = 'none';
+                        fetchAndRender();
+                    }, 2500);
+                } else if (payload.author) {
+                     try {
                         const response = await fetch('/api/download', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -750,96 +830,10 @@
                         addModal.style.display = 'none';
                         fetchAndRender();
                     }, 2000);
-
                 } else {
-                    const mangaIds = inputValue.split(',').map(id => parseInt(id.trim(), 10)).filter(id => !isNaN(id));
-                     if (mangaIds.length === 0) {
-                        addStatus.textContent = 'Error: No valid Manga IDs found.';
-                        addStatus.style.color = '#e74c3c';
-                        return;
-                    }
-                    
-                    let successful = 0;
-                    let failed = 0;
-                    for (const id of mangaIds) {
-                        addStatus.textContent = `Queueing ID ${id}... (${successful + failed + 1}/${mangaIds.length})`;
-                        try {
-                            const response = await fetch('/api/download', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ manga_id: id }),
-                            });
-                            if (!response.ok) throw new Error(`ID ${id} failed`);
-                            successful++;
-                        } catch (error) {
-                            console.error(error);
-                            failed++;
-                        }
-                        await delay(300);
-                    }
-
-                    let finalMessage = `Queued ${successful} of ${mangaIds.length} manga.`;
-                    if (failed > 0) finalMessage += ` ${failed} failed.`;
-                    addStatus.textContent = finalMessage;
-                    addStatus.style.color = failed > 0 ? '#e74c3c' : 'var(--accent-color)';
-                    
-                    setTimeout(() => {
-                        addModal.style.display = 'none';
-                        fetchAndRender();
-                    }, 2500);
+                    addStatus.textContent = 'Error: Invalid input.';
+                    addStatus.style.color = '#e74c3c';
                 }
-            });
-
-            deleteBtn.addEventListener('click', () => {
-                deleteModal.style.display = 'block';
-                deleteInput.value = '';
-                deleteStatus.textContent = '';
-                deleteInput.focus();
-            });
-
-            closeDeleteBtn.addEventListener('click', () => {
-                deleteModal.style.display = 'none';
-            });
-
-            deleteForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const inputValue = deleteInput.value.trim();
-                if (!inputValue) return;
-
-                const mangaIds = inputValue.split(',').map(id => parseInt(id.trim(), 10)).filter(id => !isNaN(id));
-
-                if (mangaIds.length === 0) {
-                    deleteStatus.textContent = 'Error: No valid Manga IDs entered.';
-                    deleteStatus.style.color = '#e74c3c';
-                    return;
-                }
-
-                deleteStatus.style.color = 'var(--text-color)';
-                let successful = 0;
-                let failed = 0;
-                for (const id of mangaIds) {
-                    deleteStatus.textContent = `Deleting ID ${id}... (${successful + failed + 1}/${mangaIds.length})`;
-                    try {
-                        const response = await fetch(`/api/mangas/${id}`, { method: 'DELETE' });
-                        if (!response.ok) throw new Error(`ID ${id} failed`);
-                        successful++;
-                    } catch (error) {
-                        console.error(error);
-                        failed++;
-                    }
-                    await delay(300); 
-                }
-                
-                let finalMessage = `Deleted ${successful} of ${mangaIds.length} manga.`;
-                if (failed > 0) finalMessage += ` ${failed} failed.`;
-                
-                deleteStatus.textContent = finalMessage;
-                deleteStatus.style.color = failed > 0 ? '#e74c3c' : 'var(--accent-color)';
-
-                setTimeout(() => {
-                    deleteModal.style.display = 'none';
-                    fetchAndRender();
-                }, 2500);
             });
 
             document.getElementById('close-details').addEventListener('click', () => { document.getElementById('details-modal').style.display = 'none'; });
@@ -857,7 +851,30 @@
                     document.getElementById('details-modal').style.display = 'none';
                     viewerModal.style.display = 'none';
                     addModal.style.display = 'none';
-                    deleteModal.style.display = 'none'; 
+                }
+            });
+
+            library.addEventListener('click', async (e) => {
+                const deleteButton = e.target.closest('.card-delete-btn');
+                if (deleteButton) {
+                    e.stopPropagation(); 
+                    
+                    const mangaId = deleteButton.dataset.id;
+                    const mangaCard = deleteButton.closest('.manga-card');
+                    const mangaTitle = mangaCard.querySelector('h3').textContent;
+
+                    if (window.confirm(`Are you sure you want to delete "${mangaTitle}"?`)) {
+                        try {
+                            const response = await fetch(`/api/mangas/${mangaId}`, { method: 'DELETE' });
+                            if (!response.ok) {
+                                throw new Error('Server responded with an error.');
+                            }
+                            fetchAndRender(searchBar.value.trim()); 
+                        } catch (error) {
+                            console.error('Failed to delete manga:', error);
+                            alert('Could not delete the manga. Please check the console for errors.');
+                        }
+                    }
                 }
             });
 
