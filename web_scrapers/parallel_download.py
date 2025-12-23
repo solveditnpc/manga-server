@@ -45,7 +45,7 @@ def safe_format_filename(name: str) -> str:
         return ''
     
     sanitized_name = re.sub(r'[<>:"/\\|?*]', '', name).strip()
-    return sanitized_name[:255]
+    return sanitized_name[:230]
 
 def calculate_optimal_concurrency(total_pages: int) -> int:
     if total_pages <= 25:
