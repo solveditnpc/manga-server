@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,37 +13,43 @@
             --accent-color: #5a9;
             --tag-bg: #444;
         }
+
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             margin: 0;
         }
+
         .container {
             max-width: 1400px;
             margin: 0 auto;
             padding: 2rem;
         }
+
         h1 {
             text-align: center;
             color: var(--accent-color);
             margin-bottom: 1rem;
         }
+
         .search-actions-container {
             display: flex;
-            flex-direction: column; 
+            flex-direction: column;
             max-width: 800px;
             margin: 0 auto 2.5rem auto;
-            gap: 0.75rem; 
+            gap: 0.75rem;
         }
+
         .search-bar-container {
             display: flex;
             align-items: center;
             gap: 1rem;
         }
+
         #search-bar {
             flex-grow: 1;
-            margin: 0; 
+            margin: 0;
             padding: 12px 15px;
             font-size: 1rem;
             color: var(--text-color);
@@ -52,11 +59,14 @@
             outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
+
         #search-bar:focus {
             border-color: var(--accent-color);
             box-shadow: 0 0 0 3px rgba(85, 170, 153, 0.5);
         }
-        .action-button, .search-button {
+
+        .action-button,
+        .search-button {
             padding: 12px;
             height: 48px;
             font-size: 1rem;
@@ -71,66 +81,88 @@
             align-items: center;
             justify-content: center;
         }
+
         .action-button {
-            background-color: #2a8c7a; 
+            background-color: #2a8c7a;
             padding-left: 20px;
             padding-right: 20px;
         }
+
         .action-button:hover {
             background-color: #3aa08d;
         }
+
         .search-button {
-            background-color: var(--accent-color); 
+            background-color: var(--accent-color);
             width: 48px;
         }
+
         .search-button:hover {
             background-color: #6bb9a9;
         }
+
         .search-button svg {
             width: 24px;
             height: 24px;
             fill: white;
         }
-        #pagination-container {
+
+        /* --- NEW PAGINATION STYLES --- */
+        .pagination-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
+            gap: 5px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
         }
-        .page-btn {
+
+        .pagination-btn {
             background-color: var(--card-bg);
             color: var(--text-color);
-            border: 1px solid var(--tag-bg);
-            padding: 8px 14px;
-            border-radius: 5px;
+            border: 1px solid #444;
+            padding: 8px 12px;
+            border-radius: 4px;
             cursor: pointer;
-            transition: background-color 0.2s;
-            font-size: 0.9rem;
+            transition: background 0.2s;
+            min-width: 40px;
+            text-align: center;
         }
-        .page-btn:hover:not(:disabled) {
-            background-color: var(--tag-bg);
+
+        .pagination-btn:hover {
+            background-color: #444;
         }
-        .page-btn.active {
+
+        .pagination-btn.active {
             background-color: var(--accent-color);
-            color: var(--bg-color);
-            font-weight: bold;
+            color: #fff;
             border-color: var(--accent-color);
+            font-weight: bold;
         }
-        .page-btn:disabled {
+
+        .pagination-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
-        .page-ellipsis {
-            padding: 8px 5px;
-            color: var(--tag-bg);
+
+        .pagination-ellipsis {
+            color: #888;
+            padding: 0 5px;
+            font-size: 1.2rem;
         }
+
+        .sort-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
         #library {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 1.5rem;
         }
+
         .manga-card {
             position: relative;
             background-color: var(--card-bg);
@@ -138,22 +170,27 @@
             overflow: hidden;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
+
         .manga-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
         }
+
         .card-clickable-area {
             cursor: pointer;
         }
+
         .manga-card img {
             width: 100%;
             height: 280px;
             object-fit: cover;
             display: block;
         }
+
         .manga-info {
             padding: 1rem;
         }
+
         .manga-info h3 {
             margin: 0 0 0.5rem;
             font-size: 1rem;
@@ -161,11 +198,13 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+
         .manga-info p {
             margin: 0;
             font-size: 0.8rem;
             opacity: 0.7;
         }
+
         .card-delete-btn {
             position: absolute;
             bottom: 0.5rem;
@@ -183,18 +222,22 @@
             opacity: 0;
             z-index: 5;
         }
+
         .manga-card:hover .card-delete-btn {
             opacity: 1;
         }
+
         .card-delete-btn:hover {
             background-color: #e74c3c;
             transform: scale(1.1);
         }
+
         .card-delete-btn svg {
             width: 16px;
             height: 16px;
             fill: white;
         }
+
         .modal {
             position: fixed;
             top: 0;
@@ -206,6 +249,7 @@
             z-index: 1000;
             overflow-y: auto;
         }
+
         .modal-content {
             position: relative;
             margin: 5% auto;
@@ -213,6 +257,7 @@
             width: 80%;
             max-width: 1100px;
         }
+
         .close-button {
             position: fixed;
             top: 15px;
@@ -222,20 +267,76 @@
             cursor: pointer;
             z-index: 1005;
         }
+
         #details-top {
             display: grid;
             grid-template-columns: 300px 1fr;
             gap: 2rem;
             margin-bottom: 2rem;
         }
+
+        .like-controls {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            padding: 2px;
+            z-index: 10;
+        }
+
+        .like-controls button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s;
+        }
+
+        .like-controls button:hover {
+            transform: scale(1.2);
+        }
+
+        .like-controls span {
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+            min-width: 20px;
+            text-align: center;
+            margin: 0 2px;
+        }
+
+        .like-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: #e74c3c;
+        }
+
+        .unlike-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: #95a5a6;
+        }
+
+        .unlike-btn:hover svg {
+            fill: #c0392b;
+        }
+
         #details-cover {
             width: 100%;
             border-radius: 8px;
         }
+
         #details-info h2 {
             margin-top: 0;
             font-size: 1.8rem;
         }
+
         .manga-id-display {
             background-color: var(--tag-bg);
             color: var(--accent-color);
@@ -248,14 +349,17 @@
             margin-bottom: 1rem;
             user-select: none;
         }
+
         #details-tags .tag-group {
             margin-bottom: 1rem;
         }
+
         .tag-group-title {
             font-weight: bold;
             margin-right: 8px;
             opacity: 0.8;
         }
+
         #details-tags .tag {
             display: inline-block;
             background-color: var(--tag-bg);
@@ -264,20 +368,24 @@
             font-size: 0.9rem;
             margin: 2px;
         }
+
         #details-thumbnails {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 1rem;
         }
+
         #details-thumbnails img {
             width: 100%;
             border-radius: 5px;
             cursor: pointer;
             transition: opacity 0.2s;
         }
+
         #details-thumbnails img:hover {
             opacity: 0.8;
         }
+
         .missing-page {
             width: 100%;
             height: 100%;
@@ -291,6 +399,7 @@
             color: #888;
             aspect-ratio: 150 / 210;
         }
+
         #viewer-modal .modal-content {
             padding: 0;
             margin: 0;
@@ -299,6 +408,7 @@
             max-width: 100vw;
             background: none;
         }
+
         #viewer-content {
             position: relative;
             width: 100%;
@@ -307,11 +417,13 @@
             justify-content: center;
             align-items: center;
         }
+
         #viewer-image {
             max-width: 100vw;
             max-height: 100vh;
             object-fit: contain;
         }
+
         .nav-area {
             position: absolute;
             top: 0;
@@ -320,14 +432,17 @@
             z-index: 1002;
             -webkit-tap-highlight-color: transparent;
         }
+
         #prev-area {
             left: 0;
             cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>'), auto;
         }
+
         #next-area {
             right: 0;
             cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>'), auto;
         }
+
         #viewer-nav {
             position: fixed;
             bottom: 10px;
@@ -338,20 +453,24 @@
             border-radius: 10px;
             z-index: 1003;
         }
+
         #page-counter {
             cursor: pointer;
             user-select: none;
             transition: color 0.2s;
         }
+
         #page-counter:hover {
             color: var(--accent-color);
         }
+
         #add-form {
             display: flex;
             flex-direction: column;
             gap: 1rem;
             margin-top: 1.5rem;
         }
+
         #add-input {
             padding: 12px 15px;
             font-size: 1rem;
@@ -361,30 +480,64 @@
             border-radius: 8px;
             outline: none;
         }
+
         #add-status {
             margin-top: 1rem;
             text-align: center;
             min-height: 1.2em;
         }
+
         @media (max-width: 768px) {
-            .container { padding: 1rem; }
-            h1 { font-size: 1.8rem; }
-            #search-bar { margin-bottom: 0; }
-            #library { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
-            .modal-content { width: 95%; }
-            #details-top { grid-template-columns: 1fr; text-align: center; }
-            #details-cover { max-width: 250px; margin: 0 auto; }
-            #details-info h2 { font-size: 1.5rem; }
-            #details-thumbnails { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            #search-bar {
+                margin-bottom: 0;
+            }
+
+            #library {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 1rem;
+            }
+
+            .modal-content {
+                width: 95%;
+            }
+
+            #details-top {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            #details-cover {
+                max-width: 250px;
+                margin: 0 auto;
+            }
+
+            #details-info h2 {
+                font-size: 1.5rem;
+            }
+
+            #details-thumbnails {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+
             .manga-card .card-delete-btn {
                 opacity: 1;
             }
+
             .manga-info {
                 padding-right: 40px;
             }
         }
     </style>
 </head>
+
 <body>
 
     <div class="container">
@@ -393,15 +546,27 @@
             <div class="search-bar-container">
                 <input type="search" id="search-bar" placeholder="Search title, artist, tags, ID...">
                 <button id="search-btn" class="search-button" title="Search">
-                    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z">
+                        </path>
+                    </svg>
                 </button>
                 <button id="add-new-btn" class="action-button">+New</button>
             </div>
+
+            <div class="sort-container">
+                <button id="sort-btn" class="action-button" style="background-color: #2c3e50; min-width: 140px;">
+                    Sort: Date 📅
+                </button>
+            </div>
         </div>
-        
-        <div id="pagination-container"></div>
+
+        <div id="pagination-top" class="pagination-container"></div>
 
         <div id="library"></div>
+
+        <div id="pagination-bottom" class="pagination-container"></div>
     </div>
 
     <div id="details-modal" class="modal">
@@ -439,14 +604,14 @@
 
     <div id="add-modal" class="modal">
         <div class="modal-content" style="max-width: 500px;">
-             <span class="close-button" id="close-add">&times;</span>
-             <h2>+New Manga</h2>
-             <p>Enter a Manga ID, Author Name, or Author URL to queue for download.</p>
-             <form id="add-form">
-                 <input type="text" id="add-input" placeholder="e.g., 123456, john doe, or a URL" required>
-                 <button type="submit" id="add-submit-btn" class="action-button">Queue Download</button>
-             </form>
-             <div id="add-status"></div>
+            <span class="close-button" id="close-add">&times;</span>
+            <h2>+New Manga</h2>
+            <p>Enter a Manga ID, Author Name, or Author URL to queue for download.</p>
+            <form id="add-form">
+                <input type="text" id="add-input" placeholder="e.g., 123456, john doe, or a URL" required>
+                <button type="submit" id="add-submit-btn" class="action-button">Queue Download</button>
+            </form>
+            <div id="add-status"></div>
         </div>
     </div>
 
@@ -455,13 +620,17 @@
             const library = document.getElementById('library');
             const searchBar = document.getElementById('search-bar');
             const searchBtn = document.getElementById('search-btn');
-            
+            const sortBtn = document.getElementById('sort-btn');
+
             const preloadedMangaIds = new Set();
-            let fullMangaList = []; 
             let currentMangaPages = [];
-            let currentPageIndex = 0; 
+            let currentPageIndex = 0;
+
+            // Server-side State
             let currentPage = 1;
-            const itemsPerPage = 24;
+            let currentSort = 'date'; // 'date' or 'likes'
+            let totalPages = 1;
+            let currentSearch = '';
 
             const addModal = document.getElementById('add-modal');
             const addNewBtn = document.getElementById('add-new-btn');
@@ -470,52 +639,73 @@
             const addInput = document.getElementById('add-input');
             const addStatus = document.getElementById('add-status');
             const pageCounter = document.getElementById('page-counter');
-            
+
             function delay(ms) {
                 return new Promise(resolve => setTimeout(resolve, ms));
             }
 
             function updateURL() {
-                const query = searchBar.value.trim();
                 const params = new URLSearchParams(window.location.search);
-                if (query) {
-                    params.set('q', query);
+                if (currentSearch) {
+                    params.set('q', currentSearch);
                 } else {
                     params.delete('q');
                 }
-                
+
                 if (currentPage > 1) {
                     params.set('page', currentPage);
                 } else {
                     params.delete('page');
                 }
 
+                if (currentSort !== 'date') {
+                    params.set('sort', currentSort);
+                } else {
+                    params.delete('sort');
+                }
+
                 const newUrl = `${window.location.pathname}?${params.toString()}`;
                 window.history.pushState({ path: newUrl }, '', newUrl);
             }
 
-            async function fetchAndRender(query = '') {
-                const apiUrl = query.trim()
-                    ? `/api/search?q=${encodeURIComponent(query)}`
-                    : '/api/mangas';
+            // --- MAIN FETCH FUNCTION (Server-Side Pagination) ---
+            async function fetchAndRender() {
+                library.innerHTML = '<p style="text-align:center; margin-top:50px;">Loading...</p>';
+
+                // Construct URL with params for server
+                const params = new URLSearchParams({
+                    page: currentPage,
+                    q: currentSearch,
+                    sort: currentSort
+                });
+
                 try {
-                    const response = await fetch(apiUrl);
-                    fullMangaList = await response.json();
-                    
-                    renderCurrentPage();
+                    const response = await fetch(`/api/mangas?${params.toString()}`);
+                    if (!response.ok) throw new Error('Network response was not ok');
+
+                    const data = await response.json();
+
+                    // Update State
+                    totalPages = data.total_pages;
+                    const mangaList = data.mangas;
+
+                    renderMangas(mangaList);
                     renderPaginationControls();
+                    updateURL();
+
                 } catch (error) {
                     console.error('Failed to fetch mangas:', error);
                     library.innerHTML = '<p style="text-align:center;">Failed to load library.</p>';
-                    document.getElementById('pagination-container').innerHTML = '';
+                    // Clear pagination
+                    document.getElementById('pagination-top').innerHTML = '';
+                    document.getElementById('pagination-bottom').innerHTML = '';
                 }
             }
 
             function performSearch() {
-                const query = searchBar.value;
-                currentPage = 1; 
-                fetchAndRender(query);
-                updateURL();
+                currentSearch = searchBar.value.trim();
+                currentPage = 1; // Reset to page 1
+                fetchAndRender();
             }
 
             searchBtn.addEventListener('click', performSearch);
@@ -524,22 +714,96 @@
                     performSearch();
                 }
             });
-            
-            function renderCurrentPage() {
+
+            // Sort Button Logic
+            sortBtn.addEventListener('click', () => {
+                if (currentSort === 'date') {
+                    currentSort = 'likes';
+                    sortBtn.textContent = "Sort: Likes 🔥";
+                    sortBtn.style.backgroundColor = "#e74c3c"; // Red
+                } else {
+                    currentSort = 'date';
+                    sortBtn.textContent = "Sort: Date 📅";
+                    sortBtn.style.backgroundColor = "#2c3e50"; // Blue/Grey
+                }
+                currentPage = 1; // Reset to page 1
+                fetchAndRender();
+            });
+
+            // --- RENDER MANGAS ---
+            function renderMangas(mangaList) {
                 library.innerHTML = '';
-                if (fullMangaList.length === 0) {
+                if (!mangaList || mangaList.length === 0) {
                     library.innerHTML = '<p style="text-align:center;">No results found.</p>';
                     return;
                 }
 
-                const startIndex = (currentPage - 1) * itemsPerPage;
-                const endIndex = startIndex + itemsPerPage;
-                const pageItems = fullMangaList.slice(startIndex, endIndex);
-
-                pageItems.forEach(manga => {
+                mangaList.forEach(manga => {
                     const card = document.createElement('div');
                     card.className = 'manga-card';
-                    
+
+                    // --- Control Panel (Like - Count - Unlike) ---
+                    const controls = document.createElement('div');
+                    controls.className = 'like-controls';
+
+                    const currentCount = manga.like_count || 0;
+
+                    // 1. Like Button
+                    const likeBtn = document.createElement('button');
+                    likeBtn.className = 'like-btn';
+                    likeBtn.title = "Add Like";
+                    likeBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+
+                    // 2. Count Display
+                    const countSpan = document.createElement('span');
+                    countSpan.textContent = currentCount;
+
+                    // 3. Unlike Button
+                    const unlikeBtn = document.createElement('button');
+                    unlikeBtn.className = 'unlike-btn';
+                    unlikeBtn.title = "Remove Like";
+                    unlikeBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/></svg>`;
+
+                    // --- Event Listener: LIKE ---
+                    likeBtn.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        let val = parseInt(countSpan.textContent);
+                        countSpan.textContent = val + 1;
+
+                        try {
+                            const res = await fetch(`/api/mangas/${manga.manga_id}/like`, { method: 'POST' });
+                            const data = await res.json();
+                            countSpan.textContent = data.like_count;
+                            manga.like_count = data.like_count;
+                        } catch (err) {
+                            console.error('Error liking:', err);
+                            countSpan.textContent = val;
+                        }
+                    });
+
+                    // --- Event Listener: UNLIKE ---
+                    unlikeBtn.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        let val = parseInt(countSpan.textContent);
+                        if (val > 0) {
+                            countSpan.textContent = val - 1;
+                            try {
+                                const res = await fetch(`/api/mangas/${manga.manga_id}/unlike`, { method: 'POST' });
+                                const data = await res.json();
+                                countSpan.textContent = data.like_count;
+                                manga.like_count = data.like_count;
+                            } catch (err) {
+                                console.error('Error unliking:', err);
+                                countSpan.textContent = val;
+                            }
+                        }
+                    });
+
+                    controls.appendChild(likeBtn);
+                    controls.appendChild(countSpan);
+                    controls.appendChild(unlikeBtn);
+                    // -----------------------------------------------------
+
                     const clickableArea = document.createElement('div');
                     clickableArea.className = 'card-clickable-area';
 
@@ -571,99 +835,111 @@
                             <p>${manga.author || 'Unknown Artist'} &bull; ${language}</p>
                         </div>
                     `;
-                    
+
                     const deleteButton = document.createElement('button');
                     deleteButton.className = 'card-delete-btn';
                     deleteButton.dataset.id = manga.manga_id;
                     deleteButton.title = 'Delete Manga';
                     deleteButton.innerHTML = `<svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>`;
-                    
+
                     deleteButton.addEventListener('click', async (e) => {
                         e.stopPropagation();
-                        
                         if (window.confirm(`Are you sure you want to delete "${manga.title}"?`)) {
                             try {
                                 const response = await fetch(`/api/mangas/${manga.manga_id}`, { method: 'DELETE' });
-                                if (!response.ok) {
-                                    throw new Error('Server responded with an error.');
-                                }
+                                if (!response.ok) throw new Error('Server responded with an error.');
                                 window.location.reload();
                             } catch (error) {
                                 console.error('Failed to delete manga:', error);
-                                alert('Could not delete the manga. Please check the console for errors.');
+                                alert('Could not delete the manga.');
                             }
                         }
                     });
 
                     clickableArea.addEventListener('click', () => openDetailsModal(manga));
-                    
+
                     card.appendChild(clickableArea);
+                    card.appendChild(controls);
                     card.appendChild(deleteButton);
                     library.appendChild(card);
                 });
             }
 
+            // --- RENDER PAGINATION (Sliding Window) ---
             function renderPaginationControls() {
-                const paginationContainer = document.getElementById('pagination-container');
-                paginationContainer.innerHTML = '';
-                const totalPages = Math.ceil(fullMangaList.length / itemsPerPage);
+                const containers = [
+                    document.getElementById('pagination-top'),
+                    document.getElementById('pagination-bottom')
+                ];
 
-                if (totalPages <= 1) return;
+                containers.forEach(pagination => {
+                    if (!pagination) return;
+                    pagination.innerHTML = '';
 
-                function createButton(text, pageNum) {
-                    const btn = document.createElement('button');
-                    btn.className = 'page-btn';
-                    btn.textContent = text;
-                    if (pageNum) {
-                        btn.dataset.page = pageNum;
-                        if (pageNum === currentPage) btn.classList.add('active');
-                        
-                        btn.addEventListener('click', () => {
-                            currentPage = pageNum;
-                            updateURL();
-                            renderCurrentPage();
-                            renderPaginationControls();
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                        });
+                    if (totalPages <= 1) return;
+
+                    // 1. Previous Button
+                    const prevBtn = document.createElement('button');
+                    prevBtn.className = 'pagination-btn';
+                    prevBtn.textContent = '«';
+                    prevBtn.disabled = currentPage === 1;
+                    prevBtn.onclick = () => changePage(currentPage - 1);
+                    pagination.appendChild(prevBtn);
+
+                    // 2. Sliding Window Logic
+                    let startPage = currentPage;
+                    let endPage = currentPage + 4;
+
+                    if (endPage > totalPages) {
+                        endPage = totalPages;
+                        startPage = Math.max(1, totalPages - 4);
                     }
-                    return btn;
-                }
-                
-                const prevBtn = createButton('Prev', currentPage > 1 ? currentPage - 1 : null);
-                if (currentPage === 1) prevBtn.disabled = true;
-                paginationContainer.appendChild(prevBtn);
 
-                const pageRange = 2;
-                let addedStartEllipsis = false;
-                let addedEndEllipsis = false;
-
-                for (let i = 1; i <= totalPages; i++) {
-                    if (i === 1 || i === totalPages || (i >= currentPage - pageRange && i <= currentPage + pageRange)) {
-                        paginationContainer.appendChild(createButton(i, i));
-                    } else if (i < currentPage && !addedStartEllipsis) {
-                        const ellipsis = document.createElement('span');
-                        ellipsis.className = 'page-ellipsis';
-                        ellipsis.textContent = '...';
-                        paginationContainer.appendChild(ellipsis);
-                        addedStartEllipsis = true;
-                    } else if (i > currentPage && !addedEndEllipsis) {
-                        const ellipsis = document.createElement('span');
-                        ellipsis.className = 'page-ellipsis';
-                        ellipsis.textContent = '...';
-                        paginationContainer.appendChild(ellipsis);
-                        addedEndEllipsis = true;
+                    for (let i = startPage; i <= endPage; i++) {
+                        const btn = document.createElement('button');
+                        btn.className = `pagination-btn ${i === currentPage ? 'active' : ''}`;
+                        btn.textContent = i;
+                        btn.onclick = () => changePage(i);
+                        pagination.appendChild(btn);
                     }
-                }
-                
-                const nextBtn = createButton('Next', currentPage < totalPages ? currentPage + 1 : null);
-                if (currentPage === totalPages) nextBtn.disabled = true;
-                paginationContainer.appendChild(nextBtn);
+
+                    // 3. Ellipsis and Last Page
+                    if (endPage < totalPages) {
+                        const ellipsis = document.createElement('span');
+                        ellipsis.className = 'pagination-ellipsis';
+                        ellipsis.textContent = '...';
+                        pagination.appendChild(ellipsis);
+
+                        const lastBtn = document.createElement('button');
+                        lastBtn.className = 'pagination-btn';
+                        lastBtn.textContent = totalPages;
+                        lastBtn.onclick = () => changePage(totalPages);
+                        pagination.appendChild(lastBtn);
+                    }
+
+                    // 4. Next Button
+                    const nextBtn = document.createElement('button');
+                    nextBtn.className = 'pagination-btn';
+                    nextBtn.textContent = '»';
+                    nextBtn.disabled = currentPage === totalPages;
+                    nextBtn.onclick = () => changePage(currentPage + 1);
+                    pagination.appendChild(nextBtn);
+                });
             }
 
+            function changePage(newPage) {
+                if (newPage >= 1 && newPage <= totalPages) {
+                    currentPage = newPage;
+                    fetchAndRender();
+                    window.scrollTo(0, 0);
+                }
+            }
+
+            // --- MODAL & VIEWER FUNCTIONS (Unchanged logic) ---
             function openDetailsModal(manga) {
                 const detailsModal = document.getElementById('details-modal');
                 const relativePath = manga.download_path.replace('/data/', '').split('/').map(encodeURIComponent).join('/');
-                
+
                 document.getElementById('details-cover').src = manga.cover_image
                     ? `/mangas/${relativePath}/${manga.cover_image}`
                     : 'https://placehold.co/300x420/2c2c2c/f0f0f0?text=No+Cover';
@@ -737,23 +1013,20 @@
                 }
                 detailsModal.style.display = 'block';
             }
-            
+
             function preloadMangaImages(manga) {
                 if (!manga.page_files || preloadedMangaIds.has(manga.manga_id)) {
-                    return; 
+                    return;
                 }
-
                 const relativePath = manga.download_path.replace('/data/', '').split('/').map(encodeURIComponent).join('/');
-                
                 for (let i = 12; i < manga.page_files.length; i++) {
                     const filename = manga.page_files[i];
                     if (filename) {
-                        const img = new Image(); 
-                        img.src = `/mangas/${relativePath}/${filename}`; 
+                        const img = new Image();
+                        img.src = `/mangas/${relativePath}/${filename}`;
                     }
                 }
-                
-                preloadedMangaIds.add(manga.manga_id); 
+                preloadedMangaIds.add(manga.manga_id);
             }
 
             function openViewer(manga, startIndex = 0) {
@@ -777,7 +1050,7 @@
                     : `Page ${currentPageIndex + 1} is Missing`;
             }
 
-            function changePage(direction) {
+            function changeImageInViewer(direction) {
                 const newIndex = currentPageIndex + direction;
                 if (newIndex >= 0 && newIndex < currentMangaPages.length) {
                     currentPageIndex = newIndex;
@@ -803,19 +1076,17 @@
 
                 addStatus.style.color = 'var(--text-color)';
                 let payload = {};
-                
                 const isOnlyIds = /^[0-9\s,]+$/.test(inputValue);
 
                 if (inputValue.startsWith('http')) {
                     payload = { author: inputValue };
                     addStatus.textContent = 'Sending request for author URL...';
                 } else if (isOnlyIds) {
-                    // This branch is for numeric IDs
+                    // Numeric IDs logic
                 } else {
                     payload = { author: inputValue };
                     addStatus.textContent = `Sending request for author: ${inputValue}...`;
                 }
-
 
                 if (payload.author) {
                     try {
@@ -834,17 +1105,17 @@
                     }
                     setTimeout(() => {
                         addModal.style.display = 'none';
-                        fetchAndRender(searchBar.value.trim());
+                        fetchAndRender(); // Refresh current view
                     }, 2000);
 
                 } else {
                     const mangaIds = inputValue.split(',').map(id => parseInt(id.trim(), 10)).filter(id => !isNaN(id));
-                     if (mangaIds.length === 0) {
+                    if (mangaIds.length === 0) {
                         addStatus.textContent = 'Error: No valid Manga IDs found.';
                         addStatus.style.color = '#e74c3c';
                         return;
                     }
-                    
+
                     let successful = 0;
                     let failed = 0;
                     for (const id of mangaIds) {
@@ -868,31 +1139,25 @@
                     if (failed > 0) finalMessage += ` ${failed} failed.`;
                     addStatus.textContent = finalMessage;
                     addStatus.style.color = failed > 0 ? '#e74c3c' : 'var(--accent-color)';
-                    
+
                     setTimeout(() => {
                         addModal.style.display = 'none';
-                        fetchAndRender(searchBar.value.trim());
+                        fetchAndRender(); // Refresh current view
                     }, 2500);
                 }
             });
 
             document.getElementById('close-details').addEventListener('click', () => { document.getElementById('details-modal').style.display = 'none'; });
             document.getElementById('close-viewer').addEventListener('click', () => { document.getElementById('viewer-modal').style.display = 'none'; });
-            document.getElementById('prev-area').addEventListener('click', () => changePage(-1));
-            document.getElementById('next-area').addEventListener('click', () => changePage(1));
-            
+            document.getElementById('prev-area').addEventListener('click', () => changeImageInViewer(-1));
+            document.getElementById('next-area').addEventListener('click', () => changeImageInViewer(1));
+
             pageCounter.addEventListener('click', () => {
                 if (currentMangaPages.length === 0) return;
-
                 const maxPage = currentMangaPages.length;
                 const input = prompt(`Enter page number to jump to (1 - ${maxPage}):`);
-
-                if (input === null || input.trim() === '') {
-                    return;
-                }
-
+                if (input === null || input.trim() === '') return;
                 const pageNum = parseInt(input, 10);
-
                 if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= maxPage) {
                     currentPageIndex = pageNum - 1;
                     updateViewer();
@@ -904,8 +1169,8 @@
             document.addEventListener('keydown', (e) => {
                 const viewerModal = document.getElementById('viewer-modal');
                 if (viewerModal.style.display === 'flex') {
-                    if (e.key === 'ArrowLeft') changePage(-1);
-                    if (e.key === 'ArrowRight') changePage(1);
+                    if (e.key === 'ArrowLeft') changeImageInViewer(-1);
+                    if (e.key === 'ArrowRight') changeImageInViewer(1);
                 }
                 if (e.key === 'Escape') {
                     document.getElementById('details-modal').style.display = 'none';
@@ -916,17 +1181,23 @@
 
             function initializeApp() {
                 const params = new URLSearchParams(window.location.search);
-                const query = params.get('q') || '';
-                const page = parseInt(params.get('page'), 10) || 1;
+                currentSearch = params.get('q') || '';
+                currentPage = parseInt(params.get('page'), 10) || 1;
+                currentSort = params.get('sort') || 'date';
 
-                searchBar.value = query;
-                currentPage = page;
-                
-                fetchAndRender(query);
+                searchBar.value = currentSearch;
+
+                if (currentSort === 'likes') {
+                    sortBtn.textContent = "Sort: Likes 🔥";
+                    sortBtn.style.backgroundColor = "#e74c3c";
+                }
+
+                fetchAndRender();
             }
 
             initializeApp();
         });
     </script>
 </body>
+
 </html>

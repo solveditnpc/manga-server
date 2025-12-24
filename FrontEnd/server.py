@@ -7,6 +7,10 @@ from flask import Flask, jsonify, render_template, send_from_directory, request
 import database
 
 app = Flask(__name__)
+
+print("Checking database schema...")
+database.init_db()
+
 MANGA_ROOT = '/data'
 
 SCRAPER_API_URL = 'http://web-scraper:5002/api/queue'
@@ -77,22 +81,6 @@ def download_manga_request():
 def index():
     return render_template('index.html')
 
-@app.route('/api/mangas')
-def get_mangas():
-    mangas = database.get_all_mangas_with_tags()
-    return jsonify(_add_file_details(mangas))
-
-@app.route('/api/search')
-def search_mangas():
-    query = request.args.get('q', '').strip()
-
-    if not query:
-        return get_mangas()
-
-    search_terms = [term for term in query.split() if term]
-    mangas = database.search_mangas_by_query(search_terms)
-    return jsonify(_add_file_details(mangas))
-
 @app.route('/api/mangas/<int:manga_id>', methods=['DELETE'])
 def delete_manga(manga_id):
     manga_info = database.delete_manga_by_id(manga_id)
@@ -120,9 +108,38 @@ def delete_manga(manga_id):
 
     return jsonify({"message": message}), 200
 
+@app.route('/api/mangas/<int:manga_id>/like', methods=['POST'])
+def like_manga(manga_id):
+    new_count = database.increment_like(manga_id)
+    return jsonify({"manga_id": manga_id, "like_count": new_count})
+
+@app.route('/api/mangas/<int:manga_id>/unlike', methods=['POST'])
+def unlike_manga(manga_id):
+    new_count = database.decrement_like(manga_id)
+    return jsonify({"manga_id": manga_id, "like_count": new_count})
+
 @app.route('/mangas/<path:filename>')
 def serve_manga_file(filename):
     return send_from_directory(MANGA_ROOT, filename)
+
+@app.route('/api/mangas')
+def get_mangas_route():
+    page = request.args.get('page', 1, type=int)
+    search_query = request.args.get('q', '').strip()
+    sort_mode = request.args.get('sort', 'date') 
+    
+    search_terms = [t for t in search_query.split() if t] if search_query else None
+    
+    result = database.get_mangas_paginated(
+        page=page, 
+        limit=24, 
+        search_terms=search_terms, 
+        sort_by=sort_mode
+    )
+    
+    result['mangas'] = _add_file_details(result['mangas'])
+    
+    return jsonify(result)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001)

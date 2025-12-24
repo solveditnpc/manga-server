@@ -53,6 +53,17 @@ def init_db():
     )
     ''')
 
+    cursor.execute("PRAGMA table_info(mangas)")
+    columns = [info['name'] for info in cursor.fetchall()]
+
+    if 'like_count' not in columns:
+        print("Migration: Adding missing 'like_count' column...")
+        try:
+            cursor.execute("ALTER TABLE mangas ADD COLUMN like_count INTEGER DEFAULT 0")
+            print("Migration successful.")
+        except Exception as e:
+            print(f"Migration failed: {e}")
+
     conn.commit()
     conn.close()
     print("Database initialized successfully.")
@@ -64,54 +75,6 @@ def manga_exists(manga_id: int) -> bool:
     exists = cursor.fetchone() is not None
     conn.close()
     return exists
-
-def add_manga(manga_data: dict):
-    if manga_exists(manga_data['manga_id']):
-        print(f"Manga ID {manga_data['manga_id']} already in database. Skipping.")
-        return
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    try:
-        cursor.execute('''
-        INSERT INTO mangas (manga_id, title, url, author, total_pages, upload_date, download_path, download_timestamp)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            manga_data['manga_id'],
-            manga_data['title'],
-            manga_data['url'],
-            manga_data.get('author'),
-            manga_data.get('total_pages'),
-            manga_data.get('upload_date'),
-            manga_data.get('download_path'),
-            datetime.now().isoformat()
-        ))
-        manga_auto_id = cursor.lastrowid
-
-        for tag_type, tag_list in manga_data.get('tags', {}).items():
-            for tag_name in tag_list:
-                cursor.execute("SELECT id FROM tags WHERE name = ? AND type = ?", (tag_name, tag_type))
-                tag_row = cursor.fetchone()
-                if tag_row:
-                    tag_id = tag_row['id']
-                else:
-                    cursor.execute("INSERT INTO tags (name, type) VALUES (?, ?)", (tag_name, tag_type))
-                    tag_id = cursor.lastrowid
-                
-                cursor.execute("INSERT INTO manga_tags (manga_auto_id, tag_id) VALUES (?, ?)", (manga_auto_id, tag_id))
-        
-        conn.commit()
-        print(f"Successfully added manga ID {manga_data['manga_id']} to the database.")
-
-    except sqlite3.IntegrityError as e:
-        print(f"Database integrity error for manga ID {manga_data['manga_id']}: {e}")
-        conn.rollback()
-    except Exception as e:
-        print(f"An error occurred while adding manga ID {manga_data['manga_id']}: {e}")
-        conn.rollback()
-    finally:
-        conn.close()
 
 def delete_manga_by_id(manga_id: int) -> dict:
     conn = get_db_connection()
@@ -145,94 +108,101 @@ def delete_manga_by_id(manga_id: int) -> dict:
     finally:
         conn.close()
 
-def update_manga_download_path(manga_id: int, download_path: str):
-    if not download_path:
-        print(f"No download path provided for manga ID {manga_id}. Skipping update.")
-        return
-
+def increment_like(manga_id: int) -> int:
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute('''
-        UPDATE mangas
-        SET download_path = ?
-        WHERE manga_id = ?
-        ''', (download_path, manga_id))
+        cursor.execute("UPDATE mangas SET like_count = like_count + 1 WHERE manga_id = ?", (manga_id,))
         conn.commit()
-        print(f"Successfully updated download path for manga ID {manga_id} to: {download_path}")
+        
+        cursor.execute("SELECT like_count FROM mangas WHERE manga_id = ?", (manga_id,))
+        row = cursor.fetchone()
+        return row['like_count'] if row else 0
     except Exception as e:
-        print(f"An error occurred while updating download path for manga ID {manga_id}: {e}")
-        conn.rollback()
+        print(f"Error incrementing like: {e}")
+        return 0
     finally:
         conn.close()
 
-def get_all_mangas_with_tags() -> list:
+def decrement_like(manga_id: int) -> int:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE mangas SET like_count = like_count - 1 WHERE manga_id = ? AND like_count > 0", (manga_id,))
+        conn.commit()
+        
+        cursor.execute("SELECT like_count FROM mangas WHERE manga_id = ?", (manga_id,))
+        row = cursor.fetchone()
+        return row['like_count'] if row else 0
+    except Exception as e:
+        print(f"Error decrementing like: {e}")
+        return 0
+    finally:
+        conn.close()
+
+def get_mangas_paginated(page=1, limit=24, search_terms=None, sort_by='date'):
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    query = """
+    offset = (page - 1) * limit
+    
+    if search_terms:
+        base_search_query = """
+        SELECT id FROM mangas WHERE title LIKE ? OR author LIKE ? OR CAST(manga_id AS TEXT) LIKE ?
+        UNION
+        SELECT manga_auto_id FROM manga_tags
+        JOIN tags ON manga_tags.tag_id = tags.id
+        WHERE tags.name LIKE ?
+        """
+        intersect_query = " INTERSECT ".join([base_search_query] * len(search_terms))
+        
+        params = []
+        for term in search_terms:
+            like_term = f'%{term}%'
+            params.extend([like_term, like_term, like_term, like_term])
+            
+        where_clause = f"AND m.id IN ({intersect_query})"
+    else:
+        where_clause = ""
+        params = []
+
+    if sort_by == 'likes':
+        order_clause = "ORDER BY m.like_count DESC, m.manga_id DESC"
+    else:
+        order_clause = "ORDER BY m.download_timestamp DESC"
+
+    count_query = f"SELECT COUNT(*) FROM mangas m WHERE m.download_path IS NOT NULL {where_clause}"
+    cursor.execute(count_query, params)
+    total_items = cursor.fetchone()[0]
+
+    data_query = f"""
     SELECT
         m.manga_id,
         m.title,
         m.author,
         m.total_pages,
         m.download_path,
-        (
-            SELECT json_group_array(json_object('type', t.type, 'name', t.name))
-            FROM manga_tags mt
-            JOIN tags t ON mt.tag_id = t.id
-            WHERE mt.manga_auto_id = m.id
-        ) AS tags
-    FROM mangas AS m
-    WHERE m.download_path IS NOT NULL
-    ORDER BY m.download_timestamp DESC
-    """
-    
-    cursor.execute(query)
-    mangas = [dict(row) for row in cursor.fetchall()]
-    conn.close()
-    return mangas
-
-def search_mangas_by_query(search_terms: list) -> list:
-    if not search_terms:
-        return []
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    base_search_query = """
-    SELECT id FROM mangas WHERE title LIKE ? OR author LIKE ? OR CAST(manga_id AS TEXT) LIKE ?
-    UNION
-    SELECT manga_auto_id FROM manga_tags
-    JOIN tags ON manga_tags.tag_id = tags.id
-    WHERE tags.name LIKE ?
-    """
-
-    intersect_query = " INTERSECT ".join([base_search_query] * len(search_terms))
-
-    params = []
-    for term in search_terms:
-        like_term = f'%{term}%'
-        params.extend([like_term, like_term, like_term, like_term])
-
-    final_query = f"""
-    SELECT
-        m.manga_id,
-        m.title,
-        m.author,
-        m.total_pages,
-        m.download_path,
+        m.like_count,
         (
             SELECT json_group_array(json_object('type', t.type, 'name', t.name))
             FROM manga_tags mt JOIN tags t ON mt.tag_id = t.id
             WHERE mt.manga_auto_id = m.id
         ) AS tags
     FROM mangas AS m
-    WHERE m.download_path IS NOT NULL AND m.id IN ({intersect_query})
-    ORDER BY m.download_timestamp DESC
+    WHERE m.download_path IS NOT NULL {where_clause}
+    {order_clause}
+    LIMIT ? OFFSET ?
     """
     
-    cursor.execute(final_query, params)
+    params.extend([limit, offset])
+    
+    cursor.execute(data_query, params)
     mangas = [dict(row) for row in cursor.fetchall()]
     conn.close()
-    return mangas
+    
+    return {
+        "mangas": mangas,
+        "total_items": total_items,
+        "total_pages": (total_items + limit - 1) // limit,
+        "current_page": page
+    }
