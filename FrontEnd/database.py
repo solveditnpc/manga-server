@@ -147,57 +147,111 @@ def get_mangas_paginated(page=1, limit=24, search_terms=None, sort_by='date'):
     offset = (page - 1) * limit
     
     if search_terms:
-        base_search_query = """
-        SELECT id FROM mangas WHERE title LIKE ? OR author LIKE ? OR CAST(manga_id AS TEXT) LIKE ?
-        UNION
-        SELECT manga_auto_id FROM manga_tags
-        JOIN tags ON manga_tags.tag_id = tags.id
-        WHERE tags.name LIKE ?
-        """
-        intersect_query = " INTERSECT ".join([base_search_query] * len(search_terms))
-        
-        params = []
+        cleaned_terms = []
         for term in search_terms:
-            like_term = f'%{term}%'
-            params.extend([like_term, like_term, like_term, like_term])
+            if isinstance(term, str):
+                cleaned_terms.extend(term.split())
+        if not cleaned_terms:
+            cleaned_terms = search_terms
             
-        where_clause = f"AND m.id IN ({intersect_query})"
-    else:
-        where_clause = ""
+        expanded_terms = list(cleaned_terms) 
+        if len(cleaned_terms) > 1:
+            combo = "".join(cleaned_terms)
+            expanded_terms.append(combo)
+            for i in range(len(cleaned_terms) - 1):
+                bigram = cleaned_terms[i] + cleaned_terms[i+1]
+                if bigram not in expanded_terms:
+                    expanded_terms.append(bigram)
+
+        final_search_terms = list(set(expanded_terms))
+
+        term_queries = []
         params = []
+        
+        single_term_query = """
+            SELECT * FROM (
+                SELECT id FROM mangas 
+                WHERE title LIKE ? 
+                   OR author LIKE ? 
+                   OR CAST(manga_id AS TEXT) LIKE ?
+                   OR REPLACE(title, ' ', '') LIKE ? 
+                   OR REPLACE(author, ' ', '') LIKE ?
+                UNION
+                SELECT manga_auto_id FROM manga_tags 
+                JOIN tags ON manga_tags.tag_id = tags.id 
+                WHERE tags.name LIKE ?
+                   OR REPLACE(tags.name, ' ', '') LIKE ?
+            )
+        """
+        
+        for term in final_search_terms:
+            term_queries.append(single_term_query)
+            like_term = f'%{term}%'
+            params.extend([like_term] * 7)
+            
+        full_union_query = " UNION ALL ".join(term_queries)
+        
+        cte_sql = f"""
+            WITH match_scores AS (
+                SELECT id, COUNT(*) as score 
+                FROM (
+                    {full_union_query}
+                ) 
+                GROUP BY id
+            )
+        """
+        
+        count_query = f"{cte_sql} SELECT COUNT(*) FROM match_scores"
+        cursor.execute(count_query, params)
+        total_items = cursor.fetchone()[0]
+        
+        if sort_by == 'likes':
+            secondary_sort = "m.like_count DESC, m.download_timestamp DESC"
+        else:
+            secondary_sort = "m.download_timestamp DESC"
 
-    if sort_by == 'likes':
-        order_clause = "ORDER BY m.like_count DESC, m.manga_id DESC"
+        data_query = f"""
+            {cte_sql}
+            SELECT 
+                m.manga_id, m.title, m.author, m.total_pages, m.download_path, m.like_count,
+                (SELECT json_group_array(json_object('type', t.type, 'name', t.name))
+                 FROM manga_tags mt JOIN tags t ON mt.tag_id = t.id
+                 WHERE mt.manga_auto_id = m.id) AS tags,
+                s.score
+            FROM mangas m
+            JOIN match_scores s ON m.id = s.id
+            ORDER BY s.score DESC, {secondary_sort}
+            LIMIT ? OFFSET ?
+        """
+        
+        cursor.execute(data_query, params + [limit, offset])
+        mangas = [dict(row) for row in cursor.fetchall()]
+
     else:
-        order_clause = "ORDER BY m.download_timestamp DESC"
+        params = []
+        if sort_by == 'likes':
+            order_clause = "ORDER BY m.like_count DESC, m.download_timestamp DESC"
+        else:
+            order_clause = "ORDER BY m.download_timestamp DESC"
 
-    count_query = f"SELECT COUNT(*) FROM mangas m WHERE m.download_path IS NOT NULL {where_clause}"
-    cursor.execute(count_query, params)
-    total_items = cursor.fetchone()[0]
+        count_query = "SELECT COUNT(*) FROM mangas WHERE download_path IS NOT NULL"
+        cursor.execute(count_query)
+        total_items = cursor.fetchone()[0]
 
-    data_query = f"""
-    SELECT
-        m.manga_id,
-        m.title,
-        m.author,
-        m.total_pages,
-        m.download_path,
-        m.like_count,
-        (
-            SELECT json_group_array(json_object('type', t.type, 'name', t.name))
-            FROM manga_tags mt JOIN tags t ON mt.tag_id = t.id
-            WHERE mt.manga_auto_id = m.id
-        ) AS tags
-    FROM mangas AS m
-    WHERE m.download_path IS NOT NULL {where_clause}
-    {order_clause}
-    LIMIT ? OFFSET ?
-    """
-    
-    params.extend([limit, offset])
-    
-    cursor.execute(data_query, params)
-    mangas = [dict(row) for row in cursor.fetchall()]
+        data_query = f"""
+            SELECT 
+                m.manga_id, m.title, m.author, m.total_pages, m.download_path, m.like_count,
+                (SELECT json_group_array(json_object('type', t.type, 'name', t.name))
+                 FROM manga_tags mt JOIN tags t ON mt.tag_id = t.id
+                 WHERE mt.manga_auto_id = m.id) AS tags
+            FROM mangas m
+            WHERE m.download_path IS NOT NULL
+            {order_clause}
+            LIMIT ? OFFSET ?
+        """
+        cursor.execute(data_query, [limit, offset])
+        mangas = [dict(row) for row in cursor.fetchall()]
+
     conn.close()
     
     return {
