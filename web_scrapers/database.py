@@ -55,6 +55,17 @@ def init_db():
     )
     ''')
 
+    cursor.execute("PRAGMA table_info(mangas)")
+    columns = [info['name'] for info in cursor.fetchall()]
+
+    if 'like_count' not in columns:
+        print("Migration: Adding missing 'like_count' column...")
+        try:
+            cursor.execute("ALTER TABLE mangas ADD COLUMN like_count INTEGER DEFAULT 0")
+            print("Migration successful.")
+        except Exception as e:
+            print(f"Migration failed: {e}")
+
     conn.commit()
     conn.close()
     print("Database initialized successfully.")
