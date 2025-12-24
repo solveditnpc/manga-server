@@ -622,7 +622,6 @@
             const searchBtn = document.getElementById('search-btn');
             const sortBtn = document.getElementById('sort-btn');
 
-            const preloadedMangaIds = new Set();
             let currentMangaPages = [];
             let currentPageIndex = 0;
 
@@ -719,11 +718,11 @@
             sortBtn.addEventListener('click', () => {
                 if (currentSort === 'date') {
                     currentSort = 'likes';
-                    sortBtn.textContent = "Sort: Likes 🔥";
+                    sortBtn.textContent = "Sort: Likes 櫨";
                     sortBtn.style.backgroundColor = "#e74c3c"; // Red
                 } else {
                     currentSort = 'date';
-                    sortBtn.textContent = "Sort: Date 📅";
+                    sortBtn.textContent = "Sort: Date 套";
                     sortBtn.style.backgroundColor = "#2c3e50"; // Blue/Grey
                 }
                 currentPage = 1; // Reset to page 1
@@ -1014,19 +1013,24 @@
                 detailsModal.style.display = 'block';
             }
 
-            function preloadMangaImages(manga) {
-                if (!manga.page_files || preloadedMangaIds.has(manga.manga_id)) {
-                    return;
-                }
-                const relativePath = manga.download_path.replace('/data/', '').split('/').map(encodeURIComponent).join('/');
-                for (let i = 12; i < manga.page_files.length; i++) {
-                    const filename = manga.page_files[i];
-                    if (filename) {
+            function preloadNearbyPages(currentIndex) {
+                const range = 5;
+
+                for (let i = 1; i <= range; i++) {
+                    const nextIndex = currentIndex + i;
+                    if (nextIndex < currentMangaPages.length && currentMangaPages[nextIndex]) {
                         const img = new Image();
-                        img.src = `/mangas/${relativePath}/${filename}`;
+                        img.src = currentMangaPages[nextIndex];
                     }
                 }
-                preloadedMangaIds.add(manga.manga_id);
+
+                for (let i = 1; i <= range; i++) {
+                    const prevIndex = currentIndex - i;
+                    if (prevIndex >= 0 && currentMangaPages[prevIndex]) {
+                        const img = new Image();
+                        img.src = currentMangaPages[prevIndex];
+                    }
+                }
             }
 
             function openViewer(manga, startIndex = 0) {
@@ -1034,17 +1038,24 @@
                 const relativePath = manga.download_path.replace('/data/', '').split('/').map(encodeURIComponent).join('/');
                 currentMangaPages = manga.page_files.map(file => file ? `/mangas/${relativePath}/${file}` : null);
                 currentPageIndex = startIndex;
-                updateViewer();
+                
+                updateViewer(); // This will trigger the smart preload
                 document.getElementById('viewer-modal').style.display = 'flex';
-                preloadMangaImages(manga);
             }
 
             function updateViewer() {
                 if (currentMangaPages.length === 0) return;
                 const viewerImage = document.getElementById('viewer-image');
                 const currentPageFile = currentMangaPages[currentPageIndex];
+                
                 viewerImage.style.display = currentPageFile ? 'block' : 'none';
-                if (currentPageFile) viewerImage.src = currentPageFile;
+                
+                if (currentPageFile) {
+                    viewerImage.src = currentPageFile;
+                    // NEW: Trigger the sliding window preload here
+                    preloadNearbyPages(currentPageIndex); 
+                }
+                
                 pageCounter.textContent = currentPageFile
                     ? `${currentPageIndex + 1} / ${currentMangaPages.length}`
                     : `Page ${currentPageIndex + 1} is Missing`;
@@ -1188,7 +1199,7 @@
                 searchBar.value = currentSearch;
 
                 if (currentSort === 'likes') {
-                    sortBtn.textContent = "Sort: Likes 🔥";
+                    sortBtn.textContent = "Sort: Likes 櫨";
                     sortBtn.style.backgroundColor = "#e74c3c";
                 }
 
