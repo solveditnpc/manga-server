@@ -718,11 +718,11 @@
             sortBtn.addEventListener('click', () => {
                 if (currentSort === 'date') {
                     currentSort = 'likes';
-                    sortBtn.textContent = "Sort: Likes 櫨";
+                    sortBtn.textContent = "Sort: Likes いいね順";
                     sortBtn.style.backgroundColor = "#e74c3c"; // Red
                 } else {
                     currentSort = 'date';
-                    sortBtn.textContent = "Sort: Date 套";
+                    sortBtn.textContent = "Sort: Date 年月日";
                     sortBtn.style.backgroundColor = "#2c3e50"; // Blue/Grey
                 }
                 currentPage = 1; // Reset to page 1
@@ -1199,7 +1199,7 @@
                 searchBar.value = currentSearch;
 
                 if (currentSort === 'likes') {
-                    sortBtn.textContent = "Sort: Likes 櫨";
+                    sortBtn.textContent = "Sort: Likes いいね順";
                     sortBtn.style.backgroundColor = "#e74c3c";
                 }
 
