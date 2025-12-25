@@ -20,4 +20,4 @@ services:
       - ./mangas:/data
       - ./sqlite:/database
     ports:
-      - "5003:5003"
+      - "3000:3000"
