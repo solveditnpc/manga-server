@@ -7,10 +7,17 @@ services:
     user: "1000:1000"
     ports:
       - "5002:5002"
-  frontend:
-    build: ./FrontEnd
+  server:
+    build: ./server
     volumes:
       - ./mangas:/data
       - ./sqlite:/database
     ports:
       - "5001:5001"
+  frontend:
+    build: ./frontend
+    volumes:
+      - ./mangas:/data
+      - ./sqlite:/database
+    ports:
+      - "5003:5003"
