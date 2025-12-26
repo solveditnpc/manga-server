@@ -1,26 +1,128 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--font-sans: var(--font-geist-sans);
+	--font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+
 }
 
+/* ===============================
+   Ink Noir — Muted Accent Theme
+   =============================== */
+
+:root {
+	/* Core cards */
+	--background: #0a0b0e;
+	--card: #101016 ;
+	--card-hover: #181a23;
+	--border: #181a25;
+    --border-lighter: #3a3f58;
+
+	/* Typography */
+	--text-primary: #e6e7eb;
+	--text-secondary: #a1a1b3;
+	--text-muted: #6f7285;
+
+	/* Muted Accents */
+	--accent: #802828;
+	--focus: #5f7d8a;
+	--highlight: #8f8a6a;
+
+	/* Reader Overrides */
+	--reader-background: #08090c;
+	--reader-text: #dadce3;
+}
+
+/* ===== Base Defaults ===== */
+
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+	background-color: var(--background);
+	color: var(--text-primary);
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ===== Foreground Utilities ===== */
+
+.fg-primary {
+	color: var(--text-primary);
+}
+
+.fg-secondary {
+	color: var(--text-secondary);
+}
+
+.fg-muted {
+	color: var(--text-muted);
+}
+
+.fg-accent {
+	color: var(--accent);
+}
+
+.fg-highlight {
+	color: var(--highlight);
+}
+
+/* ===== Background Utilities ===== */
+
+.bg-background {
+	background-color: var(--background);
+}
+
+.bg-card {
+	background-color: var(--card);
+}
+
+.bg-card-hover {
+	background-color: var(--card-hover);
+}
+
+.bg-accent {
+	background-color: var(--accent);
+}
+
+.bg-reader {
+	background-color: var(--reader-background);
+}
+
+/* ===== Border Utilities ===== */
+
+.border-default {
+	border-color: var(--border);
+}
+
+.border-lighter {
+    border-color: var(--border-lighter);
+}
+
+.border-accent {
+	border-color: var(--accent);
+}
+
+/* ===== Interactive States ===== */
+
+.hover-card:hover {
+	background-color: var(--card-hover);
+}
+
+.focus-ring:focus-visible {
+	outline: 1px solid var(--focus);
+	outline-offset: 2px;
+}
+
+/* ===== Reader Scope ===== */
+
+.reader {
+	background-color: var(--reader-background);
+	color: var(--reader-text);
+}
+
+.reader .fg-muted {
+	color: var(--text-muted);
 }
