@@ -1,5 +1,5 @@
 "use client";
-import Tooltip from "@/components/ui/Tooltip";
+import { Input, Button, Tooltip } from "@/components/ui";
 import { ReactNode } from "react";
 import { useState } from "react";
 import Cookies from "js-cookie";
@@ -35,52 +35,48 @@ export default function AuthForm() {
     <form className="space-y-4" onSubmit={handleSubmit}>
       {/* Username */}
       <div className="space-y-1.5">
-        <label className="text-sm fg-secondary flex items-center">
+        <label
+          htmlFor="username"
+          className="text-sm fg-secondary flex items-center"
+        >
           Username
           <Tooltip message={TOOLTIP_MSG.username} />
         </label>
 
-        <input
+        <Input
           id="username"
           type="text"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
-          className="w-full rounded-md bg-background border border-default px-3 py-2 fg-primary focus-ring"
+          className="bg-background"
         />
       </div>
 
       {/* Password */}
       <div className="space-y-1.5">
-        <label className="text-sm fg-secondary flex items-center">
+        <label
+          htmlFor="password"
+          className="text-sm fg-secondary flex items-center"
+        >
           Password
           <Tooltip message={TOOLTIP_MSG.password} />
         </label>
 
-        <input
+        <Input
           id="password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="w-full rounded-md bg-background border border-default px-3 py-2 fg-primary focus-ring"
+          className="bg-background"
         />
       </div>
 
       {/* Submit */}
-      <button
-        type="submit"
-        className="
-              w-full rounded-md
-              bg-accent
-              fg-primary
-              py-2
-              text-sm font-medium
-              focus-ring
-            "
-      >
+      <Button type="submit" variant="primary" className="w-full">
         Continue
-      </button>
+      </Button>
     </form>
   );
 }
