@@ -36,9 +36,20 @@ The web scraper is responsible for fetching manga from nhentai.xxx. Open a termi
 docker compose up web-scraper
 ```
 
-This command will build the Docker image for the scraper and start the service. You can leave this terminal running to see the scraper's logs.
+This command will build the Docker image for the scraper and start the service at `port 5002` . You can leave this terminal running to see the scraper's logs.
+ 
+### 4. Start the Server Service
 
-### 4. Start the Frontend Service
+Once the scraper is running, open a **new** terminal in the same directory and start the frontend service:
+
+```bash
+docker compose up server
+```
+
+This will build and start the web server at `port 5001`
+> This port is also temporarily serving a web-interface. Functional until frontend work is not stable.
+
+### 5. Start the Frontend Service
 
 Once the scraper is running, open a **new** terminal in the same directory and start the frontend service:
 
@@ -46,21 +57,21 @@ Once the scraper is running, open a **new** terminal in the same directory and s
 docker compose up frontend
 ```
 
-This will build and start the web interface.
+This will build and start the web interface at `port 3000`
 
-### 4.1. You can also run scripts in the background to repair any mangas that are missing any pages
+### 6. You can also run scripts in the background to repair any mangas that are missing any pages
 TO do this , instead of running docker compose up web-scraper ,run the below 
 ```bash 
 docker compose  up web-scraper python repairing_manga.py 
 ```
 
-### 5. Access the Web Interface
+### 7. Access the Web Interface
 
 After the frontend service has started, you can access the web interface by opening your browser and navigating to:
 
 [http://localhost:5001](http://localhost:5001)
 
-In order to access from a different device on teh same network, replace localhost with the ip address of the machine running the server.(192.x.x.x:5001)
+In order to access from a different device on teh same network, replace localhost with the ip address of the machine running the server.(192.x.x.x:3000)
 
 From the web interface, you can queue downloads and view your manga collection.
 This implementation is ready for hosting for public.(adjust the number of cores in docker-compose.yml to match your server's capabilities and link to a domain)
