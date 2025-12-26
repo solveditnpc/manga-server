@@ -2,7 +2,6 @@ import os
 import sys
 import platform
 import subprocess
-import getpass
 
 # --- Configuration ---
 DOCKER_COMPOSE_FILE = 'docker-compose.yml'
@@ -26,7 +25,7 @@ def print_status(message, is_ok):
     print(f"  -> {message}: [{status}]")
 
 def check_command(command_parts):
-    """Checks if a command (as a list of parts) exists on the system's PATH."""
+    """Checks if a command exists on the system's PATH."""
     try:
         subprocess.run(command_parts, check=True, capture_output=True)
         return True
@@ -36,7 +35,7 @@ def check_command(command_parts):
 def get_user_ids():
     """Gets UID and GID for the current user on Unix-like systems."""
     system = platform.system()
-    if system == "Linux" or system == "Darwin": # Darwin is macOS
+    if system == "Linux" or system == "Darwin": 
         try:
             uid = os.getuid()
             gid = os.getgid()
@@ -51,80 +50,89 @@ def get_user_ids():
 # --- Main Check Functions ---
 
 def check_docker_installed():
-    """Checks for Docker and Docker Compose, provides installation instructions if missing."""
+    """Checks for Docker and Docker Compose."""
     print_header("Checking Docker Installation")
     
     is_docker_ok = check_command(['docker', '--version'])
     print_status("Docker Engine", is_docker_ok)
     
-    # NEW: Check for Docker Compose (v2)
     is_compose_ok = check_command(['docker', 'compose', 'version'])
     print_status("Docker Compose", is_compose_ok)
 
     if not is_docker_ok or not is_compose_ok:
-        print(f"\n{BColors.FAIL}Docker Engine or Docker Compose is not installed or not in the system's PATH.{BColors.ENDC}")
-        print("Modern Docker installations include Docker Compose. Please follow the official guide for your OS.")
-        system = platform.system()
-        if system == "Linux":
-            print("Please download and install Docker Desktop for linux from the official website:")
-            print(f"{BColors.OKBLUE}https://docs.docker.com/desktop/setup/install/linux/{BColors.ENDC}")
-        elif system == "Darwin":
-            print("Please download and install Docker Desktop for Mac from the official website:")
-            print(f"{BColors.OKBLUE}https://docs.docker.com/desktop/setup/install/mac-install/{BColors.ENDC}")
-        elif system == "Windows":
-            print("Please download and install Docker Desktop for Windows from the official website:")
-            print(f"{BColors.OKBLUE}https://docs.docker.com/desktop/setup/install/windows-install/{BColors.ENDC}")
+        print(f"\n{BColors.FAIL}Docker Engine or Docker Compose is not installed.{BColors.ENDC}")
         sys.exit(1)
 
 def update_docker_compose_file():
-    """Updates the docker-compose.yml file with the current user's ID."""
+    """Updates the docker-compose.yml file with the current user's ID for all services."""
     print_header("Updating Docker Compose File")
     if not os.path.exists(DOCKER_COMPOSE_FILE):
-        print(f"{BColors.FAIL}Error: '{DOCKER_COMPOSE_FILE}' not found. Cannot proceed.{BColors.ENDC}")
+        print(f"{BColors.FAIL}Error: '{DOCKER_COMPOSE_FILE}' not found.{BColors.ENDC}")
         sys.exit(1)
 
     user_id_str = get_user_ids()
     new_lines = []
-    updated = False
+    updated_count = 0
+    
+    # Services that need the user permission set (because they mount volumes)
+    target_services = ['web-scraper:', 'server:', 'frontend:']
+    current_service = None
 
     with open(DOCKER_COMPOSE_FILE, 'r') as f:
         lines = f.readlines()
 
-    in_scraper_service = False
     for line in lines:
-        if "web-scraper:" in line:
-            in_scraper_service = True
-        elif in_scraper_service and (not line.startswith(' ') and not line.strip() == ""):
-            in_scraper_service = False
+        stripped = line.strip()
         
-        if in_scraper_service and "user:" in line:
+        # Detect which service block we are in
+        if stripped in target_services:
+            current_service = stripped
+            new_lines.append(line)
+            continue
+        
+        # Detect end of a service block (dedent) or start of another root key
+        if current_service and (line.startswith('services:') or (not line.startswith(' ') and stripped != '')):
+            current_service = None
+
+        # Check for user line within a target service
+        if current_service and stripped.startswith('user:'):
             new_user_line = f'    user: "{user_id_str}"\n'
-            if line.strip() != new_user_line.strip():
+            if line != new_user_line:
                 new_lines.append(new_user_line)
-                updated = True
+                updated_count += 1
             else:
                 new_lines.append(line)
         else:
             new_lines.append(line)
             
-    if updated:
+    if updated_count > 0:
         with open(DOCKER_COMPOSE_FILE, 'w') as f:
             f.writelines(new_lines)
-        print(f"  -> {BColors.OKGREEN}Updated 'user' in web-scraper service to '{user_id_str}'.{BColors.ENDC}")
+        print(f"  -> {BColors.OKGREEN}Updated 'user' to '{user_id_str}' for {updated_count} services.{BColors.ENDC}")
     else:
-        print(f"  -> {BColors.OKGREEN}User ID is already correctly set.{BColors.ENDC}")
-
+        print(f"  -> {BColors.OKGREEN}User IDs are already correctly set in {DOCKER_COMPOSE_FILE}.{BColors.ENDC}")
 
 def check_project_structure():
-    """Checks and creates necessary directories and files."""
+    """Checks and creates necessary directories based on the new architecture."""
     print_header("Verifying Project Structure")
 
-    # Check directories
-    directories = ['./mangas', './sqlite', './FrontEnd', './web_scrapers']
-    for path in directories:
+    # Defined based on your ls -R output
+    required_directories = [
+        './mangas', 
+        './sqlite', 
+        './server',        # Backend
+        './frontend',      # New Frontend
+        './web_scrapers'   # Scraper logic
+    ]
+
+    for path in required_directories:
         if not os.path.isdir(path):
-            os.makedirs(path)
-            print(f"  -> Created directory: {path}")
+            # Only create data directories. Code directories should exist via git.
+            if path in ['./mangas', './sqlite']:
+                os.makedirs(path)
+                print(f"  -> Created directory: {path}")
+            else:
+                print(f"  -> {BColors.WARNING}Warning: Code directory '{path}' missing. You might need to 'git pull'.{BColors.ENDC}")
         else:
             print(f"  -> Directory exists: {path}")
 
@@ -137,16 +145,14 @@ def check_project_structure():
     else:
         print(f"  -> File exists: {queue_file}")
 
-    print(f"  -> {BColors.OKGREEN}Project structure is OK.{BColors.ENDC}")
-
+    print(f"  -> {BColors.OKGREEN}Project structure check complete.{BColors.ENDC}")
 
 def main():
-    """Main function to run all checks."""
     print(f"{BColors.HEADER}{BColors.BOLD}=== Project Setup & Sanity Check ==={BColors.ENDC}")
     check_docker_installed()
     update_docker_compose_file()
     check_project_structure()
-    print(f"\n{BColors.OKGREEN}{BColors.BOLD}Setup complete. You are ready to run 'docker compose build' and 'docker compose up frontend' and 'docker compose up web-scraper'!{BColors.ENDC}")
+    print(f"\n{BColors.OKGREEN}{BColors.BOLD}Setup complete. Ready to run 'docker compose up --build'.{BColors.ENDC}")
 
 if __name__ == "__main__":
     main()
