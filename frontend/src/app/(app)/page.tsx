@@ -1,5 +1,5 @@
 import LoginLogoutButton from "@/features/auth/components/LoginLogoutButton";
-
+import MangaCard from "@/components/dashboard/MangaCard";
 export default function HomePage() {
   return (
     <main className="min-h-screen flex items-center justify-center">
@@ -20,6 +20,20 @@ export default function HomePage() {
 
         {/* Action */}
         <LoginLogoutButton className="w-full" />
+        {/* Manga Card */}
+
+        <div className="flex flex-col gap-2">
+          <p>Sample Card :</p>
+          <MangaCard
+            id="1"
+            title="Naruto"
+            author="Masashi Kishimoto"
+            coverUrl="/thumbnail-sample.jpg"
+            language="English"
+            href="/"
+            likes={10}
+          />
+        </div>
       </div>
     </main>
   );
