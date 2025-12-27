@@ -1,26 +1,19 @@
-import MangaCard from "@/components/dashboard/MangaCard";
+"use client";
+import {
+  MangaCard,
+  PaginationControls,
+  ContinueReadingSection,
+} from "@/components/dashboard";
 import mockMangas from "../../../mockData/mangas.json";
+import { useState } from "react";
 
 export default function DashboardPage() {
-  const continueMangas = mockMangas.mangas;
   const allMangas = [...mockMangas.mangas, ...mockMangas.mangas];
-
+  const [page, setPage] = useState(1);
   return (
     <main className="max-w-screen mx-auto px-4 py-8 space-y-8">
       {/* Continue Reading */}
-      <section className="space-y-4">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold fg-primary">Continue Reading</h2>
-        </div>
-
-        {/* Horizontal list */}
-        <div className="flex gap-4 overflow-x-auto pb-2">
-          {continueMangas.map((manga) => (
-            <MangaCard key={manga.id} {...manga} href="#" />
-          ))}
-        </div>
-      </section>
+      <ContinueReadingSection />
 
       {/* Separator */}
       <div className=" w-full border-t-2 border-default" />
@@ -42,13 +35,21 @@ export default function DashboardPage() {
           "
         >
           {allMangas.map((manga, i) => (
-            <MangaCard key={i} {...manga} href="#" />
+            <MangaCard key={i} {...manga} href={"#" /*`/manga/${manga.id}`*/} />
           ))}
         </div>
       </section>
 
-      {/* Pagination */}
-      <div className="flex justify-center">{/* Pagination goes here */}</div>
+      {/* Pagination Controls*/}
+      <div className="flex justify-center">
+        <PaginationControls
+          currentPage={page}
+          totalPages={50}
+          onPageChange={(page) => {
+            setPage(page);
+          }}
+        />
+      </div>
     </main>
   );
 }

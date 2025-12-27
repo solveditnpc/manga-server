@@ -5,7 +5,7 @@ import APP_CONFIG from "@/config/app.config";
 import Link from "next/link";
 export default function Header() {
   return (
-    <header className="sticky top-0 z-40 bg-background border-b border-default">
+    <header className="fixed w-full top-0 z-40 bg-background border-b border-default">
       <div className="max-w-6xl mx-auto h-14 px-4 grid grid-cols-3 items-center">
         {/* Left: App Name */}
         <Link

@@ -10,7 +10,7 @@ function layout({
   return (
     <div className="h-screen flex flex-col bg-background">
       <Header />
-      {children}
+      <div className="mt-10">{children}</div>
       <Footer />
     </div>
   );
