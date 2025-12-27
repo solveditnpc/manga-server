@@ -1,5 +1,6 @@
 import LoginLogoutButton from "@/features/auth/components/LoginLogoutButton";
-import MangaCard from "@/components/dashboard/MangaCard";
+import { Button } from "@/components/ui";
+import Link from "next/link";
 export default function HomePage() {
   return (
     <main className="min-h-screen flex items-center justify-center">
@@ -17,23 +18,14 @@ export default function HomePage() {
           This is a simple manga reading site. Browse chapters, read
           comfortably, and keep track of what you like.
         </p>
-
-        {/* Action */}
-        <LoginLogoutButton className="w-full" />
         {/* Manga Card */}
 
-        <div className="flex flex-col gap-2">
-          <p>Sample Card :</p>
-          <MangaCard
-            id="1"
-            title="Naruto"
-            author="Masashi Kishimoto"
-            coverUrl="/thumbnail-sample.jpg"
-            language="English"
-            href="/"
-            likes={10}
-          />
-        </div>
+        <Link href="/browse">
+          <Button className="w-full mb-5" variant="primary">Browse Manga</Button>
+        </Link>
+
+        {/* Action */}
+        <LoginLogoutButton className="w-full " />
       </div>
     </main>
   );
