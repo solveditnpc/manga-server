@@ -31,7 +31,8 @@ export default function Avatar() {
         className="
           pointer-events-none
           absolute
-          right-0
+          right-1/2
+          translate-x-1/2
           mt-2
           opacity-0
           translate-y-1

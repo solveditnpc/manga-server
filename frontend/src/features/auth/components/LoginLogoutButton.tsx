@@ -13,7 +13,7 @@ function LoginLogoutButton({ className }: { className?: string }) {
   };
 
   return username ? (
-    <Button className={className} onClick={handleLogout}>
+    <Button className={className} onClick={handleLogout} variant="primary">
       Logout
     </Button>
   ) : (
