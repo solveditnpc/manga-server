@@ -11,7 +11,8 @@ export default function Button({
   className = "",
   ...props
 }: ButtonProps) {
-  const base = "rounded-md px-3 py-1.5 text-sm focus-ring transition-none";
+  const base =
+    "rounded-md px-3 py-1.5 text-sm focus-ring transition-none cursor-pointer";
 
   const variants: Record<Variant, string> = {
     primary: "bg-accent fg-primary border border-accent",

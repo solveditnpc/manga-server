@@ -1,0 +1,68 @@
+{
+    "mangas": [
+        {
+            "id": 101,
+            "title": "Blue Spring Ride",
+            "author": "Io Sakisaka",
+            "language": "EN",
+            "likes": 1243,
+            "coverUrl": "/mock-covers/blue-spring-ride.jpg"
+        },
+        {
+            "id": 102,
+            "title": "Oyasumi Punpun",
+            "author": "Inio Asano",
+            "language": "JP",
+            "likes": 982,
+            "coverUrl": "/mock-covers/oyasumi-punpun.jpg"
+        },
+        {
+            "id": 103,
+            "title": "Chainsaw Man",
+            "author": "Tatsuki Fujimoto",
+            "language": "EN",
+            "likes": 3120,
+            "coverUrl": "/mock-covers/chainsaw-man.jpg"
+        },
+        {
+            "id": 104,
+            "title": "Solanin",
+            "author": "Inio Asano",
+            "language": "EN",
+            "likes": 534,
+            "coverUrl": "/mock-covers/solanin.jpg"
+        },
+        {
+            "id": 105,
+            "title": "Vagabond",
+            "author": "Takehiko Inoue",
+            "language": "JP",
+            "likes": 2710,
+            "coverUrl": "/mock-covers/vagabond.jpg"
+        },
+        {
+            "id": 106,
+            "title": "Horimiya",
+            "author": "HERO",
+            "language": "EN",
+            "likes": 1884,
+            "coverUrl": "/mock-covers/horimiya.jpg"
+        },
+        {
+            "id": 107,
+            "title": "Goodnight World",
+            "author": "Uru Okabe",
+            "language": "EN",
+            "likes": 421,
+            "coverUrl": "/mock-covers/goodnight-world.jpg"
+        },
+        {
+            "id": 108,
+            "title": "Tokyo Ghoul",
+            "author": "Sui Ishida",
+            "language": "JP",
+            "likes": 2450,
+            "coverUrl": "/mock-covers/tokyo-ghoul.jpg"
+        }
+    ]
+}
