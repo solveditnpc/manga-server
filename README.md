@@ -1,6 +1,7 @@
-# nhentai.xxx Manga Downloader & Server
+# UNDER CONSTRUCTION ONLY SPECIFIC WEBSITES WORKING AT THE MOMENT, AND ONLY UI ON PORT 5001 , PORT 3000 UI IS UNDER CONSTRUCTION
+# Manga Downloader & Server
 
-This project allows you to download manga from nhentai.xxx by author or from specific pages, and provides a web interface to view your collection.
+This project allows you to download manga from 1000+ websites by author or from specific pages, and provides a web interface to view,read and download your collection.
 
 ## Prerequisites
 
