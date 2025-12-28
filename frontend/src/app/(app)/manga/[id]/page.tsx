@@ -1,15 +1,18 @@
-"use client";
-
 import Image from "next/image";
-import { Badge, CopyToClipboardButton } from "@/components/ui/";
-import { LikeButton } from "@/features/details/components";
+import { Badge, CopyToClipboardButton, Button } from "@/components/ui/";
+import { LikeButton, PagesPreviewGrid } from "@/features/manga/components";
 import mangas from "@/mockData/mangas.json";
-import { useParams } from "next/navigation";
 import { Manga } from "@/types/manga.type";
+import ENV_CONFIG from "@/config/env.config";
+import Link from "next/link";
 
-export default function MangaDetailsPage() {
-  const params = useParams();
-  const paramID :number = Number(params.id || 0) || 0;
+export default async function MangaDetailsPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const paramID: number = Number(id || 0) || 0;
 
   const {
     manga_id = paramID,
@@ -40,13 +43,24 @@ export default function MangaDetailsPage() {
   });
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+    <div className="w-screen max-w-6xl mx-auto px-4 py-6 space-y-6">
       <div className="grid md:grid-cols-[240px_1fr] grid-rows-1 gap-6">
         {/* Left Column */}
         <div className="space-y-6">
           {/*Cover */}
           <div className="relative aspect-2/3 bg-card border border-default rounded-lg overflow-hidden">
-            <Image src={cover_url} alt={title} fill className="object-cover" />
+            {cover_url ? (
+              <Image
+                src={cover_url}
+                alt={title}
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <p className="fg-muted">Not Found</p>
+              </div>
+            )}
           </div>
 
           {/* Tags */}
@@ -82,7 +96,7 @@ export default function MangaDetailsPage() {
               <span>•</span>
               <CopyToClipboardButton
                 displayText={`#${manga_id}`}
-                copyText={`${window.location.origin}/manga/${manga_id}`}
+                copyText={`${ENV_CONFIG.client_url}/manga/${manga_id}`}
                 successMessage="Link to the manga Copied!"
               />
             </div>
@@ -90,48 +104,17 @@ export default function MangaDetailsPage() {
             <div className="flex items-center gap-4 pt-2">
               <LikeButton mangaId={manga_id} initialCount={likes_count} />
 
-              <a
-                href={`/read/${manga_id}`}
-                className="
-                  bg-card
-                  border border-default
-                  rounded-md
-                  px-4 py-2
-                  text-sm
-                  fg-primary
-                  hover-card
-                  focus-ring
-                "
-              >
-                Read
-              </a>
+              <Link href={`/read/${manga_id}?page=1`}>
+                <Button>Read</Button>
+              </Link>
             </div>
           </div>
 
           {/* Preview Pages */}
-          <div>
+          <div className="w-full">
             <p className="text-xs fg-muted mb-2">Pages :</p>
 
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-2">
-              {page_files.map((page, i) => (
-                <div
-                  key={i}
-                  className="
-                          relative
-                          aspect-2/3
-                          bg-card
-                          border border-default
-                          rounded
-                          overflow-hidden
-                          max-h-50
-                        "
-                >
-                  <div className="w-full h-full flex items-center justify-center text-xs fg-muted">
-                    Page {i + 1}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <PagesPreviewGrid page_files={page_files} manga_id={manga_id} />
           </div>
         </div>
       </div>
