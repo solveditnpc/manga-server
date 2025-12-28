@@ -1,37 +1,25 @@
 "use client";
 
 import Image from "next/image";
-import {Badge} from "@/components/ui/";
+import { Badge, CopyToClipboardButton } from "@/components/ui/";
+import { LikeButton } from "@/features/details/components";
 import mangas from "@/mockData/mangas.json";
 import { useParams } from "next/navigation";
 import { Manga } from "@/types/manga.type";
-import { Heart } from "lucide-react";
 
 export default function MangaDetailsPage() {
   const params = useParams();
-  console.log(params);
-
-  const manga: Manga = mangas.mangas.find(
-    (m) => m.manga_id == Number(params.id)
-  ) || {
-    manga_id: 0,
-    title: "",
-    author: "",
-    cover_url: "",
-    tags: [],
-    total_pages: 0,
-    likes_count: 0,
-  };
+  const paramID :number = Number(params.id || 0) || 0;
 
   const {
-    manga_id,
-    title,
-    author,
-    cover_url,
+    manga_id = paramID,
+    title = "Manga Not Found (404)",
+    author = "Unknown Author",
+    cover_url = "",
     tags = [],
-    total_pages,
-    likes_count,
-  } = manga;
+    total_pages = 0,
+    likes_count = 0,
+  } = mangas.mangas.find((m: Manga) => m.manga_id == paramID) || {};
 
   // Temoporary pages filler
   const page_files: any[] = Array.from({ length: total_pages }, (_, i) => null);
@@ -92,21 +80,15 @@ export default function MangaDetailsPage() {
               <span>•</span>
               <span>{total_pages} pages</span>
               <span>•</span>
-              <span>#{manga_id}</span>
+              <CopyToClipboardButton
+                displayText={`#${manga_id}`}
+                copyText={`${window.location.origin}/manga/${manga_id}`}
+                successMessage="Link to the manga Copied!"
+              />
             </div>
 
             <div className="flex items-center gap-4 pt-2">
-              <div
-                className="
-                  flex items-center gap-1
-                  text-sm
-                  fg-muted
-                  hover:fg-primary
-                  focus-ring
-                "
-              >
-                <Heart  size={14} /> {likes_count}
-              </div>
+              <LikeButton mangaId={manga_id} initialCount={likes_count} />
 
               <a
                 href={`/read/${manga_id}`}
