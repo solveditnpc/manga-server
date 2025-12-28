@@ -1,25 +1,17 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Heart } from "lucide-react";
+import { Manga } from "@/types/manga.type";
 
-interface MangaCardProps {
-  id: string | number;
-  title: string;
-  author?: string;
-  coverUrl: string;
-  language: string;
-  likes?: number;
-  href: string; // usually /manga/[id]
-}
-
-export default function MangaCard({
+export default function BrowseMangaCard({
+  manga_id,
   title,
   author,
-  coverUrl,
+  cover_url,
   language,
-  likes,
-  href,
-}: MangaCardProps) {
+  likes_count,
+}: Manga) {
+  const href = `/manga/${manga_id}`;
   return (
     <Link
       href={href}
@@ -41,10 +33,9 @@ export default function MangaCard({
         cursor-pointer
         "
     >
-      {/* Likes (read-only) */}
-      {typeof likes === "number" && (
-        <div
-          className="
+      {/* likes_count (read-only) */}
+      <div
+        className="
             absolute
             top-1.5
             right-1.5
@@ -58,18 +49,15 @@ export default function MangaCard({
             pointer-events-none
             flex
             gap-0.5
-
           "
-          aria-label={`${likes} likes`}
-        >
-          {likes}
-          <Heart size={10} className="mt-0.5 fill-(--text-primary)" />
-        </div>
-      )}
+      >
+        {Number(likes_count || 0) || 0}
+        <Heart size={10} className="mt-0.5 fill-(--text-primary)" />
+      </div>
 
       {/* Cover */}
       <div className="relative overflow-hidden w-full aspect-2/3 bg-background">
-        <Image src={coverUrl} alt={title} fill className="object-cover" />
+        <Image src={cover_url} alt={title} fill className="object-cover" />
       </div>
 
       {/* Info */}

@@ -1,13 +1,44 @@
 "use client";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "../ui";
+import { Button } from ".";
+
+// Pagination Button Component :
+interface PaginationButtonProps {
+  page: number;
+  currentPage: number;
+  onClick: (page: number) => void;
+}
+
+function PaginationButton({
+  page,
+  currentPage,
+  onClick,
+}: PaginationButtonProps) {
+  const isActive = page === currentPage;
+
+  return (
+    <Button
+      onClick={() => onClick(page)}
+      aria-current={isActive ? "page" : undefined}
+      className={
+        isActive
+          ? "bg-card fg-primary font-medium"
+          : "bg-card fg-muted hover-card"
+      }
+    >
+      {page}
+    </Button>
+  );
+}
+
+// Pagination Component :
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
 }
 
-export default function PaginationControls({
+export default function Pagination({
   currentPage,
   totalPages,
   onPageChange,
@@ -29,20 +60,16 @@ export default function PaginationControls({
     pages.push(i);
   }
 
+  const prevNextClassname =
+    "fg-muted disabled:opacity-40 disabled:cursor-not-allowed flex items-center  gap-1";
+
   return (
     <nav className="flex items-center gap-1 text-sm" aria-label="Pagination">
       {/* Prev */}
       <Button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="
-          fg-muted
-          disabled:opacity-40
-          disabled:cursor-not-allowed
-          flex
-          items-center
-          gap-1
-        "
+        className={prevNextClassname}
       >
         <ChevronLeft size={16} />
         Prev
@@ -52,7 +79,7 @@ export default function PaginationControls({
         {/* First page shortcut */}
         {start > 1 && (
           <>
-            <PageButton
+            <PaginationButton
               page={1}
               currentPage={currentPage}
               onClick={onPageChange}
@@ -63,7 +90,7 @@ export default function PaginationControls({
 
         {/* Window pages */}
         {pages.map((page) => (
-          <PageButton
+          <PaginationButton
             key={page}
             page={page}
             currentPage={currentPage}
@@ -75,7 +102,7 @@ export default function PaginationControls({
         {end < totalPages && (
           <>
             <span className="px-1 fg-muted">…</span>
-            <PageButton
+            <PaginationButton
               page={totalPages}
               currentPage={currentPage}
               onClick={onPageChange}
@@ -87,42 +114,11 @@ export default function PaginationControls({
       <Button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="
-          fg-muted
-          disabled:opacity-40
-          disabled:cursor-not-allowed
-          flex
-          items-center
-          gap-1
-        "
+        className={prevNextClassname}
       >
         Next
         <ChevronRight size={16} />
       </Button>
     </nav>
-  );
-}
-
-interface PageButtonProps {
-  page: number;
-  currentPage: number;
-  onClick: (page: number) => void;
-}
-
-function PageButton({ page, currentPage, onClick }: PageButtonProps) {
-  const isActive = page === currentPage;
-
-  return (
-    <Button
-      onClick={() => onClick(page)}
-      aria-current={isActive ? "page" : undefined}
-      className={
-        isActive
-          ? "bg-card fg-primary font-medium"
-          : "bg-card fg-muted hover-card"
-      }
-    >
-      {page}
-    </Button>
   );
 }

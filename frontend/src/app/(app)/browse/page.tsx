@@ -1,14 +1,16 @@
 "use client";
+
 import {
-  MangaCard,
-  PaginationControls,
+  BrowseMangaCard,
   ContinueReadingSection,
-} from "@/components/dashboard";
-import mockMangas from "../../../mockData/mangas.json";
+} from "@/features/browse/components";
+import { Pagination } from "@/components/ui";
+import mockMangas from "@/mockData/mangas.json";
 import { useState } from "react";
+import { MangaList, Manga } from "@/types/manga.type";
 
 export default function DashboardPage() {
-  const allMangas = [...mockMangas.mangas, ...mockMangas.mangas];
+  const allMangas: MangaList = [...mockMangas.mangas, ...mockMangas.mangas];
   const [page, setPage] = useState(1);
   return (
     <main className="max-w-screen mx-auto px-4 py-8 space-y-8">
@@ -34,20 +36,18 @@ export default function DashboardPage() {
             2xl:grid-cols-[repeat(auto-fill,minmax(240px,1fr))]
           "
         >
-          {allMangas.map((manga, i) => (
-            <MangaCard key={i} {...manga} href={"#" /*`/manga/${manga.id}`*/} />
+          {allMangas.map((manga: Manga, i) => (
+            <BrowseMangaCard key={i /*manga.manga_id*/} {...manga} />
           ))}
         </div>
       </section>
 
       {/* Pagination Controls*/}
       <div className="flex justify-center">
-        <PaginationControls
+        <Pagination
           currentPage={page}
           totalPages={50}
-          onPageChange={(page) => {
-            setPage(page);
-          }}
+          onPageChange={(page) => setPage(page)}
         />
       </div>
     </main>

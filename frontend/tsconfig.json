@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-, "node_modules/temp/Skeleton.tsx", "node_modules/temp/Badge.tsx"  ],
+  ],
   "exclude": ["node_modules"]
 }
