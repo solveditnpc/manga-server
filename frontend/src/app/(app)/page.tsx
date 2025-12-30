@@ -1,4 +1,3 @@
-import LoginLogoutButton from "@/features/auth/components/LoginLogoutButton";
 import { Button } from "@/components/ui";
 import Link from "next/link";
 export default function HomePage() {
@@ -21,11 +20,11 @@ export default function HomePage() {
         {/* Manga Card */}
 
         <Link href="/browse">
-          <Button className="w-full mb-5" variant="primary">Browse Manga</Button>
+          <Button className="w-full mb-5" variant="primary">
+            Browse Manga
+          </Button>
         </Link>
 
-        {/* Action */}
-        <LoginLogoutButton className="w-full " />
       </div>
     </main>
   );

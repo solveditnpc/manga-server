@@ -27,8 +27,6 @@ export default function BrowseMangaCard({
         sm:min-w-40
         md:min-w-45
         lg:min-w-50
-        xl:min-w-55
-        2xl:min-w-60
         relative
         cursor-pointer
         "

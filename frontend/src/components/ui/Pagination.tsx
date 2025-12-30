@@ -17,17 +17,21 @@ function PaginationButton({
   const isActive = page === currentPage;
 
   return (
-    <Button
+    <button
       onClick={() => onClick(page)}
       aria-current={isActive ? "page" : undefined}
-      className={
-        isActive
-          ? "bg-card fg-primary font-medium"
-          : "bg-card fg-muted hover-card"
-      }
+      className={`
+        bg-card hover-card 
+        border border-default 
+        rounded-md text-sm 
+        cursor-pointer
+        h-full
+        aspect-square
+        ${isActive ? "fg-primary" : "fg-muted"}
+          `}
     >
       {page}
-    </Button>
+    </button>
   );
 }
 
@@ -61,10 +65,10 @@ export default function Pagination({
   }
 
   const prevNextClassname =
-    "fg-muted disabled:opacity-40 disabled:cursor-not-allowed flex items-center  gap-1";
+    "fg-muted disabled:opacity-40 disabled:cursor-not-allowed flex items-center h-full gap-1";
 
   return (
-    <nav className="flex items-center gap-1 text-sm" aria-label="Pagination">
+    <nav className="flex items-center justify-center gap-1 text-sm" aria-label="Pagination">
       {/* Prev */}
       <Button
         onClick={() => onPageChange(currentPage - 1)}
@@ -72,10 +76,17 @@ export default function Pagination({
         className={prevNextClassname}
       >
         <ChevronLeft size={16} />
-        Prev
+        <span className="hidden sm:block"> Prev</span>
       </Button>
 
-      <div className="flex gap-1 justify-center items-center w-100">
+      <div
+        className="
+          flex gap-1 
+          justify-center items-center 
+          md:w-100
+          h-full    
+          "
+      >
         {/* First page shortcut */}
         {start > 1 && (
           <>
@@ -116,7 +127,7 @@ export default function Pagination({
         disabled={currentPage === totalPages}
         className={prevNextClassname}
       >
-        Next
+        <span className="hidden sm:block">Next </span>
         <ChevronRight size={16} />
       </Button>
     </nav>

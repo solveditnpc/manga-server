@@ -4,25 +4,44 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
-function PagesPreviewGrid({
+function getMockedArray(length: number) {
+  const mock_pages = [
+    "/mock-pages/page-0.jpg",
+    "/mock-pages/page-1.jpg",
+    "/mock-pages/page-2.jpg",
+    "/mock-pages/page-3.jpg",
+    "/mock-pages/page-4.jpg",
+  ];
+
+  let array = [];
+  for (let i = 0; i < length; i++) {
+    array.push(mock_pages[i % 5]);
+  }
+
+  return array;
+}
+
+export default function PagesPreviewGrid({
   page_files,
   manga_id,
 }: {
   page_files: any[];
   manga_id: number;
 }) {
+  page_files = getMockedArray(page_files.length);
   const totalPages = Math.ceil(page_files.length / 15);
   const [currentPage, setCurrentPage] = useState(1);
   const current_pages_files = page_files.slice(
     (currentPage - 1) * 15,
     (currentPage - 1) * 15 + 15
   );
+
   return (
     <div
       className="
         flex flex-col
-        gap-4 p-2
-        border border-default
+        gap-4 lg:p-2
+        lg:border border-default
         rounded
         items-center
       "
@@ -31,37 +50,53 @@ function PagesPreviewGrid({
         className="
           w-full
           grid gap-2
-          grid-cols-[repeat(3,minmax(120px,1fr))]
-          lg:grid-cols-[repeat(5,minmax(120px,1fr))]
+          grid-cols-[repeat(3,1fr)]
+          md:grid-cols-[repeat(5,minmax(120px,1fr))]
         "
       >
         {current_pages_files.map((page, i) => (
           <Link
             href={`/read/${manga_id}?page=${i + (currentPage - 1) * 15 + 1}`}
             key={i}
-            className="
+            className={`"
             relative
             aspect-2/3
             bg-card
             border border-default
             rounded
             overflow-hidden
-            "
+            "` + i}
           >
-            <div className="w-full h-full flex items-center justify-center text-xs fg-muted">
-              Page {i + (currentPage - 1) * 15 + 1}
-            </div>
+            {page ? (
+              <Image
+                src={page}
+                alt={`Page ${i + (currentPage - 1) * 15 + 1}`}
+                fill
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-xs fg-muted">
+                Page {i + (currentPage - 1) * 15 + 1}
+              </div>
+            )}
           </Link>
         ))}
       </div>
       <div className="border-t border-default w-full"></div>
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-      />
+
+      <div
+        className="
+          flex justify-center
+          w-full overflow-hidden
+          h-7
+          lg:h-full
+          "
+      >
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      </div>
     </div>
   );
 }
-
-export default PagesPreviewGrid;
