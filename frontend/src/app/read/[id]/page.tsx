@@ -1,68 +1,63 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useParams } from "next/navigation";
-import {
-  ReadBottomControls,
-  ReadTopInfoOverlay,
-} from "@/features/read/components";
-import { Button } from "@/components/ui";
-
-type ReaderMode = "scroll" | "slide";
+import ReadPageOverlays from "@/features/read/components/ReadPageOverlays";
+import { Manga } from "@/types/manga.type";
 import mockData from "@/mockData/mangas.json";
 
 export default function MangaReadPage() {
-  const [mode, setMode] = useState<ReaderMode>("scroll");
   const [zoom, setZoom] = useState(1); // 1 = 100%
-  const [showUI, setShowUI] = useState(true);
   const params = useParams();
   const manga_id = Number(params.id);
 
-  const {
-    total_pages = 0,
-    title = "Manga Not Found (404)",
-    author = "Unknown Author",
-  } = mockData.mangas.find((manga) => manga.manga_id === manga_id) || {};
-    
+  const mangaMeta: Manga = mockData.mangas.find(
+    (manga) => manga.manga_id === manga_id
+  ) || {
+    manga_id: 0,
+    title: "Manga Not Found (404)",
+    author: "Unknown Author",
+    cover_url: "",
+    tags: [],
+    total_pages: 0,
+    likes_count: 0,
+    language: "N/A",
+  };
+
+  const readerContainer = useRef<HTMLDivElement>(null);
+
+  const DummyReaderPage = ({ page }: { page: number }) => (
+    <div style={{ transform: `scale(${zoom})` }}>
+      <div
+        className="
+        flex flex-col gap-5 
+        items-center justify-center 
+        h-screen aspect-2/3
+        bg-card border border-default
+        "
+      >
+        <span>READER-PAGE-{page}</span>
+      </div>
+    </div>
+  );
+
   return (
     <div className="reader min-h-screen relative overflow-hidden">
-      {/* Top Info Overlay */}
-      <ReadTopInfoOverlay
-        title={title}
-        author={author}
-        visible={showUI}
-        total_pages={total_pages}
-      />
-
-      {/* Reader Viewport */}
-      <main
-        className="h-screen overflow-y-auto bg-white/10"
-        style={{ transform: `scale(${zoom})` }}
-      >
-        <div className=" flex flex-col gap-5 items-center justify-center h-full w-full">
-          <span>READER-SPACE</span>
-
-          <span className="max-w-100 italic text-center">
-            Hover/Click interactions are yet to be configured , use button below
-            to check tht UI hide/show
-          </span>
-
-          <Button onClick={() => setShowUI(!showUI)}>
-            {showUI ? "Hide UI" : "Show UI"}
-          </Button>
-        </div>
-      </main>
-
-      {/* Bottom Control Bar */}
-      <ReadBottomControls
-        mode={mode}
-        onModeToggle={() =>
-          setMode((m) => (m === "scroll" ? "slide" : "scroll"))
-        }
+      <ReadPageOverlays
+        mangaMeta={mangaMeta}
         zoom={zoom}
         setZoom={setZoom}
-        visible={showUI}
+        readerContainer={readerContainer}
       />
+      {/* Reader Viewport */}
+      <main
+        className="overflow-y-auto h-screen overflow-auto flex items-center flex-col"
+        ref={readerContainer}
+      >
+        {[...Array(mangaMeta.total_pages)].map((_, i) => (
+          <DummyReaderPage key={i} page={i + 1} />
+        ))}
+      </main>
     </div>
   );
 }
