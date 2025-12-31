@@ -11,6 +11,7 @@ import {
 } from "@/features/read/components";
 import { FitMode } from "@/types/read.types";
 import { MangaFallback } from "@/config/manga.config";
+import { getMockPagesArray } from "@/mockData/mockPages";
 
 export default function MangaReadPage() {
   const [zoom, setZoom] = useState(1); // 1 = 100%
@@ -23,41 +24,42 @@ export default function MangaReadPage() {
 
   const readerContainer = useRef<HTMLDivElement>(null);
 
-  const DummyReaderPage = ({ page }: { page: number }) => (
-    <div style={{ transform: `scale(${zoom})` }}>
-      <div
-        className={`
-        flex flex-col gap-5 
-        items-center justify-center 
-        aspect-2/3 h-screen
-        bg-card border-2 border-white/50
-        `}
-      >
-        <span>READER-PAGE-{page}</span>
-      </div>
-    </div>
-  );
+  const pages = getMockPagesArray(mangaMeta.total_pages);
+  const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   return (
     <div className="reader min-h-screen relative overflow-hidden">
-      <ReadPageOverlayController readerContainer={readerContainer}>
-        <ReadPageHeader
-          title={mangaMeta.title}
-          author={mangaMeta.author}
-          total_pages={mangaMeta.total_pages}
-        />
-        <ReadPageFooter zoom={zoom} setZoom={setZoom} manga_id={manga_id} />
-      </ReadPageOverlayController>
-
       {/* Reader Viewport */}
       <main
         ref={readerContainer}
         className="h-screen overflow-y-auto flex flex-col items-center"
       >
-        {Array.from({ length: mangaMeta.total_pages }, (_, i) => (
-          <DummyReaderPage key={i} page={i + 1} />
-        ))}
+        <div className="mx-auto max-w-225 px-4 py-8 flex flex-col gap-6">
+          {pages.map((src, index) => (
+            <div
+              key={index}
+              ref={(el) => {
+                pageRefs.current[index] = el;
+              }}
+              data-page={index + 1}
+              className="page-wrapper"
+            >
+              <img src={src} />
+            </div>
+          ))}
+        </div>
       </main>
+
+      {/* Reader Overlay */}
+      <ReadPageOverlayController readerContainer={readerContainer}>
+        <ReadPageHeader
+          title={mangaMeta.title}
+          author={mangaMeta.author}
+          total_pages={mangaMeta.total_pages}
+          pageRefs={pageRefs}
+        />
+        <ReadPageFooter zoom={zoom} setZoom={setZoom} manga_id={manga_id} />
+      </ReadPageOverlayController>
     </div>
   );
 }

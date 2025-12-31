@@ -1,10 +1,12 @@
 "use client";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useEffect, useState, useRef } from "react";
 type ReadPageHeaderProps = {
   title: string;
   author?: string;
   total_pages?: number;
   visible?: boolean;
+  pageRefs: React.RefObject<(HTMLDivElement | null)[]>;
 };
 
 export default function ReadPageHeader({
@@ -12,10 +14,77 @@ export default function ReadPageHeader({
   author,
   total_pages = 0,
   visible = true,
+  pageRefs,
 }: ReadPageHeaderProps) {
   const searchParams = useSearchParams();
-  const page = Number(searchParams.get("page")) || 1;
-  const pageLabel = `${page} / ${total_pages}`;
+
+  const [currentPage, setCurrentPage] = useState(() => {
+    const page = Number(searchParams.get("page")) || 1;
+
+    if (page < 1) return 1;
+    if (total_pages > 0 && page > total_pages) return total_pages;
+
+    return page;
+  });
+
+  const suppressObserver = useRef(false);
+
+  useEffect(() => {
+    suppressObserver.current = true;
+    pageRefs.current[currentPage - 1]?.scrollIntoView({
+      behavior: "auto",
+    });
+    requestAnimationFrame(() => {
+      suppressObserver.current = false;
+    });
+  }, []);
+
+  const router = useRouter();
+  const pageLabel = `${currentPage} / ${total_pages}`;
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        let bestEntry: IntersectionObserverEntry | null = null;
+
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+
+          if (
+            !bestEntry ||
+            entry.intersectionRatio > bestEntry.intersectionRatio
+          ) {
+            bestEntry = entry;
+          }
+        }
+
+        if (bestEntry && !suppressObserver.current) {
+          const page = Number((bestEntry.target as HTMLElement).dataset.page);
+          setCurrentPage(page);
+        }
+      },
+      {
+        root: null,
+        threshold: [0.25, 0.5, 0.75],
+      }
+    );
+
+    pageRefs.current.forEach((el) => el && observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const current = searchParams.get("page");
+    if (current === String(currentPage)) return;
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(currentPage));
+
+    router.replace(`${window.location.pathname}?${params.toString()}`, {
+      scroll: false,
+    });
+  }, [currentPage]);
 
   return (
     <div className="fixed top-0 left-0 right-0 z-10">
