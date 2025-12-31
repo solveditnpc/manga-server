@@ -3,7 +3,7 @@ import { Button } from "@/components/ui";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 
-function LoginLogoutButton({ className }: { className?: string }) {
+function LogoutButton({ className }: { className?: string }) {
   const username = Cookies.get("username");
   const router = useRouter();
   const handleLogout = (e: React.MouseEvent) => {
@@ -11,22 +11,11 @@ function LoginLogoutButton({ className }: { className?: string }) {
     Cookies.remove("username");
     router.push("/auth");
   };
-
-  return username ? (
+  return (
     <Button className={className} onClick={handleLogout} variant="primary">
       Logout
-    </Button>
-  ) : (
-    <Button
-      onClick={() => {
-        router.push("/auth");
-      }}
-      variant="primary"
-      className={className}
-    >
-      Login
     </Button>
   );
 }
 
-export default LoginLogoutButton;
+export default LogoutButton;
