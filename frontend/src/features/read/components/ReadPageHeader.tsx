@@ -1,18 +1,18 @@
 "use client";
 import { useSearchParams } from "next/navigation";
-type TopInfoOverlayProps = {
+type ReadPageHeaderProps = {
   title: string;
   author?: string;
-  total_pages: number;
-  visible: boolean;
+  total_pages?: number;
+  visible?: boolean;
 };
 
-export default function ReadTopInfoOverlay({
+export default function ReadPageHeader({
   title,
   author,
-  total_pages,
-  visible,
-}: TopInfoOverlayProps) {
+  total_pages = 0,
+  visible = true,
+}: ReadPageHeaderProps) {
   const searchParams = useSearchParams();
   const page = Number(searchParams.get("page")) || 1;
   const pageLabel = `${page} / ${total_pages}`;

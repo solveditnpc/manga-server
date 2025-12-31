@@ -1,18 +1,5 @@
 "use client";
-import ReadTopInfoOverlay from "./ReadTopInfoOverlay";
-import ReadBottomControls from "./ReadBottomControls";
-import { useEffect, useState, useRef, useCallback } from "react";
-
-type ReadPageOverlaysProps = {
-  mangaMeta: {
-    title: string;
-    author?: string;
-    total_pages: number;
-  };
-  zoom: number;
-  setZoom: React.Dispatch<React.SetStateAction<number>>;
-  readerContainer: React.RefObject<HTMLDivElement | null>;
-};
+import React, { useEffect, useState, useRef, useCallback } from "react";
 
 function isReaderKey(e: KeyboardEvent): boolean {
   const key = e.key;
@@ -34,21 +21,20 @@ function isReaderKey(e: KeyboardEvent): boolean {
   );
 }
 
-function ReadPageOverlays({
-  mangaMeta,
-  zoom,
-  setZoom,
+export default function ReadPageOverlayController({
   readerContainer,
-}: ReadPageOverlaysProps) {
+  children,
+}: {
+  readerContainer: React.RefObject<HTMLDivElement | null>;
+  children: React.ReactElement<{ visible: boolean }>[];
+}) {
   const [showUI, setShowUI] = useState(true);
   const hideTimerRef = useRef<number | null>(null);
 
   const showUIWithTimeout = useCallback(() => {
     setShowUI(true);
 
-    if (hideTimerRef.current) {
-      clearTimeout(hideTimerRef.current);
-    }
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
 
     hideTimerRef.current = window.setTimeout(() => {
       setShowUI(false);
@@ -76,23 +62,16 @@ function ReadPageOverlays({
       window.removeEventListener("keydown", handleKeyDown);
       container?.removeEventListener("scroll", showUIWithTimeout);
 
-      if (hideTimerRef.current) {
-        clearTimeout(hideTimerRef.current);
-      }
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     };
   }, [readerContainer, showUIWithTimeout]);
 
-  return (
-    <div>
-      <ReadTopInfoOverlay
-        title={mangaMeta.title}
-        author={mangaMeta.author}
-        total_pages={mangaMeta.total_pages}
-        visible={showUI}
-      />
-      <ReadBottomControls zoom={zoom} setZoom={setZoom} visible={showUI} />
-    </div>
-  );
-}
+  return React.Children.map(children, (child, i) => {
+    if (!React.isValidElement(child)) return null;
 
-export default ReadPageOverlays;
+    return React.cloneElement(child, {
+      visible: showUI,
+    });
+    
+  });
+}
