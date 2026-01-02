@@ -8,6 +8,7 @@ import {
   ReadPageFooter,
   ReadPageHeader,
   ReadPageOverlayController,
+  ReadPageNavigator,
 } from "@/features/read/components";
 import { FitMode } from "@/types/read.types";
 import { MangaFallback } from "@/config/manga.config";
@@ -52,12 +53,13 @@ export default function MangaReadPage() {
 
       {/* Reader Overlay */}
       <ReadPageOverlayController readerContainer={readerContainer}>
-        <ReadPageHeader
-          title={mangaMeta.title}
-          author={mangaMeta.author}
+        <ReadPageHeader title={mangaMeta.title} author={mangaMeta.author} />
+
+        <ReadPageNavigator
           total_pages={mangaMeta.total_pages}
           pageRefs={pageRefs}
         />
+
         <ReadPageFooter zoom={zoom} setZoom={setZoom} manga_id={manga_id} />
       </ReadPageOverlayController>
     </div>
