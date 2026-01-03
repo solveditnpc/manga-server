@@ -3,23 +3,7 @@ import { Pagination } from "@/components/ui";
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-
-function getMockedArray(length: number) {
-  const mock_pages = [
-    "/mock-pages/page-0.jpg",
-    "/mock-pages/page-1.jpg",
-    "/mock-pages/page-2.jpg",
-    "/mock-pages/page-3.jpg",
-    "/mock-pages/page-4.jpg",
-  ];
-
-  let array = [];
-  for (let i = 0; i < length; i++) {
-    array.push(mock_pages[i % 5]);
-  }
-
-  return array;
-}
+import { getMockPagesArray } from "@/mockData/mockPages";
 
 export default function PagesPreviewGrid({
   page_files,
@@ -28,7 +12,7 @@ export default function PagesPreviewGrid({
   page_files: any[];
   manga_id: number;
 }) {
-  page_files = getMockedArray(page_files.length);
+  page_files = getMockPagesArray(page_files.length);
   const totalPages = Math.ceil(page_files.length / 15);
   const [currentPage, setCurrentPage] = useState(1);
   const current_pages_files = page_files.slice(
