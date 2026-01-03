@@ -1,14 +1,13 @@
 @import "tailwindcss";
 
 @theme inline {
-	--color-background: var(--background);
-	--color-foreground: var(--foreground);
-	--font-sans: var(--font-geist-sans);
-	--font-mono: var(--font-geist-mono);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
-
 }
 
 /* ===============================
@@ -16,113 +15,150 @@
    =============================== */
 
 :root {
-	/* Core cards */
-	--background: #0a0b0e;
-	--card: #101016 ;
-	--card-hover: #181a23;
-	--border: #181a25;
-    --border-lighter: #3a3f58;
+  /* Core cards */
+  --background: #0a0b0e;
+  --card: #101016;
+  --card-hover: #181a23;
+  --border: #181a25;
+  --border-lighter: #3a3f58;
 
-	/* Typography */
-	--text-primary: #e6e7eb;
-	--text-secondary: #a1a1b3;
-	--text-muted: #6f7285;
+  /* Typography */
+  --text-primary: #e6e7eb;
+  --text-secondary: #a1a1b3;
+  --text-muted: #6f7285;
 
-	/* Muted Accents */
-	--accent: #802828;
-	--focus: #5f7d8a;
-	--highlight: #8f8a6a;
+  /* Muted Accents */
+  --accent: #802828;
+  --focus: #5f7d8a;
+  --highlight: #8f8a6a;
 
-	/* Reader Overrides */
-	--reader-background: #08090c;
-	--reader-text: #dadce3;
+  /* Reader Overrides */
+  --reader-background: #08090c;
+  --reader-text: #dadce3;
 }
 
 /* ===== Base Defaults ===== */
 
 html,
 body {
-	background-color: var(--background);
-	color: var(--text-primary);
-	font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--background);
+  color: var(--text-primary);
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 /* ===== Foreground Utilities ===== */
 
 .fg-primary {
-	color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 .fg-secondary {
-	color: var(--text-secondary);
+  color: var(--text-secondary);
 }
 
 .fg-muted {
-	color: var(--text-muted);
+  color: var(--text-muted);
 }
 
 .fg-accent {
-	color: var(--accent);
+  color: var(--accent);
 }
 
 .fg-highlight {
-	color: var(--highlight);
+  color: var(--highlight);
 }
 
 /* ===== Background Utilities ===== */
 
 .bg-background {
-	background-color: var(--background);
+  background-color: var(--background);
 }
 
 .bg-card {
-	background-color: var(--card);
+  background-color: var(--card);
 }
 
 .bg-card-hover {
-	background-color: var(--card-hover);
+  background-color: var(--card-hover);
 }
 
 .bg-accent {
-	background-color: var(--accent);
+  background-color: var(--accent);
 }
 
 .bg-reader {
-	background-color: var(--reader-background);
+  background-color: var(--reader-background);
 }
 
 /* ===== Border Utilities ===== */
 
 .border-default {
-	border-color: var(--border);
+  border-color: var(--border);
 }
 
 .border-lighter {
-    border-color: var(--border-lighter);
+  border-color: var(--border-lighter);
 }
 
 .border-accent {
-	border-color: var(--accent);
+  border-color: var(--accent);
 }
 
 /* ===== Interactive States ===== */
 
 .hover-card:hover {
-	background-color: var(--card-hover);
+  background-color: var(--card-hover);
 }
 
 .focus-ring:focus-visible {
-	outline: 1px solid var(--focus);
-	outline-offset: 2px;
+  outline: 1px solid var(--focus);
+  outline-offset: 2px;
 }
 
 /* ===== Reader Scope ===== */
 
 .reader {
-	background-color: var(--reader-background);
-	color: var(--reader-text);
+  background-color: var(--reader-background);
+  color: var(--reader-text);
 }
 
 .reader .fg-muted {
-	color: var(--text-muted);
+  color: var(--text-muted);
+}
+
+.autofit-input {
+  width: calc(var(--digits) * 1ch + 0.75ch);
+  min-width: 2ch;
+  max-width: 7ch;
+
+  background: transparent;
+  border: none;
+  outline: none;
+
+  padding: 2px 4px;
+  border-radius: 6px;
+
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+
+  color: var(--fg-primary);
+
+  transition: background-color 150ms ease, box-shadow 150ms ease;
+}
+
+.autofit-input::selection {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.autofit-input:focus {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+
+.autofit-input:focus-visible {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35),
+    0 0 0 3px rgba(255, 255, 255, 0.12);
 }
