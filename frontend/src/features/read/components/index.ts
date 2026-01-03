@@ -1,11 +1,11 @@
-import ReadPageFooter from "./ReadPageFooter";
+import ReadPageZoomControls from "./ReadPageZoomControls";
 import ReadPageHeader from "./ReadPageHeader";
 import ReadPageNavigator from "./ReadPageNavigator";
-import ReadPageOverlayController from "./ReadPageOverlayController";
+import ReadPageOverlaysVisibility from "./ReadPageOverlaysVisibility";
 
 export {
-  ReadPageFooter,
+  ReadPageZoomControls,
   ReadPageHeader,
   ReadPageNavigator,
-  ReadPageOverlayController,
+  ReadPageOverlaysVisibility,
 };

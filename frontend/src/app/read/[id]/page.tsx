@@ -5,9 +5,9 @@ import { useParams } from "next/navigation";
 import { Manga } from "@/types/manga.type";
 import mockData from "@/mockData/mangas.json";
 import {
-  ReadPageFooter,
+  ReadPageZoomControls,
   ReadPageHeader,
-  ReadPageOverlayController,
+  ReadPageOverlaysVisibility,
   ReadPageNavigator,
 } from "@/features/read/components";
 import { MangaFallback } from "@/config/manga.config";
@@ -77,7 +77,7 @@ export default function MangaReadPage() {
       </main>
 
       {/* Reader Overlay */}
-      <ReadPageOverlayController readerContainer={readerContainer}>
+      <ReadPageOverlaysVisibility readerContainer={readerContainer}>
         <ReadPageHeader
           title={mangaMeta.title}
           author={mangaMeta.author}
@@ -89,8 +89,8 @@ export default function MangaReadPage() {
           pageRefs={pageRefs}
         />
 
-        <ReadPageFooter zoom={zoom} setZoom={setZoom} />
-      </ReadPageOverlayController>
+        <ReadPageZoomControls zoom={zoom} setZoom={setZoom} />
+      </ReadPageOverlaysVisibility>
     </div>
   );
 }

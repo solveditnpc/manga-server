@@ -21,7 +21,7 @@ function isReaderKey(e: KeyboardEvent): boolean {
   );
 }
 
-export default function ReadPageOverlayController({
+export default function ReadPageOverlaysVisibility({
   readerContainer,
   children,
 }: {
@@ -72,6 +72,5 @@ export default function ReadPageOverlayController({
     return React.cloneElement(child, {
       visible: showUI,
     });
-    
   });
 }

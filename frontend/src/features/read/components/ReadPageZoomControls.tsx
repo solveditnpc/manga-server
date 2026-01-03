@@ -3,17 +3,17 @@
 import { Minus, Plus} from "lucide-react";
 import { useEffect } from "react";
 
-type ReadPageFooterProps = {
+type ReadPageZoomControlsProps = {
   zoom: number;
   setZoom: React.Dispatch<React.SetStateAction<number>>;
   visible?: boolean;
 };
 
-export default function ReadPageFooter({
+export default function ReadPageZoomControls({
   zoom,
   setZoom,
   visible = true,
-}: ReadPageFooterProps) {
+}: ReadPageZoomControlsProps) {
   const zoomUp = () => setZoom((z) => Math.min(1.5, z + 0.1));
   const zoomDown = () => setZoom((z) => Math.max(0.8, z - 0.1));
 
@@ -32,7 +32,7 @@ export default function ReadPageFooter({
 
       if (e.key === "+" || (e.key === "=" && e.shiftKey)) zoomUp();
       if (e.key === "-") zoomDown();
-    //   if (e.key === "Escape") onClose();
+      //   if (e.key === "Escape") onClose();
     };
 
     window.addEventListener("keydown", handleKeyDown);
