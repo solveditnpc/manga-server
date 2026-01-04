@@ -5,3 +5,5 @@ Pillow
 playwright
 flask
 gunicorn
+requests
+flask-cors
