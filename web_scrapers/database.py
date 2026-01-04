@@ -15,7 +15,7 @@ def get_db_connection():
 
 def init_db():
     if os.path.exists(DB_PATH):
-        print("Database already exists.")
+        print("Database already exists. Checking schema...")
     else:
         print("Creating new database...")
     
@@ -32,7 +32,8 @@ def init_db():
         total_pages INTEGER,
         upload_date TEXT,
         download_path TEXT,
-        download_timestamp TEXT NOT NULL
+        download_timestamp TEXT NOT NULL,
+        like_count INTEGER DEFAULT 0
     )
     ''')
 
@@ -55,20 +56,118 @@ def init_db():
     )
     ''')
 
-    cursor.execute("PRAGMA table_info(mangas)")
-    columns = [info['name'] for info in cursor.fetchall()]
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS S_mangas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        manga_id TEXT UNIQUE NOT NULL,
+        title TEXT NOT NULL,
+        url TEXT,
+        author TEXT,
+        source TEXT,
+        chapter_count INTEGER,
+        download_path TEXT,
+        last_synced TEXT,
+        like_count INTEGER DEFAULT 0
+    )
+    ''')
 
-    if 'like_count' not in columns:
-        print("Migration: Adding missing 'like_count' column...")
-        try:
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS S_manga_tags (
+        s_manga_id INTEGER,
+        tag_id INTEGER,
+        FOREIGN KEY (s_manga_id) REFERENCES S_mangas (id),
+        FOREIGN KEY (tag_id) REFERENCES tags (id),
+        PRIMARY KEY (s_manga_id, tag_id)
+    )
+    ''')
+
+    try:
+        cursor.execute("PRAGMA table_info(mangas)")
+        cols = [i['name'] for i in cursor.fetchall()]
+        if 'like_count' not in cols:
             cursor.execute("ALTER TABLE mangas ADD COLUMN like_count INTEGER DEFAULT 0")
-            print("Migration successful.")
-        except Exception as e:
-            print(f"Migration failed: {e}")
+            
+        cursor.execute("PRAGMA table_info(S_mangas)")
+        s_cols = [i['name'] for i in cursor.fetchall()]
+        if 'like_count' not in s_cols:
+            cursor.execute("ALTER TABLE S_mangas ADD COLUMN like_count INTEGER DEFAULT 0")
+    except Exception as e:
+        print(f"Migration check failed: {e}")
 
     conn.commit()
     conn.close()
     print("Database initialized successfully.")
+
+def S_manga_exists(manga_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM S_mangas WHERE manga_id = ?", (str(manga_id),))
+    exists = cursor.fetchone() is not None
+    conn.close()
+    return exists
+
+def add_S_manga(meta: dict, path: str, chapter_count: int, tags_list: list):
+    """
+    Inserts or Updates a Suwayomi manga in the S_mangas table.
+    Uses UPSERT to preserve 'like_count'.
+    """
+    m_id = str(meta['id'])
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute('''
+        INSERT INTO S_mangas (manga_id, title, url, author, source, chapter_count, download_path, last_synced, like_count)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+        ON CONFLICT(manga_id) DO UPDATE SET
+            title=excluded.title,
+            url=excluded.url,
+            author=excluded.author,
+            source=excluded.source,
+            chapter_count=excluded.chapter_count,
+            download_path=excluded.download_path,
+            last_synced=excluded.last_synced
+            -- Notice we do NOT update like_count here, so it stays as it was
+        ''', (
+            m_id,
+            meta['title'],
+            meta.get('url'),
+            meta.get('author'),
+            meta.get('source'),
+            chapter_count,
+            path,
+            datetime.now().isoformat()
+        ))
+        
+        cursor.execute("SELECT id FROM S_mangas WHERE manga_id = ?", (m_id,))
+        s_manga_pk = cursor.fetchone()['id']
+
+        if tags_list:
+            cursor.execute("DELETE FROM S_manga_tags WHERE s_manga_id = ?", (s_manga_pk,))
+            for tag_name in tags_list:
+                clean_tag = tag_name.strip()
+                if not clean_tag: continue
+                
+                cursor.execute("SELECT id FROM tags WHERE name = ? AND type = 'suwayomi'", (clean_tag,))
+                tag_row = cursor.fetchone()
+                
+                if tag_row:
+                    tag_id = tag_row['id']
+                else:
+                    cursor.execute("INSERT INTO tags (name, type) VALUES (?, 'suwayomi')", (clean_tag,))
+                    tag_id = cursor.lastrowid
+                
+                cursor.execute("INSERT OR IGNORE INTO S_manga_tags (s_manga_id, tag_id) VALUES (?, ?)", (s_manga_pk, tag_id))
+
+        conn.commit()
+        print(f"[Sync] Saved: {meta['title']} ({chapter_count} ch) -> {m_id}")
+        
+    except Exception as e:
+        print(f"[Sync Error] Failed to save {m_id}: {e}")
+        conn.rollback()
+    finally:
+        conn.close()
 
 def manga_exists(manga_id: int) -> bool:
     conn = get_db_connection()
