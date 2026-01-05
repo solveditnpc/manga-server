@@ -1,41 +1,70 @@
-import { Search } from "lucide-react";
-import { Button, Input } from "@/components/ui";
-import { AdminAddMangaForm } from "@/features/admin/components";
+"use client";
+
+import { useEffect, useState } from "react";
+import mockMangas from "@/mockData/mangas.json";
+import { MangaList } from "@/types/manga.type";
+
+import { AdminAddMangaForm, AdminMangaList } from "@/features/admin/components";
+import { Input } from "@/components/ui";
 
 export default function AdminPage() {
+  const [query, setQuery] = useState("");
+  const [mangas, setMangas] = useState<MangaList>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchMangas();
+  }, [query]);
+
+  async function fetchMangas() {
+    setLoading(true);
+
+    const filtered = mockMangas.mangas.filter(
+      (m) =>
+        m.title.toLowerCase().includes(query.toLowerCase()) ||
+        m.manga_id.toString().includes(query) ||
+        m.author.toLowerCase().includes(query.toLowerCase()) ||
+        m.language.toLocaleLowerCase().includes(query.toLowerCase()) ||
+        m.tags.some((t) => t.name.toLowerCase().includes(query.toLowerCase()))
+    );
+
+    setMangas(filtered);
+
+    setLoading(false);
+  }
+
+  const onDelete = (id: number) => {
+    setMangas(mangas.filter((m) => m.manga_id !== id));
+  };
+
   return (
     <div className="space-y-8">
-      {/* Page Header */}
+      {/* Header */}
       <section>
         <h1 className="text-lg font-semibold fg-primary">Manga Management</h1>
+        <p className="text-sm fg-muted">Search, add, or delete mangas.</p>
       </section>
 
-      {/* Add New Manga */}
-      <div className="mt-3">
+      {/* Add */}
+      <section className="bg-card border border-default rounded-lg p-4">
         <AdminAddMangaForm />
-      </div>
+      </section>
 
       {/* Search */}
-      <section className="flex gap-2">
-        <Input type="search" placeholder="Search by title or manga ID…" />
-        <Button>
-          <Search className="mr-2" />
-        </Button>
+      <section>
+        <Input
+          type="search"
+          placeholder="Search by ID, title, or author…"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+          }}
+          disabled={loading}
+        />
       </section>
 
-      {/* Manga List */}
-      <section className="bg-card border border-default rounded-lg">
-        <div className="px-4 py-2 border-b border-default">
-          <h2 className="text-sm font-medium fg-primary">Existing Mangas</h2>
-        </div>
-
-        {/* AdminMangaList will live here */}
-        <div className="divide-y divide-(--border)">
-          <div className="px-4 py-3 text-sm fg-muted italic">
-            Manga rows go here
-          </div>
-        </div>
-      </section>
+      {/* List */}
+      <AdminMangaList mangas={mangas} onDelete={onDelete} />
     </div>
   );
 }
