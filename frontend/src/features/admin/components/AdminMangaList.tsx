@@ -2,15 +2,19 @@
 
 import { useState, useRef } from "react";
 import AdminMangaRow from "./AdminMangaRow";
-import { MangaList } from "@/types/manga.type";
+import {Manga ,  MangaList } from "@/types/manga.type";
 import { ConfirmDialog } from "@/components/ui";
 
 export default function AdminMangaList({
   mangas,
   onDelete,
+  onSelectManga,
+  selectedId,
 }: {
   mangas: MangaList;
   onDelete: (id: number) => void;
+  onSelectManga: (manga: Manga) => void;
+  selectedId?: number;
 }) {
   const [confirmMsg, setConfirmMsg] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -69,7 +73,8 @@ export default function AdminMangaList({
                 key={manga.manga_id}
                 manga={manga}
                 onDelete={openConfirm}
-                deleting={manga.manga_id === deleteId.current && loading}
+                onSelect={onSelectManga}
+                selected={selectedId === manga.manga_id}
               />
             ))}
           </tbody>

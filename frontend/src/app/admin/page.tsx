@@ -2,15 +2,21 @@
 
 import { useEffect, useState } from "react";
 import mockMangas from "@/mockData/mangas.json";
-import { MangaList } from "@/types/manga.type";
+import { Manga, MangaList } from "@/types/manga.type";
 
-import { AdminAddMangaForm, AdminMangaList } from "@/features/admin/components";
+import {
+  AdminAddMangaForm,
+  AdminMangaList,
+  AdminMangaDetailPanel,
+} from "@/features/admin/components";
 import { Input } from "@/components/ui";
 
 export default function AdminPage() {
   const [query, setQuery] = useState("");
   const [mangas, setMangas] = useState<MangaList>([]);
   const [loading, setLoading] = useState(false);
+
+  const [selectedManga, setSelectedManga] = useState<Manga | null>(null);
 
   useEffect(() => {
     fetchMangas();
@@ -23,48 +29,70 @@ export default function AdminPage() {
       (m) =>
         m.title.toLowerCase().includes(query.toLowerCase()) ||
         m.manga_id.toString().includes(query) ||
-        m.author.toLowerCase().includes(query.toLowerCase()) ||
-        m.language.toLocaleLowerCase().includes(query.toLowerCase()) ||
-        m.tags.some((t) => t.name.toLowerCase().includes(query.toLowerCase()))
+        m.author?.toLowerCase().includes(query.toLowerCase()) ||
+        m.language?.toLowerCase().includes(query.toLowerCase()) ||
+        m.tags?.some((t) =>
+          t.name.toLowerCase().includes(query.toLowerCase())
+        )
     );
 
     setMangas(filtered);
-
     setLoading(false);
   }
 
   const onDelete = (id: number) => {
-    setMangas(mangas.filter((m) => m.manga_id !== id));
+    setMangas((prev) => prev.filter((m) => m.manga_id !== id));
+    if (selectedManga?.manga_id === id) {
+      setSelectedManga(null);
+    }
   };
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <section>
-        <h1 className="text-lg font-semibold fg-primary">Manga Management</h1>
-        <p className="text-sm fg-muted">Search, add, or delete mangas.</p>
-      </section>
+    <div className="flex gap-6">
+      {/* Main column */}
+      <div className="flex-1 space-y-8">
+        {/* Header */}
+        <section>
+          <h1 className="text-lg font-semibold fg-primary">
+            Manga Management
+          </h1>
+          <p className="text-sm fg-muted">
+            Search, add, or delete mangas.
+          </p>
+        </section>
 
-      {/* Add */}
-      <section className="bg-card border border-default rounded-lg p-4">
-        <AdminAddMangaForm />
-      </section>
+        {/* Add */}
+        <section className="bg-card border border-default rounded-lg p-4">
+          <AdminAddMangaForm />
+        </section>
 
-      {/* Search */}
-      <section>
-        <Input
-          type="search"
-          placeholder="Search by ID, title, or author…"
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-          }}
-          disabled={loading}
+        {/* Search */}
+        <section>
+          <Input
+            type="search"
+            placeholder="Search by ID, title, author, tag…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            disabled={loading}
+          />
+        </section>
+
+        {/* List */}
+        <AdminMangaList
+          mangas={mangas}
+          onDelete={onDelete}
+          onSelectManga={setSelectedManga}
+          selectedId={selectedManga?.manga_id}
         />
-      </section>
+      </div>
 
-      {/* List */}
-      <AdminMangaList mangas={mangas} onDelete={onDelete} />
+      {/* Side panel */}
+      {selectedManga && (
+        <AdminMangaDetailPanel
+          manga={selectedManga}
+          onClose={() => setSelectedManga(null)}
+        />
+      )}
     </div>
   );
 }

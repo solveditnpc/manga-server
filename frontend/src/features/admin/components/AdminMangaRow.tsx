@@ -7,15 +7,26 @@ type Props = {
   manga: Manga;
   onDelete: (id: number, manga_title: string) => void;
   deleting?: boolean;
+  onSelect: (manga: Manga) => void;
+  selected: boolean;
 };
 
-export default function AdminMangaRow({ manga, onDelete, deleting }: Props) {
+export default function AdminMangaRow({
+  manga,
+  onDelete,
+  deleting,
+  onSelect,
+  selected,
+}: Props) {
   return (
     <>
       <tr
-        className={`border-b border-default last:border-b-0 ${
-          deleting ? "opacity-60" : ""
-        }`}
+        onClick={() => onSelect(manga)}
+        className={`
+          cursor-pointer
+          border-l
+          ${selected ? "bg-background  border-accent" : "border-transparent "}
+       `}
       >
         <td className="py-2 pr-3 text-xs fg-muted font-mono">
           #{manga.manga_id}
@@ -46,7 +57,10 @@ export default function AdminMangaRow({ manga, onDelete, deleting }: Props) {
 
         <td className="py-2 text-right">
           <Button
-            onClick={() => onDelete(manga.manga_id, manga.title)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(manga.manga_id, manga.title);
+            }}
             variant="danger"
             disabled={deleting}
             className="w-20"
