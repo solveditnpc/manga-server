@@ -87,6 +87,7 @@ Use this to scrape and download *all* works by a specific author.send one reques
     }
 }
 ```
+---
 
 ## Internal Developer Guide
 
