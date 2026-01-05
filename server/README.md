@@ -2,7 +2,7 @@
 
 The **Server** container is the central orchestrator of the Manga Library application. It hosts the admin-facing web interface (`index.html`), serves the static manga images, and provides the primary HTTP API that connects the database, the file system, and the scraping microservice.
 
-## 🔌 API Documentation
+## API Documentation
 
 **Base URL:** `http://localhost:5001` (or `http://server:5001` internally)
 
@@ -53,8 +53,8 @@ Retrieves a paginated list of manga. This endpoint automatically scans the file 
   "total_pages": 5,
 }
 ```
-> **Note:** For Standard items, image URLs are constructed by appending the filename to the download path: `/data/author_name/manga_name/1600.jpg` and has cover_image path pointing to the cover of hte manga 
-> **Note:** "Score"  tells how many search terms your query matches in the database table , so higher score means more likely the searched manga/category
+> **Note1:** For Standard items, image URLs are constructed by appending the filename to the download path: `/data/author_name/manga_name/1600.jpg` and has cover_image path pointing to the cover of hte manga 
+> **2:** "Score"  tells how many search terms your query matches in the database table , so higher score means more likely the searched manga/category
 ---
 
 **Option B: Suwayomi Library (`server=S`)**
@@ -117,9 +117,9 @@ Fetches items synced from the Suwayomi instance. Returns nested chapter structur
     ]
 }
 ```
-> **Note:** "Score"  tells how many search words your query matches in the database table , so higher score means more likely the searched manga/category
-> **Note:** For Suwayomi items, image URLs are constructed by appending the filename to the download_path/chapters.title/001.webp: `/suwayomi_data/downloads/mangas/Asura Scans (EN)/Solo Leveling/Chapter 200 - Side Story 21 { THE END }/001.webp`
-> **Note:** For Suwayomi thumbnails, image URLs are cover_image(the image name is manga_id.webp/manga_id.jpeg etc): `suwayomi_data/downloads/thumbnails/23.webp`
+> **Note1:** "Score"  tells how many search words your query matches in the database table , so higher score means more likely the searched manga/category
+> **Note2:** For Suwayomi items, image URLs are constructed by appending the filename to the download_path/chapters.title/001.webp: `/suwayomi_data/downloads/mangas/Asura Scans (EN)/Solo Leveling/Chapter 200 - Side Story 21 { THE END }/001.webp`
+> **Note3:** For Suwayomi thumbnails, image URLs are cover_image(the image name is manga_id.webp/manga_id.jpeg etc): `suwayomi_data/downloads/thumbnails/23.webp`
 
 
 
@@ -150,7 +150,7 @@ Serves the actual image files.
 
 ---
 
-## 🛠 Internal Developer Guide
+## Internal Developer Guide
 
 ### "Layer 3" Scanning Logic (`server.py`)
 A key feature of this server is how it handles the file structure differences between the two sources in the `_add_file_details` function:
