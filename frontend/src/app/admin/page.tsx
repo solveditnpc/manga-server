@@ -22,6 +22,19 @@ export default function AdminPage() {
     fetchMangas();
   }, [query]);
 
+  // 🔒 Lock body scroll when detail panel is open
+  useEffect(() => {
+    if (selectedManga) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [selectedManga]);
+
   async function fetchMangas() {
     setLoading(true);
 
@@ -31,9 +44,7 @@ export default function AdminPage() {
         m.manga_id.toString().includes(query) ||
         m.author?.toLowerCase().includes(query.toLowerCase()) ||
         m.language?.toLowerCase().includes(query.toLowerCase()) ||
-        m.tags?.some((t) =>
-          t.name.toLowerCase().includes(query.toLowerCase())
-        )
+        m.tags?.some((t) => t.name.toLowerCase().includes(query.toLowerCase()))
     );
 
     setMangas(filtered);
@@ -48,17 +59,13 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="flex gap-6">
-      {/* Main column */}
-      <div className="flex-1 space-y-8">
+    <>
+      {/* Main content */}
+      <div className="space-y-8">
         {/* Header */}
         <section>
-          <h1 className="text-lg font-semibold fg-primary">
-            Manga Management
-          </h1>
-          <p className="text-sm fg-muted">
-            Search, add, or delete mangas.
-          </p>
+          <h1 className="text-lg font-semibold fg-primary">Manga Management</h1>
+          <p className="text-sm fg-muted">Search, add, or delete mangas.</p>
         </section>
 
         {/* Add */}
@@ -86,13 +93,13 @@ export default function AdminPage() {
         />
       </div>
 
-      {/* Side panel */}
+      {/* Detail panel (overlay / full-screen depending on breakpoint) */}
       {selectedManga && (
         <AdminMangaDetailPanel
           manga={selectedManga}
           onClose={() => setSelectedManga(null)}
         />
       )}
-    </div>
+    </>
   );
 }

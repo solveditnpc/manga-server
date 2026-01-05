@@ -1,8 +1,10 @@
 "use client";
+
 import { Manga } from "@/types/manga.type";
 import { MangaTagsSection } from "@/features/manga/components";
 import { useEffect } from "react";
 import { CopyToClipboardButton } from "@/components/ui";
+
 export default function AdminMangaDetailPanel({
   manga,
   onClose,
@@ -24,16 +26,17 @@ export default function AdminMangaDetailPanel({
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/20 z-40" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/30 z-40" onClick={onClose} />
 
       {/* Panel */}
       <aside
+        onClick={(e) => e.stopPropagation()}
         className="
           fixed
-          top-0
-          right-0
+          inset-0
+          sm:inset-y-0 sm:right-0 sm:left-auto
           h-screen
-          w-70
+          w-full sm:w-90
           bg-card
           border-l border-default
           z-50
@@ -41,30 +44,33 @@ export default function AdminMangaDetailPanel({
           overflow-y-auto
         "
       >
-        <div className="flex justify-between items-start">
+        {/* Header */}
+        <div className="flex justify-between items-center">
           <h2 className="text-sm font-semibold fg-primary">Manga Details</h2>
           <button
             onClick={onClose}
-            className="text-xs fg-muted hover:fg-primary"
+            className="text-sm fg-muted hover:fg-primary"
           >
             ✕
           </button>
         </div>
 
         <div className="mt-4 space-y-4 text-sm">
-          <div className="relative w-40 aspect-2/3 bg-card border border-default rounded-lg overflow-hidden">
+          {/* Cover */}
+          <div className="relative w-45 aspect-2/3 bg-card border border-default rounded-lg overflow-hidden">
             {manga.cover_url ? (
               <img
                 src={manga.cover_url}
                 alt={manga.title}
-                className="object-cover"
+                className="w-full h-full object-cover"
               />
             ) : (
-              <div className="flex items-center justify-center w-full">
-                <p className="fg-muted">Not Found</p>
+              <div className="flex items-center justify-center w-full h-full">
+                <p className="fg-muted text-xs">Not Found</p>
               </div>
             )}
           </div>
+
           <Detail
             label="ID"
             value={
@@ -81,9 +87,11 @@ export default function AdminMangaDetailPanel({
           <Detail label="Pages" value={manga.total_pages} />
           <Detail label="Likes" value={manga.likes_count ?? 0} />
 
+                  
+          {/* Tags */}
           <div>
-            <div className="fg-muted mb-1">Tags :</div>
-            <div className="ml-4 mt-2">
+            <div className="fg-muted mb-1 text-xs">Tags : </div>
+            <div className="ml-10 mt-2">
               <MangaTagsSection tags={manga.tags || []} />
             </div>
           </div>
@@ -103,8 +111,8 @@ function Detail({
   mono?: boolean;
 }) {
   return (
-    <div className="flex gap-2 items-center flex-wrap">
-      <div className="fg-muted">{label} : </div>
+    <div className="grid grid-cols-[70px_1fr] gap-2 items-center">
+      <div className="fg-muted text-xs">{label} :</div>
       <div className={mono ? "font-mono" : ""}>{value}</div>
     </div>
   );

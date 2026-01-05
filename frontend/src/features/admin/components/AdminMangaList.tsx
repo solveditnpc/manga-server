@@ -46,23 +46,80 @@ export default function AdminMangaList({
     return <div className="fg-muted text-sm">No mangas found.</div>;
 
   const rowClassName = "text-xs fg-muted py-2 pr-2";
+return (
+  <section>
+    <h2 className="px-4 py-3 text-sm font-medium fg-primary border-b border-default">
+      Existing Mangas
+    </h2>
+    <div className="bg-card" >
+      {/* ================== MOBILE LIST ================== */}
+      <div className="block sm:hidden divide-y divide-default">
+        {mangas.map((manga) => (
+          <div
+            key={manga.manga_id}
+            onClick={() => onSelectManga(manga)}
+            className={`p-4 flex gap-3 cursor-pointer ${
+              selectedId === manga.manga_id ? "bg-background" : ""
+            }`}
+          >
+            {/* Cover */}
+            <div className="w-12 h-16 bg-background border border-default rounded overflow-hidden shrink-0">
+              {manga.cover_url && (
+                <img
+                  src={manga.cover_url}
+                  alt={manga.title}
+                  className="w-full h-full object-cover"
+                />
+              )}
+            </div>
 
-  return (
-    <section className="border border-default rounded-lg">
-      <h2 className="px-2 py-3 text-sm font-medium fg-primary">
-        Existing Mangas
-      </h2>
-      <div className="px-4 bg-card">
-        <table className="w-full border-collapse p-2">
-          <thead className="bg-card">
+            {/* Content */}
+            <div className="flex-1 min-w-0">
+              <div className="fg-primary text-sm truncate">{manga.title}</div>
+              <div className="fg-muted text-xs truncate">
+                {manga.author || "—"}
+              </div>
+              <div className="fg-muted text-xs font-mono mt-1">
+                #{manga.manga_id}
+              </div>
+            </div>
+
+            {/* Action */}
+            <div className="flex items-start">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openConfirm(manga.manga_id, manga.title);
+                }}
+                className="text-xs fg-accent"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ================== TABLE (TABLET + DESKTOP) ================== */}
+      <div className="hidden sm:block px-4">
+        <table className="w-full border-collapse">
+          <thead>
             <tr className="border-b border-default">
               <th className={`${rowClassName} text-left`}>ID</th>
               <th className={`${rowClassName} text-left`}>Cover</th>
               <th className={`${rowClassName} text-left`}>Title</th>
-              <th className={`${rowClassName} text-left`}>Author</th>
-              <th className={`${rowClassName} text-left`}>Language</th>
-              <th className={`${rowClassName} text-right`}>Likes</th>
-              <th className={`${rowClassName} text-left`}>Date</th>
+              <th className={`${rowClassName} text-left hidden lg:table-cell`}>
+                Author
+              </th>
+              <th className={`${rowClassName} text-left hidden lg:table-cell`}>
+                Language
+              </th>
+              <th className={`${rowClassName} text-right hidden lg:table-cell`}>
+                Likes
+              </th>
+              <th className={`${rowClassName} text-left hidden lg:table-cell`}>
+                Date
+              </th>
               <th className={`${rowClassName} text-right`}>Action</th>
             </tr>
           </thead>
@@ -79,15 +136,18 @@ export default function AdminMangaList({
             ))}
           </tbody>
         </table>
-        <ConfirmDialog
-          open={confirmMsg !== ""}
-          title="Delete manga?"
-          description={confirmMsg}
-          confirmText="Delete"
-          onCancel={onCancel}
-          onConfirm={handleDelete}
-        />
       </div>
-    </section>
-  );
+
+      <ConfirmDialog
+        open={confirmMsg !== ""}
+        title="Delete manga?"
+        description={confirmMsg}
+        confirmText="Delete"
+        onCancel={onCancel}
+        onConfirm={handleDelete}
+      />
+    </div>
+  </section>
+);
+
 }
