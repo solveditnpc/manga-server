@@ -2,6 +2,7 @@ import SearchBar from "@/features/search/components/SearchBar";
 import APP_CONFIG from "@/config/app.config";
 import Link from "next/link";
 import UserMenu from "./UserMenu";
+import { Suspense } from "react";
 export default function Header() {
   return (
     <header className="fixed w-full top-0 z-40 bg-background border-b border-default">
@@ -16,7 +17,9 @@ export default function Header() {
 
         {/* Center: Search */}
         <div className="flex justify-end">
-          <SearchBar />
+          <Suspense fallback={null}>
+            <SearchBar />
+          </Suspense>
         </div>
 
         {/* Right: User Actions */}
