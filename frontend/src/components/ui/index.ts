@@ -5,6 +5,7 @@ import Pagination from "./Pagination";
 import Badge from "./Badge";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import ConfirmDialog from "./ConfirmDialog";
+import Textarea from "./Textarea";
 
 export {
   Input,
@@ -14,4 +15,5 @@ export {
   Badge,
   CopyToClipboardButton,
   ConfirmDialog,
+  Textarea,
 };

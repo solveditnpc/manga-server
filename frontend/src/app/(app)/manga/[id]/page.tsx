@@ -4,6 +4,7 @@ import {
   LikeButton,
   PagesPreviewGrid,
   MangaTagsSection,
+  CommentsSection,
 } from "@/features/manga/components";
 import mangas from "@/mockData/mangas.json";
 import { Manga } from "@/types/manga.type";
@@ -104,6 +105,7 @@ export default async function MangaDetailsPage({
           </div>
         </div>
       </div>
+      <CommentsSection />
     </div>
   );
 }
