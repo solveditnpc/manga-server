@@ -3,16 +3,22 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Search, ChevronDown, ChevronUp } from "lucide-react";
 import { Input, Button } from "@/components/ui";
-
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 function SearchBar() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(
+    (pathname.includes("search") && searchParams.get("q")) || ""
+  );
   const panelRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!query.trim()) return;
-    console.log(query);
+    router.push(`/search?q=${query}&page=1`);
   };
 
   // Close only if input is empty
