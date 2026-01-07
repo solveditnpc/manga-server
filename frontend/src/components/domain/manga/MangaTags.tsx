@@ -1,7 +1,7 @@
 import { MangaTag } from "@/types/manga.type";
 import { Badge } from "@/components/ui";
 
-function MangaTagsSection({ tags }: { tags: MangaTag[] }) {
+function MangaTags({ tags }: { tags: MangaTag[] }) {
   const parsedTags: Record<string, string[]> = {};
 
   tags.forEach((tag) => {
@@ -28,4 +28,4 @@ function MangaTagsSection({ tags }: { tags: MangaTag[] }) {
   );
 }
 
-export default MangaTagsSection;
+export default MangaTags;

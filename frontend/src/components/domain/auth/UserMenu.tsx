@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
-import LogoutButton from "@/features/auth/components/LogoutButton";
-import { Button } from "../ui";
+import LogoutButton from "@/components/domain/auth/LogoutButton";
+import { Button } from "../../ui";
 
 export default function UserMenu() {
   const username = Cookies.get("username");

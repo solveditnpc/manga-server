@@ -3,7 +3,7 @@ import Image from "next/image";
 import { Heart } from "lucide-react";
 import { Manga } from "@/types/manga.type";
 
-export default function BrowseMangaCard({
+export default function MangaCard({
   manga_id,
   title,
   author,

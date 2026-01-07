@@ -3,17 +3,17 @@
 import { Minus, Plus} from "lucide-react";
 import { useEffect } from "react";
 
-type ReadPageZoomControlsProps = {
+type PageZoomControlsProps = {
   zoom: number;
   setZoom: React.Dispatch<React.SetStateAction<number>>;
   visible?: boolean;
 };
 
-export default function ReadPageZoomControls({
+export default function PageZoomControls({
   zoom,
   setZoom,
   visible = true,
-}: ReadPageZoomControlsProps) {
+}: PageZoomControlsProps) {
   const zoomUp = () => setZoom((z) => Math.min(1.5, z + 0.1));
   const zoomDown = () => setZoom((z) => Math.max(0.8, z - 0.1));
 

@@ -1,12 +1,10 @@
 import Image from "next/image";
 import { CopyToClipboardButton, Button } from "@/components/ui/";
-import {
-  LikeButton,
-  PagesPreviewGrid,
-  MangaTagsSection,
-  CommentsSection,
-} from "@/features/manga/components";
-import mangas from "@/mockData/mangas.json";
+import MangaTagsSection from "@/components/domain/manga/MangaTags";
+import LikeButton from "@/components/domain/manga/LikeButton";
+import PagesPreviewSection from "@/components/sections/PagesPreviewSection";
+import CommentsSection from "@/components/sections/CommentsSection";
+import mangas from "@/_mock/mangas.json";
 import { Manga } from "@/types/manga.type";
 import ENV_CONFIG from "@/config/env.config";
 import Link from "next/link";
@@ -101,7 +99,7 @@ export default async function MangaDetailsPage({
           <div className="w-full">
             <p className="text-xs fg-muted mb-2">Pages :</p>
 
-            <PagesPreviewGrid page_files={page_files} manga_id={manga_id} />
+            <PagesPreviewSection page_files={page_files} manga_id={manga_id} />
           </div>
         </div>
       </div>

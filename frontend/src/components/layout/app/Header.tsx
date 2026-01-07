@@ -1,7 +1,7 @@
-import SearchBar from "@/features/search/components/SearchBar";
+import SearchBar from "@/components/domain/search/SearchBar";
 import APP_CONFIG from "@/config/app.config";
 import Link from "next/link";
-import UserMenu from "./UserMenu";
+import UserMenu from "../../domain/auth/UserMenu";
 import { Suspense } from "react";
 export default function Header() {
   return (

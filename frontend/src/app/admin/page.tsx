@@ -1,16 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import mockMangas from "@/mockData/mangas.json";
+import mockMangas from "@/_mock/mangas.json";
 import { Manga, MangaList } from "@/types/manga.type";
 
-import {
-  AdminAddMangaForm,
-  AdminMangaList,
-  AdminMangaDetailPanel,
-} from "@/features/admin/components";
-import { Input } from "@/components/ui";
+import AdminAddMangaForm from "@/components/domain/admin/AdminAddMangaForm";
+import MangaDetailPanel from "@/components/domain/manga/MangaDetailPanel";
+import AdminMangaListPanel from "@/components/domain/admin/AdminMangaListPanel";
 
+import { Input } from "@/components/ui";
 export default function AdminPage() {
   const [query, setQuery] = useState("");
   const [mangas, setMangas] = useState<MangaList>([]);
@@ -85,7 +83,7 @@ export default function AdminPage() {
         </section>
 
         {/* List */}
-        <AdminMangaList
+        <AdminMangaListPanel
           mangas={mangas}
           onDelete={onDelete}
           onSelectManga={setSelectedManga}
@@ -95,7 +93,7 @@ export default function AdminPage() {
 
       {/* Detail panel (overlay / full-screen depending on breakpoint) */}
       {selectedManga && (
-        <AdminMangaDetailPanel
+        <MangaDetailPanel
           manga={selectedManga}
           onClose={() => setSelectedManga(null)}
         />

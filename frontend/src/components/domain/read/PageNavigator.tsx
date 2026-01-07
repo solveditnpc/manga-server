@@ -2,7 +2,7 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 
-export default function ReadPageNavigator({
+export default function PageNavigator({
   total_pages,
   visible,
   pageRefs,

@@ -1,11 +1,11 @@
 "use client";
 
 import { Manga } from "@/types/manga.type";
-import { MangaTagsSection } from "@/features/manga/components";
+import MangaTagsSection from "./MangaTags";
 import { useEffect } from "react";
 import { CopyToClipboardButton } from "@/components/ui";
 
-export default function AdminMangaDetailPanel({
+export default function MangaDetailPanel({
   manga,
   onClose,
 }: {

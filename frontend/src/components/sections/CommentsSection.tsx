@@ -1,8 +1,8 @@
 "use client";
 
 import { Comment } from "@/types/comment.type";
-import CommentItem from "./CommentItem";
-import mockComments from "@/mockData/mockComments.json";
+import CommentItem from "../domain/comment/CommentItem";
+import mockComments from "@/_mock/mockComments.json";
 import { useState, useRef } from "react";
 import { Textarea, Button } from "@/components/ui";
 import Cookies from "js-cookie";

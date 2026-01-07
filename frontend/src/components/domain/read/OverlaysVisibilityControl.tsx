@@ -21,7 +21,7 @@ function isReaderKey(e: KeyboardEvent): boolean {
   );
 }
 
-export default function ReadPageOverlaysVisibility({
+export default function OverlaysVisibilityControl({
   readerContainer,
   children,
 }: {

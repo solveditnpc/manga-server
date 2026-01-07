@@ -14,13 +14,12 @@ export default function AdminAddMangaForm() {
 
     setLoading(true);
     setStatus(null);
-      
+
     setTimeout(() => {
       setLoading(false);
-        setStatus("Added successfully!");
-        setValue("");
+      setStatus("Added successfully!");
+      setValue("");
     }, 1000);
-    
   }
 
   return (

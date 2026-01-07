@@ -1,13 +1,13 @@
 "use client";
 
 import { useRef } from "react";
-import { BrowseMangaCard } from "./";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui";
-import mockMangas from "@/mockData/mangas.json";
+import MangaCard from "@/components/domain/manga/MangaCard";
+import mockMangas from "@/_mock/mangas.json";
 import { MangaList, Manga } from "@/types/manga.type";
 
-export default function ContinueReadingSection() {
+export default function HorizontalScroller() {
   const mangas: MangaList = mockMangas.mangas;
 
   if (!mangas || mangas.length === 0) return null;
@@ -59,10 +59,9 @@ export default function ContinueReadingSection() {
         className="flex gap-4 overflow-x-auto pb-2 scroll-smooth"
       >
         {mangas.map((manga: Manga) => (
-          <BrowseMangaCard key={manga.manga_id} {...manga} />
+          <MangaCard key={manga.manga_id} {...manga} />
         ))}
       </div>
     </section>
   );
 }
-

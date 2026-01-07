@@ -1,7 +1,7 @@
 "use client";
-import { BrowseMangaCard } from "@/features/browse/components";
+import MangaCard from "@/components/domain/manga/MangaCard";
 import { Pagination } from "@/components/ui";
-import mockMangas from "@/mockData/mangas.json";
+import mockMangas from "@/_mock/mangas.json";
 import { Manga, MangaList, MangaTag } from "@/types/manga.type";
 import { useSearchParams, useRouter } from "next/navigation";
 
@@ -94,7 +94,7 @@ export default function SearchPage() {
           "
       >
         {mangas.map((manga) => (
-          <BrowseMangaCard key={manga.manga_id} {...manga} />
+          <MangaCard key={manga.manga_id} {...manga} />
         ))}
       </div>
 

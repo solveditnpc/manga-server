@@ -3,15 +3,15 @@
 import { useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import { Manga } from "@/types/manga.type";
-import mockData from "@/mockData/mangas.json";
-import {
-  ReadPageZoomControls,
-  ReadPageHeader,
-  ReadPageOverlaysVisibility,
-  ReadPageNavigator,
-} from "@/features/read/components";
+import mockData from "@/_mock/mangas.json";
+
+import PageNavigator from "@/components/domain/read/PageNavigator";
+import ReadPageHeader from "@/components/layout/read/ReadPageHeader";
+import OverlaysVisibilityControl from "@/components/domain/read/OverlaysVisibilityControl";
+import PageZoomControls from "@/components/domain/read/PageZoomControls";
+
 import { MangaFallback } from "@/config/manga.config";
-import { getMockPagesArray } from "@/mockData/mockPages";
+import { getMockPagesArray } from "@/_mock/mockPages";
 
 export default function MangaReadPage() {
   const [zoom, setZoom] = useState(1); // 1 = 100%
@@ -77,20 +77,20 @@ export default function MangaReadPage() {
       </main>
 
       {/* Reader Overlay */}
-      <ReadPageOverlaysVisibility readerContainer={readerContainer}>
+      <OverlaysVisibilityControl readerContainer={readerContainer}>
         <ReadPageHeader
           title={mangaMeta.title}
           author={mangaMeta.author}
           manga_id={manga_id}
         />
 
-        <ReadPageNavigator
+        <PageNavigator
           total_pages={mangaMeta.total_pages}
           pageRefs={pageRefs}
         />
 
-        <ReadPageZoomControls zoom={zoom} setZoom={setZoom} />
-      </ReadPageOverlaysVisibility>
+        <PageZoomControls zoom={zoom} setZoom={setZoom} />
+      </OverlaysVisibilityControl>
     </div>
   );
 }

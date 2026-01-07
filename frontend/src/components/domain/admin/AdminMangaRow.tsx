@@ -11,13 +11,7 @@ type Props = {
   selected: boolean;
 };
 
-export default function AdminMangaRow({
-  manga,
-  onDelete,
-  deleting,
-  onSelect,
-  selected,
-}: Props) {
+export default function AdminMangaRow({ manga, onDelete, deleting, onSelect, selected }: Props) {
   return (
     <tr
       onClick={() => onSelect(manga)}
@@ -46,9 +40,7 @@ export default function AdminMangaRow({
       </td>
 
       {/* Title */}
-      <td className="py-2 pr-3 fg-primary truncate max-w-65">
-        {manga.title}
-      </td>
+      <td className="py-2 pr-3 fg-primary truncate max-w-65">{manga.title}</td>
 
       {/* Author — desktop only */}
       <td className="py-2 pr-3 fg-muted truncate hidden lg:table-cell">

@@ -3,9 +3,9 @@ import { Pagination } from "@/components/ui";
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { getMockPagesArray } from "@/mockData/mockPages";
+import { getMockPagesArray } from "@/_mock/mockPages";
 
-export default function PagesPreviewGrid({
+export default function PagesPreviewSection({
   page_files,
   manga_id,
 }: {
@@ -42,14 +42,16 @@ export default function PagesPreviewGrid({
           <Link
             href={`/read/${manga_id}?page=${i + (currentPage - 1) * 15 + 1}`}
             key={i}
-            className={`"
+            className={
+              `"
             relative
             aspect-2/3
             bg-card
             border border-default
             rounded
             overflow-hidden
-            "` + i}
+            "` + i
+            }
           >
             {page ? (
               <Image
