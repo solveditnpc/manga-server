@@ -40,16 +40,16 @@ interface PaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  windowSize?: number;
 }
 
 export default function Pagination({
   currentPage,
   totalPages,
   onPageChange,
+  windowSize = 5,
 }: PaginationProps) {
   if (totalPages <= 1) return null;
-
-  const windowSize = 5;
 
   let start = Math.max(1, currentPage - 2);
   let end = start + windowSize - 1;
@@ -68,7 +68,10 @@ export default function Pagination({
     "fg-muted disabled:opacity-40 disabled:cursor-not-allowed flex items-center h-full gap-1";
 
   return (
-    <nav className="flex items-center justify-center gap-1 text-sm" aria-label="Pagination">
+    <nav
+      className="flex items-center justify-center gap-1 text-sm"
+      aria-label="Pagination"
+    >
       {/* Prev */}
       <Button
         onClick={() => onPageChange(currentPage - 1)}
