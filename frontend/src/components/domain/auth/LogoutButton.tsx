@@ -1,19 +1,46 @@
 "use client";
 import { Button } from "@/components/ui";
-import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
+import { useLogout } from "@/hooks/auth.hooks";
+import { LoaderCircle } from "lucide-react";
+import { toast } from "sonner";
+import { useEffect } from "react";
 
 function LogoutButton({ className }: { className?: string }) {
-  const username = Cookies.get("username");
   const router = useRouter();
-  const handleLogout = (e: React.MouseEvent) => {
-    e.preventDefault();
-    Cookies.remove("username");
-    router.push("/auth");
-  };
+
+  const {
+    mutate: logout,
+    isPending,
+    isError,
+    error,
+  } = useLogout({
+    onSuccess: () => router.replace("/auth"),
+  });
+
+  useEffect(() => {
+    if (!isError) return;
+
+    toast.error("Failed to logout", {
+      description: error?.message || "Please try again",
+    });
+  }, [isError, error]);
+
   return (
-    <Button className={className} onClick={handleLogout} variant="primary">
-      Logout
+    <Button
+      type="button"
+      variant="danger"
+      className="w-full flex gap-1 justify-center items-center"
+      disabled={isPending}
+      onClick={() => logout()}
+    >
+      {isPending ? (
+        <>
+          Logging out... <LoaderCircle size={14} className="animate-spin" />
+        </>
+      ) : (
+        "Logout"
+      )}
     </Button>
   );
 }
