@@ -1,23 +1,31 @@
-import { InputHTMLAttributes } from "react";
+import { forwardRef } from "react";
 
-export default function Input({
-  className = "",
-  ...props
-}: InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <input
-      {...props}
-      className={`
-        w-full
-        border border-default
-        rounded-md
-        px-3 py-2
-        text-sm
-        fg-primary
-        placeholder:fg-muted
-        focus-ring
-        ${className}
-      `}
-    />
-  );
-}
+export default forwardRef<
+  HTMLInputElement,
+  React.InputHTMLAttributes<HTMLInputElement>
+>(
+  function Input({ ...props }, ref) {
+    const { type, className = "", ...rest } = props;
+    return (
+      <input
+        {...rest}
+        ref={ref}
+        type={type ?? "text"}
+        className={`
+          w-full
+          border border-default
+          bg-background
+          rounded-md
+          px-3 py-2
+          text-sm
+          fg-primary
+          placeholder:fg-muted
+          focus-ring 
+          disabled:opacity-40
+          disabled:cursor-not-allowed
+          ${className}
+        `}
+      />
+    );
+  }
+);

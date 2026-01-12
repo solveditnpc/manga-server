@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import APP_CONFIG from "@/config/app.config";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Manga Library",
-  description: "Web interface for manga library",
+  title: APP_CONFIG.name,
+  description: APP_CONFIG.description,
 };
 
 export default function RootLayout({
@@ -28,6 +30,17 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        <Toaster
+          position="top-center"
+          duration={2000}
+          toastOptions={{
+            style: {
+              background: "var(--card-hover)",
+              color: "var(--text-primary)",
+              border: "1px solid var(--border-mid)",
+            },
+          }}
+        />
       </body>
     </html>
   );

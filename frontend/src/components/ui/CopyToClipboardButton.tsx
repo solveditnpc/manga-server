@@ -1,73 +1,107 @@
 "use client";
-import { useState } from "react";
-import { CopyIcon } from "lucide-react";
-function CopyToClipboardButton({
-  displayText,
-  copyText,
-  successMessage,
-}: {
+import { useState, useRef, useEffect } from "react";
+import { CopyIcon, CopyCheck } from "lucide-react";
+import { toast } from "sonner";
+
+interface CopyToClipboardButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   displayText: string;
   copyText: string;
   successMessage?: string;
-}) {
-  const [copied, setCopied] = useState(false);
+}
 
-  function handleCopy() {
-    navigator.clipboard.writeText(String(copyText));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
+export default function CopyToClipboardButton({
+  displayText,
+  copyText,
+  successMessage = "Copied",
+  ...props
+}: CopyToClipboardButtonProps) {
+  const [copied, setCopied] = useState(false);
+  const timeoutRef = useRef<number | null>(null);
+  const { className = "", ...rest } = props;
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(String(copyText));
+      setCopied(true);
+
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      timeoutRef.current = window.setTimeout(() => {
+        setCopied(false);
+      }, 2000);
+    } catch {
+      toast.error("Failed to copy");
+    }
   }
 
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
   return (
-    <div className="relative group">
+    <div className="relative inline-flex">
       <button
+        type="button"
         onClick={handleCopy}
-        className="
-        hover:fg-primary 
-        flex items-center gap-2
-        text-sm
-        fg-muted
-        border border-default
-        rounded-xl
-        px-2 py-1
-        space-x-2
-        group-hover:bg-(--card-hover)
-      "
+        aria-label={`Copy ${displayText}`}
+        className={`
+          inline-flex items-center gap-2
+          rounded-lg border border-default
+          bg-card
+          px-2 py-1
+          text-sm fg-muted
+          transition-colors
+          hover:bg-(--card-hover)
+          hover:fg-primary
+          focus-ring
+          cursor-pointer
+          ${className}
+        `}
+        {...rest}
       >
-        <span>{displayText}</span>
-        <div
-          className="
-            bg-card
-            p-0.5
-            border border-default 
-            rounded-md
-            group-hover:bg-(--card-hover)!
-          "
+        <span className="truncate">{displayText}</span>
+
+        <span
+          className={`
+            flex items-center justify-center
+            rounded-sm border p-0.5
+            transition-all
+            ${
+              copied
+                ? "bg-success fg-success border-transparent"
+                : "bg-card border-mid"
+            }
+          `}
         >
-          <CopyIcon size={16} />
-        </div>
+          {copied ? <CopyCheck size={14} /> : <CopyIcon size={14} />}
+        </span>
       </button>
 
-      {copied && (
-        <span
-          className="
-          absolute
-          text-xs fg-muted 
-          w-30 
-          -translate-x-1/2 translate-y-1
-          left-1/2 
-          text-center
-          p-1
-          bg-card
-          rounded-md
-          italic
-        "
-        >
-          {successMessage || "Copied"}
-        </span>
-      )}
+      {/* Feedback tooltip */}
+      <span
+        role="status"
+        aria-hidden={!copied}
+        className={`
+          pointer-events-none
+          absolute left-1/2 top-full z-10
+          mt-1 -translate-x-1/2
+          rounded-md bg-card
+          px-2 py-0.5
+          text-xs italic fg-muted
+          border border-default
+          transition-opacity duration-150
+          ${copied ? "opacity-100" : "opacity-0"}
+        `}
+      >
+        {successMessage}
+      </span>
     </div>
   );
 }
-
-export default CopyToClipboardButton;

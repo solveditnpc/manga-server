@@ -19,22 +19,35 @@
   --background: #0a0b0e;
   --card: #101016;
   --card-hover: #181a23;
-  --border: #181a25;
-  --border-lighter: #3a3f58;
 
   /* Typography */
   --text-primary: #e6e7eb;
   --text-secondary: #a1a1b3;
   --text-muted: #6f7285;
+  --text-accent: #fbeee4;
+  --text-success: #bcd4a7;
+  --text-danger: #b26868;
 
-  /* Muted Accents */
-  --accent: #802828;
-  --focus: #5f7d8a;
+  /* Accents */
+  --accent: #8a3a01;
+  --focus:  #5f7d8a;
   --highlight: #8f8a6a;
 
   /* Reader Overrides */
   --reader-background: #08090c;
   --reader-text: #dadce3;
+
+  /*Danger*/
+  --danger: #8b2e2e;
+
+  /* Success */
+  --success: #3f6124;
+
+  /* Border */
+  --border: #181a25;
+  --border-mid: #232637;
+  --border-light: #898998;
+
 }
 
 /* ===== Base Defaults ===== */
@@ -61,17 +74,37 @@ body {
 }
 
 .fg-accent {
-  color: var(--accent);
+  color: var(--text-accent);
 }
 
 .fg-highlight {
   color: var(--highlight);
 }
 
+.fg-dark{
+  color: var(--background);
+}
+
+.fg-reader {
+  color: var(--reader-text);
+}
+
+.fg-danger {
+  color: var(--text-danger);
+}
+
+.fg-success{
+  color: var(--text-success);
+}
+
 /* ===== Background Utilities ===== */
 
 .bg-background {
   background-color: var(--background);
+}
+
+.bg-light{
+  background-color: var(--text-primary);
 }
 
 .bg-card {
@@ -86,8 +119,20 @@ body {
   background-color: var(--accent);
 }
 
+.bg-highlight {
+  background-color: var(--highlight);
+}
+
 .bg-reader {
   background-color: var(--reader-background);
+}
+
+.bg-danger {
+  background-color: var(--danger);
+}
+
+.bg-success {
+  background-color: var(--success);
 }
 
 /* ===== Border Utilities ===== */
@@ -96,14 +141,25 @@ body {
   border-color: var(--border);
 }
 
-.border-lighter {
-  border-color: var(--border-lighter);
+.border-light{
+  border-color: var(--border-light);
+}
+
+.border-mid{
+  border-color: var(--border-mid);
 }
 
 .border-accent {
   border-color: var(--accent);
 }
 
+.border-danger {
+  border-color: var(--danger);
+}
+
+.border-success {
+  border-color: var(--success);
+}
 /* ===== Interactive States ===== */
 
 .hover-card:hover {
@@ -112,7 +168,7 @@ body {
 
 .focus-ring:focus-visible {
   outline: 1px solid var(--focus);
-  outline-offset: 2px;
+  outline-offset: 0px;
 }
 
 /* ===== Reader Scope ===== */
@@ -126,6 +182,7 @@ body {
   color: var(--text-muted);
 }
 
+/* ===== AutoFit Input===== */
 .autofit-input {
   width: calc(var(--digits) * 1ch + 0.75ch);
   min-width: 2ch;

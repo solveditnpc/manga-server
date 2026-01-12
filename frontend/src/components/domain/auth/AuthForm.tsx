@@ -1,21 +1,16 @@
 "use client";
 import { Input, Button, Tooltip } from "@/components/ui";
-import { ReactNode } from "react";
 import { useState } from "react";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
-const TOOLTIP_MSG: { [key: string]: ReactNode } = {
-  username: (
-    <>
-      If it’s new, we’ll create it.
-      <br />
-      If it exists, we’ll sign you in.
-    </>
-  ),
-  password: (
-    <>We’ll check this password for existing names, or save it for new ones.</>
-  ),
+import { Info } from "lucide-react";
+
+const TOOLTIP_MSG: { [key: string]: React.ReactNode } = {
+  username: "If it’s new, we’ll create it. If it exists, we’ll sign you in.",
+  password:
+    "We’ll check this password for existing names, or save it for new ones.",
 };
+
 
 export default function AuthForm() {
   const [username, setUsername] = useState("");
@@ -40,7 +35,9 @@ export default function AuthForm() {
           className="text-sm fg-secondary flex items-center"
         >
           Username
-          <Tooltip message={TOOLTIP_MSG.username} />
+          <Tooltip message={TOOLTIP_MSG.username}>
+            <Info size={16} className="ml-1 stroke-(--text-muted)" />
+          </Tooltip>{" "}
         </label>
 
         <Input
@@ -60,7 +57,9 @@ export default function AuthForm() {
           className="text-sm fg-secondary flex items-center"
         >
           Password
-          <Tooltip message={TOOLTIP_MSG.password} />
+          <Tooltip message={TOOLTIP_MSG.password}>
+            <Info size={16} className="ml-1 stroke-(--text-muted)" />
+          </Tooltip>{" "}
         </label>
 
         <Input

@@ -60,7 +60,7 @@ function SearchBar() {
       {/* ===== Mobile ===== */}
       <div className="relative md:hidden" ref={panelRef}>
         <Button
-          variant="ghost"
+          variant="secondary"
           onClick={() => setOpen((v) => !v)}
           aria-label="Toggle search"
           className="flex  h-full"

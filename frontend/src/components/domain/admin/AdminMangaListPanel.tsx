@@ -150,7 +150,7 @@ export default function AdminMangaListPanel({
           open={confirmMsg !== ""}
           title="Delete manga?"
           description={confirmMsg}
-          confirmText="Delete"
+          confirmLabel="Delete"
           onCancel={onCancel}
           onConfirm={handleDelete}
         />
