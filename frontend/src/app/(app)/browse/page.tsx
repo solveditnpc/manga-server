@@ -2,6 +2,7 @@
 
 import MangaCard from "@/components/domain/manga/MangaCard";
 import HorizontalScroller from "@/components/sections/HorizontalScroller";
+import MangasGridSection from "@/components/sections/MangasGridSection";
 import { Pagination } from "@/components/ui";
 import mockMangas from "@/_mock/mangas.json";
 import { useState } from "react";
@@ -13,30 +14,20 @@ export default function DashboardPage() {
   return (
     <main className="max-w-7xl mx-auto px-4 py-8 space-y-8">
       {/* Continue Reading */}
-      <HorizontalScroller />
+      <HorizontalScroller
+        title="Continue Reading"
+        href="/"
+        mangas={allMangas}
+      />
 
       {/* Separator */}
       <div className=" w-full border-t-2 border-default" />
 
-      {/* All Manga */}
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold fg-primary">All Manga</h2>
-
-        <div
-          className="
-            grid
-            gap-4
-            grid-cols-[repeat(auto-fill,minmax(140px,1fr))]
-            sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))]
-            md:grid-cols-[repeat(auto-fill,minmax(180px,1fr))]
-            lg:grid-cols-[repeat(auto-fill,minmax(200px,1fr))]
-          "
-        >
-          {allMangas.map((manga: Manga, i) => (
-            <MangaCard key={i /*manga.manga_id*/} {...manga} />
-          ))}
-        </div>
-      </section>
+      <MangasGridSection
+        title="All Mangas"
+        mangas={mockMangas.mangas}
+        href="/"
+      />
 
       {/* Pagination Controls*/}
       <div
