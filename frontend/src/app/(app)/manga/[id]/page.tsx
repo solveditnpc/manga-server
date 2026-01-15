@@ -8,6 +8,8 @@ import mangas from "@/_mock/mangas.json";
 import { Manga } from "@/types/manga.type";
 import ENV_CONFIG from "@/config/env.config";
 import Link from "next/link";
+import mockComments from "@/_mock/mockComments.json";
+import { Comment } from "@/types/comment.type";
 
 export default async function MangaDetailsPage({
   params,
@@ -27,6 +29,10 @@ export default async function MangaDetailsPage({
     likes_count = 0,
     language = "N/A",
   } = mangas.mangas.find((m: Manga) => m.manga_id == paramID) || {};
+
+  const rootComments: Comment[] = mockComments.comments.filter(
+    (c) => c.parent_id === null
+  );
 
   const InfoSection = () => (
     <div className="space-y-3">
@@ -103,7 +109,7 @@ export default async function MangaDetailsPage({
           </div>
         </div>
       </div>
-      <CommentsSection />
+      <CommentsSection rootComments={rootComments} manga_id={manga_id} />
     </div>
   );
 }

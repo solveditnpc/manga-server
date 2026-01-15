@@ -1,54 +1,41 @@
 "use client";
-
+import { useState } from "react";
+import { useCurrentUser } from "@/hooks/auth.hooks";
 import { Comment } from "@/types/comment.type";
-import CommentItem from "../domain/comment/CommentItem";
-import mockComments from "@/_mock/mockComments.json";
-import { useState, useRef } from "react";
-import { Textarea, Button } from "@/components/ui";
-import Cookies from "js-cookie";
+import { Manga } from "@/types/manga.type";
+import CommentItem from "@/components/domain/comment/CommentItem";
+import CommentForm from "../domain/comment/CommentForm";
 
-export default function CommentsSection() {
-  const username = Cookies.get("username") || "unknown user";
+interface CommentSectionProps {
+  rootComments: Comment[];
+  manga_id: Manga["manga_id"];
+}
 
-  const [comments, setComments] = useState<Comment[]>(
-    mockComments.comments || []
-  );
+export default function CommentsSection({
+  rootComments,
+  manga_id,
+}: CommentSectionProps) {
+  const { data: user } = useCurrentUser();
 
-  const [newComment, setNewComment] = useState("");
+  const [comments, setComments] = useState<Comment[]>(rootComments);
 
-  const commentTextareaRef = useRef<HTMLTextAreaElement>(null);
-
-  const roots = comments.filter((c) => c.parent_id === null);
-
-  const repliesByParent = comments.reduce((acc, c) => {
-    if (c.parent_id !== null) {
-      acc[c.parent_id] ??= [];
-      acc[c.parent_id].push(c);
-    }
-    return acc;
-  }, {} as Record<number, Comment[]>);
-
-  const addComment = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newComment.trim()) return;
+  const addComment = (newComment: string) => {
+    if (!newComment.trim() || !user?.id || !user?.username) return;
 
     const comment: Comment = {
-      comment_id: comments.length + 1,
-      manga_id: 1,
-      user_id: 1,
-      username,
+      comment_id: Date.now(),
+      manga_id: manga_id,
+      user_id: user.id,
+      username: user.username,
       content: newComment,
       created_at: new Date().toISOString(),
       parent_id: null,
+      repliesCount: 0,
     };
 
-    // Prepend for better UX
-    setComments([comment, ...comments]);
-    setNewComment("");
-  };
-  const cancelComment = () => {
-    setNewComment("");
-    commentTextareaRef.current?.blur();
+    // fetch Call Here
+
+    setComments((prev) => [comment, ...prev]);
   };
 
   return (
@@ -56,8 +43,7 @@ export default function CommentsSection() {
       <h2 className="text-lg font-semibold fg-primary">Comments</h2>
 
       {/* Add comment */}
-      <form
-        onSubmit={addComment}
+      <div
         className="
           space-y-2
           border border-default
@@ -66,42 +52,15 @@ export default function CommentsSection() {
           bg-card
         "
       >
-        <Textarea
-          value={newComment}
-          ref={commentTextareaRef}
-          onChange={(e) => setNewComment(e.target.value)}
-          placeholder="Add a comment…"
-          className="bg-background"
-        />
-
-        <div className="flex gap-2">
-          <Button type="submit">Comment</Button>
-          {newComment && (
-            <button
-              className="text-sm fg-muted cursor-pointer hover:text-white/80!"
-              onClick={cancelComment}
-              type="button"
-            >
-              Cancel
-            </button>
-          )}
-        </div>
-      </form>
-
+        <CommentForm onSubmit={addComment} buttonLabel="Comment" />
+      </div>
       {/* Comment list */}
-      {roots.length === 0 ? (
+      {comments.length === 0 ? (
         <p className="text-sm fg-muted">Be the first to comment.</p>
       ) : (
-        <div className="space-y-6">
-          {roots.map((c) => (
-            <div className="space-y-3" key={c.comment_id}>
-              <CommentItem
-                comment={c}
-                replies={repliesByParent[c.comment_id] ?? []}
-                setCommnets={setComments}
-              />
-              <div className="border-b border-default"></div>
-            </div>
+        <div className="space-y-3">
+          {comments.map((c) => (
+            <CommentItem key={c.comment_id} comment={c} />
           ))}
         </div>
       )}
