@@ -3,13 +3,13 @@ import LogoutButton from "@/components/domain/auth/LogoutButton";
 import { LinkButton, Dropdown } from "../../ui";
 import { useCurrentUser } from "@/hooks/auth.hooks";
 import { LoaderCircle } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function UserMenu() {
   const { data: user, isLoading, isError, error } = useCurrentUser();
   const avatar = user?.username.charAt(0).toUpperCase();
-
+  const [open, setOpen] = useState(false);
   useEffect(() => {
     if (!isError) return;
 
@@ -30,6 +30,8 @@ export default function UserMenu() {
   return (
     <Dropdown
       disabled={isLoading}
+      open={open}
+      onOpenChange={setOpen}
       trigger={
         <div
           className="
