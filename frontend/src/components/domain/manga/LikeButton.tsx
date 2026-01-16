@@ -28,15 +28,19 @@ export default function LikeButton({ mangaId, initialCount }: LikeButtonProps) {
     >
       <div
         className={`
-          border border-default
+          border
           rounded-full
           p-2
-          ${liked ? "bg-red-800 fill-(--text-primary)!" : ""}
+          ${
+            liked
+              ? "bg-rose-800 fill-primary! border-rose-800"
+              : " border-default"
+          }
         `}
       >
         <Heart
           className={
-            liked ? "fill-(--text-primary) stroke-(--text-primary)" : ""
+            liked ? "fill-primary stroke-primary" : ""
           }
           size={18}
         />

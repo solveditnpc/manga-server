@@ -18,7 +18,7 @@ export default function LinkButton({
   const classes = `
     ${buttonBase}
     ${buttonVariants[variant] ?? buttonVariants.secondary}
-    ${disabled ? "opacity-40 cursor-not-allowed" : ""}
+    ${disabled ? "disabled-default" : ""}
     ${className}
   `;
 

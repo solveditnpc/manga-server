@@ -128,7 +128,7 @@ function PaginationButton({
         md:text-sm text-xs 
         md:h-9 h-7 
         md:min-w-9 min-w-7 px-2
-        disabled:opacity-40 disabled:cursor-not-allowed 
+        disabled:disabled-default 
         focus-ring
         ${isActive ? "fg-primary border-light" : "fg-muted"}
         ${className}

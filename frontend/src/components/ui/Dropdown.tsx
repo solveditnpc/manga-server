@@ -112,7 +112,7 @@ export default function Dropdown({
         onClick={() => onOpenChange(!open)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-ring rounded-xs"
+        className="cursor-pointer disabled:disabled-default focus-ring rounded-xs"
       >
         {trigger}
       </button>
@@ -129,7 +129,7 @@ export default function Dropdown({
           }}
           className={`
             absolute z-50 mt-2
-            rounded-md border border-default bg-card p-2
+            rounded-md border border-default bg-card p-2 focus-ring
             ${align === "center" && "left-1/2 -translate-x-1/2"}
             ${align === "left" && "left-0"}
             ${align === "right" && "right-0"}

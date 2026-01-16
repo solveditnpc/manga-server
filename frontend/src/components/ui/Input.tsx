@@ -21,8 +21,7 @@ export default forwardRef<
           fg-primary
           placeholder:fg-muted
           focus-ring 
-          disabled:opacity-40
-          disabled:cursor-not-allowed
+          disabled:disabled-default
           ${className}
         `}
       />

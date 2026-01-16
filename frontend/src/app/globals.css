@@ -7,20 +7,15 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-}
-
 /* ===============================
    Ink Noir — Muted Accent Theme
    =============================== */
 
 :root {
-  /* Core cards */
   --background: #0a0b0e;
   --card: #101016;
   --card-hover: #181a23;
 
-  /* Typography */
   --text-primary: #e6e7eb;
   --text-secondary: #a1a1b3;
   --text-muted: #6f7285;
@@ -28,29 +23,22 @@
   --text-success: #bcd4a7;
   --text-danger: #b26868;
 
-  /* Accents */
   --accent: #8a3a01;
-  --focus:  #5f7d8a;
+  --focus: #5f7d8a;
   --highlight: #8f8a6a;
 
-  /* Reader Overrides */
   --reader-background: #08090c;
   --reader-text: #dadce3;
 
-  /*Danger*/
   --danger: #8b2e2e;
-
-  /* Success */
   --success: #3f6124;
 
-  /* Border */
   --border: #181a25;
   --border-mid: #232637;
   --border-light: #898998;
-
 }
 
-/* ===== Base Defaults ===== */
+/* ===== Base ===== */
 
 html,
 body {
@@ -59,131 +47,181 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* ===== Foreground Utilities ===== */
+/* ===== Foreground ===== */
 
-.fg-primary {
+@utility fg-primary {
   color: var(--text-primary);
 }
-
-.fg-secondary {
+@utility fg-secondary {
   color: var(--text-secondary);
 }
-
-.fg-muted {
+@utility fg-muted {
   color: var(--text-muted);
 }
-
-.fg-accent {
+@utility fg-accent {
   color: var(--text-accent);
 }
-
-.fg-highlight {
+@utility fg-highlight {
   color: var(--highlight);
 }
-
-.fg-dark{
+@utility fg-dark {
   color: var(--background);
 }
-
-.fg-reader {
+@utility fg-reader {
   color: var(--reader-text);
 }
-
-.fg-danger {
+@utility fg-danger {
   color: var(--text-danger);
 }
-
-.fg-success{
+@utility fg-success {
   color: var(--text-success);
 }
 
-/* ===== Background Utilities ===== */
+/* ===== Background ===== */
 
-.bg-background {
+@utility bg-background {
   background-color: var(--background);
 }
-
-.bg-light{
+@utility bg-light {
   background-color: var(--text-primary);
 }
-
-.bg-card {
+@utility bg-card {
   background-color: var(--card);
 }
-
-.bg-card-hover {
+@utility bg-card-hover {
   background-color: var(--card-hover);
 }
-
-.bg-accent {
+@utility bg-accent {
   background-color: var(--accent);
 }
-
-.bg-highlight {
+@utility bg-highlight {
   background-color: var(--highlight);
 }
-
-.bg-reader {
+@utility bg-reader {
   background-color: var(--reader-background);
 }
-
-.bg-danger {
+@utility bg-danger {
   background-color: var(--danger);
 }
-
-.bg-success {
+@utility bg-success {
   background-color: var(--success);
 }
 
-/* ===== Border Utilities ===== */
+/* ===== Border ===== */
 
-.border-default {
+@utility border-default {
   border-color: var(--border);
 }
-
-.border-light{
+@utility border-light {
   border-color: var(--border-light);
 }
-
-.border-mid{
+@utility border-mid {
   border-color: var(--border-mid);
 }
-
-.border-accent {
+@utility border-accent {
   border-color: var(--accent);
 }
-
-.border-danger {
+@utility border-danger {
   border-color: var(--danger);
 }
-
-.border-success {
+@utility border-success {
   border-color: var(--success);
 }
-/* ===== Interactive States ===== */
 
-.hover-card:hover {
-  background-color: var(--card-hover);
+/* ===== SVG ===== */
+
+@utility stroke-primary {
+  stroke: var(--text-primary);
+}
+@utility stroke-secondary {
+  stroke: var(--text-secondary);
+}
+@utility stroke-muted {
+  stroke: var(--text-muted);
+}
+@utility stroke-accent {
+  stroke: var(--accent);
+}
+@utility stroke-danger {
+  stroke: var(--danger);
+}
+@utility fill-primary {
+  fill: var(--text-primary);
+}
+@utility fill-secondary {
+  fill: var(--text-secondary);
+}
+@utility fill-muted {
+  fill: var(--text-muted);
+}
+@utility fill-accent {
+  fill: var(--accent);
+}
+@utility fill-danger {
+  fill: var(--danger);
 }
 
-.focus-ring:focus-visible {
-  outline: 1px solid var(--focus);
-  outline-offset: 0px;
+/* ===== Interactive ===== */
+
+@utility hover-card {
+  &:hover {
+    background-color: var(--card-hover);
+  }
+}
+@utility focus-ring {
+  &:focus-visible {
+    outline: 1px solid var(--focus);
+    outline-offset: 0;
+  }
+}
+@utility ring-accent {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+@utility ring-danger {
+  box-shadow: 0 0 0 2px var(--danger);
 }
 
 /* ===== Reader Scope ===== */
 
-.reader {
+@utility reader {
   background-color: var(--reader-background);
   color: var(--reader-text);
 }
-
-.reader .fg-muted {
+@utility reader-fg-muted {
   color: var(--text-muted);
 }
 
-/* ===== AutoFit Input===== */
-.autofit-input {
+/* ===== Opacity ===== */
+@utility opacity-muted {
+  opacity: 0.6;
+}
+@utility opacity-disabled {
+  opacity: 0.4;
+}
+
+/* ===== Disabled ===== */
+@utility disabled-default {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ===== Transitions Duration ===== */
+@utility duration-default {
+  transition-duration: 200ms;
+  transition-timing-function: ease;
+}
+@utility duration-fast {
+  transition-duration: 100ms;
+  transition-timing-function: ease;
+}
+@utility duration-slow {
+  transition-duration: 300ms;
+  transition-timing-function: ease;
+}
+
+/* ===== Autofit Input ===== */
+
+@utility autofit-input {
   width: calc(var(--digits) * 1ch + 0.75ch);
   min-width: 2ch;
   max-width: 7ch;
@@ -199,34 +237,34 @@ body {
   font-size: 0.875rem;
   line-height: 1.25rem;
 
-  color: var(--fg-primary);
+  color: var(--text-primary);
 
   transition: background-color 150ms ease, box-shadow 150ms ease;
+
+  &::selection {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  &:focus {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-secondary);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
+  }
+
+  &:focus-visible {
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35),
+      0 0 0 3px rgba(255, 255, 255, 0.12);
+  }
 }
 
-.autofit-input::selection {
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.2);
-}
+/* ===== Scrollbar ===== */
 
-.autofit-input:focus {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text-secondary);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
-}
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 
-.autofit-input:focus-visible {
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35),
-    0 0 0 3px rgba(255, 255, 255, 0.12);
-}
-
-/* Scrollbar */
-
-.no-scrollbar {
-  scrollbar-width: none;          /* Firefox */
-  -ms-overflow-style: none;       /* IE / Edge legacy */
-}
-
-.no-scrollbar::-webkit-scrollbar {
-  display: none;                  /* Chrome / Safari */
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }

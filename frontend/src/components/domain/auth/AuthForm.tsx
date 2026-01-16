@@ -48,7 +48,7 @@ export default function AuthForm() {
         >
           Username
           <Tooltip message={TOOLTIP_MSG.username}>
-            <Info size={16} className="ml-1 stroke-(--text-muted)" />
+            <Info size={16} className="ml-1 stroke-muted" />
           </Tooltip>
         </label>
 
@@ -72,7 +72,7 @@ export default function AuthForm() {
         >
           Password
           <Tooltip message={TOOLTIP_MSG.password}>
-            <Info size={16} className="ml-1 stroke-(--text-muted)" />
+            <Info size={16} className="ml-1 stroke-muted" />
           </Tooltip>
         </label>
 

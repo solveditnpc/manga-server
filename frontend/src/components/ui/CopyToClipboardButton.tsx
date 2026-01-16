@@ -58,7 +58,7 @@ export default function CopyToClipboardButton({
           px-2 py-1
           text-sm fg-muted
           transition-colors
-          hover:bg-(--card-hover)
+          hover:bg-card-hover
           hover:fg-primary
           focus-ring
           cursor-pointer
@@ -96,7 +96,7 @@ export default function CopyToClipboardButton({
           px-2 py-0.5
           text-xs italic fg-muted
           border border-default
-          transition-opacity duration-150
+          transition-opacity duration-fast
           ${copied ? "opacity-100" : "opacity-0"}
         `}
       >

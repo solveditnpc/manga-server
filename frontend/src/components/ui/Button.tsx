@@ -14,9 +14,8 @@ export const buttonBase = `
   px-3 py-1.5
   text-sm 
   cursor-pointer
-  transition-all duration-300
-  disabled:opacity-40
-  disabled:cursor-not-allowed
+  transition-all duration-slow
+  disabled:disabled-default
 `;
 
 export const buttonVariants: Record<Variant, string> = {
@@ -24,7 +23,7 @@ export const buttonVariants: Record<Variant, string> = {
   secondary: "bg-card fg-primary border border-default hover-card",
   outline: "bg-transparent fg-primary border border-default hover-card",
   danger:
-    "fg-danger border border-danger hover:bg-(--danger) hover:text-white!",
+    "fg-danger border border-danger hover:bg-danger hover:fg-primary",
   ghost: "bg-transparent fg-primary hover-card",
 };
 

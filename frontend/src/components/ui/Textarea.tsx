@@ -40,7 +40,7 @@ export default forwardRef<HTMLTextAreaElement, TextareaProps>(
 
     useLayoutEffect(() => {
       autoResize();
-      console.log("hello");
+      // console.log("hello");
     }, [props.value]);
 
     return (

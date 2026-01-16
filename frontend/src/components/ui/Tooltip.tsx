@@ -8,7 +8,7 @@ export default function Tooltip({ children, message }: TooltipProps) {
   return (
     <span className="relative inline-block group cursor-help">
       {/* Trigger */}
-      {children || <Info size={16} className="ml-1 stroke-(--text-muted)" />}
+      {children || <Info size={16} className="ml-1 stroke-muted" />}
       {/* Tooltip */}
       <span
         className="

@@ -50,7 +50,7 @@ export default function MangaCard({
           "
       >
         {Number(likes_count || 0) || 0}
-        <Heart size={10} className="mt-0.5 fill-(--text-primary)" />
+        <Heart size={10} className="mt-0.5 fill-primary" />
       </div>
 
       {/* Cover */}
