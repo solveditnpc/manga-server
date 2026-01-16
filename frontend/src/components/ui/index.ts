@@ -13,6 +13,8 @@ import Modal from "./Modal";
 import Dropdown from "./Dropdown";
 import ConfirmDialog from "./ConfirmDialog";
 
+import SafeImage from "./SafeImage";
+
 export {
   Input,
   Tooltip,
@@ -25,4 +27,5 @@ export {
   Modal,
   Dropdown,
   ConfirmDialog,
+  SafeImage
 };

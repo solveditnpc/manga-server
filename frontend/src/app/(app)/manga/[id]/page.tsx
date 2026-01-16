@@ -62,9 +62,6 @@ export default async function MangaDetailsPage({
     </div>
   );
 
-  // Temoporary pages filler
-  const page_files: any[] = Array.from({ length: total_pages }, (_, i) => null);
-
   return (
     <div className="w-screen max-w-7xl mx-auto px-4 py-6 space-y-6">
       <div className="grid md:grid-rows-[350px_1fr] lg:grid-cols-[240px_1fr] lg:grid-rows-1 gap-6">
@@ -105,7 +102,10 @@ export default async function MangaDetailsPage({
           <div className="w-full">
             <p className="text-xs fg-muted mb-2">Pages :</p>
 
-            <PagesPreviewSection page_files={page_files} manga_id={manga_id} />
+            <PagesPreviewSection
+              manga_id={manga_id}
+              total_pages={total_pages}
+            />
           </div>
         </div>
       </div>
