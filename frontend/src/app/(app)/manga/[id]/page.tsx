@@ -18,6 +18,7 @@ export default async function MangaDetailsPage({
 }) {
   const { id } = await params;
   const paramID: number = Number(id || 0) || 0;
+  const initialLiked = true; // Whether the manga is liked by user
 
   const {
     manga_id = paramID,
@@ -53,7 +54,11 @@ export default async function MangaDetailsPage({
       </div>
 
       <div className="flex items-center gap-4 pt-2">
-        <LikeButton mangaId={manga_id} initialCount={likes_count} />
+        <LikeButton
+          mangaId={manga_id}
+          initialCount={likes_count}
+          initialLiked={initialLiked}
+        />
 
         <Link href={`/read/${manga_id}?page=1`}>
           <Button>Read</Button>

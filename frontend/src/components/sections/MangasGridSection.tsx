@@ -34,7 +34,7 @@ export default function MangasGridSection({ mangas, title, href }: MangasGridSec
         "
       >
         {mangas.map((manga: Manga) => (
-          <MangaCard key={manga.manga_id} {...manga} />
+          <MangaCard key={manga.manga_id} manga={manga} />
         ))}
       </div>
     </section>

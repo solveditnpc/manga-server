@@ -1,61 +1,62 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Heart } from "lucide-react";
 import { Manga } from "@/types/manga.type";
+import SafeImage from "@/components/ui/SafeImage";
 
-export default function MangaCard({
-  manga_id,
-  title,
-  author,
-  cover_url,
-  language,
-  likes_count,
-}: Manga) {
-  const href = `/manga/${manga_id}`;
+interface MangaCardProps {
+  manga: Manga;
+  href?: string;
+}
+
+export default function MangaCard({ manga, href }: MangaCardProps) {
+  const { manga_id, title, author, cover_url, language, likes_count } = manga;
+  if (!href) href = `/manga/${manga_id}`;
+  
   return (
     <Link
       href={href}
+      aria-label={`Open manga ${title}`}
       className="
-        bg-card
+        bg-card hover-card
         border border-default
-        rounded-lg
+        rounded-lg focus-ring
         overflow-hidden
-        hover-card
-        focus-ring
-        block
+        relative block
+        cursor-pointer
         min-w-35
         sm:min-w-40
         md:min-w-45
         lg:min-w-50
-        relative
-        cursor-pointer
         "
     >
       {/* likes_count (read-only) */}
       <div
         className="
-            absolute
-            top-1.5
-            right-1.5
-            z-10
-            bg-black/70
+            absolute z-10
+            top-1.5 right-1.5
+            bg-background/70
             backdrop-blur
             rounded-md
-            px-1.5
-            py-1
-            text-[11px]
+            px-1.5 py-1
             pointer-events-none
-            flex
-            gap-0.5
+            flex gap-0.5 items-center
           "
       >
-        {Number(likes_count || 0) || 0}
-        <Heart size={10} className="mt-0.5 fill-primary" />
+        <span className="text-xs fg-primary"> {Number(likes_count || 0)}</span>
+        <Heart size={11} className="fill-primary" />
       </div>
 
       {/* Cover */}
       <div className="relative overflow-hidden w-full aspect-2/3 bg-background">
-        <Image src={cover_url} alt={title} fill className="object-cover" />
+        <SafeImage
+          src={cover_url}
+          alt={title}
+          fill
+          sizes="(min-width: 1024px) 200px, (min-width: 768px) 180px, 160px"
+          className="object-cover"
+          quality={40}
+          fallbackMsg="Unable to get cover"
+        />
       </div>
 
       {/* Info */}
@@ -64,7 +65,7 @@ export default function MangaCard({
           {title}
         </h3>
 
-        {author && <p className="text-sm fg-secondary truncate">{author}</p>}
+        {author && <p className="text-xs fg-secondary truncate">{author}</p>}
 
         {language && (
           <p className="text-xs fg-muted truncate italic">{language}</p>

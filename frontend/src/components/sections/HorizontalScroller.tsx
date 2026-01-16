@@ -133,7 +133,7 @@ export default function HorizontalScroller({
           "
         >
           {mangas.map((manga: Manga, i) => (
-            <MangaCard key={i} {...manga} />
+            <MangaCard key={i} manga={manga} />
           ))}
         </div>
       </div>

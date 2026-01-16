@@ -94,7 +94,7 @@ export default function SearchPage() {
           "
       >
         {mangas.map((manga) => (
-          <MangaCard key={manga.manga_id} {...manga} />
+          <MangaCard key={manga.manga_id} manga={manga} />
         ))}
       </div>
 
