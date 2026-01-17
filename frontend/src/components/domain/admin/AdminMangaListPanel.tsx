@@ -1,22 +1,21 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import AdminMangaRow from "./AdminMangaRow";
-import { Manga, MangaList } from "@/types/manga.type";
+import { MangaList } from "@/types/manga.type";
 import { ask } from "../../overlays/confirm/confirm";
+import { useMangaDetails } from "@/components/overlays/mangaDetails/MangaDetailsContext";
 
 export default function AdminMangaListPanel({
   mangas,
   onDelete,
-  onSelectManga,
-  selectedId,
 }: {
   mangas: MangaList;
   onDelete: (id: number) => void;
-  onSelectManga: (manga: Manga) => void;
-  selectedId?: number;
 }) {
   const [loading, setLoading] = useState(false);
+
+  const { openManga: onSelectManga, manga: selectedManga } = useMangaDetails();
 
   async function handleDelete(manga_id: number, manga_title: string) {
     const res = await ask({
@@ -46,7 +45,9 @@ export default function AdminMangaListPanel({
               key={manga.manga_id}
               onClick={() => onSelectManga(manga)}
               className={`p-4 flex gap-3 cursor-pointer ${
-                selectedId === manga.manga_id ? "bg-background" : ""
+                selectedManga?.manga_id === manga.manga_id
+                  ? "bg-background"
+                  : ""
               }`}
             >
               {/* Cover */}
@@ -126,7 +127,7 @@ export default function AdminMangaListPanel({
                   manga={manga}
                   onDelete={handleDelete}
                   onSelect={onSelectManga}
-                  selected={selectedId === manga.manga_id}
+                  selected={selectedManga?.manga_id === manga.manga_id}
                 />
               ))}
             </tbody>

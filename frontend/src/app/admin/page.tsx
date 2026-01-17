@@ -3,35 +3,18 @@
 import { useEffect, useState } from "react";
 import mockMangas from "@/_mock/mangas.json";
 import { Manga, MangaList } from "@/types/manga.type";
-
 import AdminAddMangaForm from "@/components/domain/admin/AdminAddMangaForm";
-import MangaDetailPanel from "@/components/domain/manga/MangaDetailPanel";
 import AdminMangaListPanel from "@/components/domain/admin/AdminMangaListPanel";
-
+import { MangaDetailsProvider } from "@/components/overlays/mangaDetails/MangaDetailsContext";
 import { Input } from "@/components/ui";
 export default function AdminPage() {
   const [query, setQuery] = useState("");
   const [mangas, setMangas] = useState<MangaList>([]);
   const [loading, setLoading] = useState(false);
 
-  const [selectedManga, setSelectedManga] = useState<Manga | null>(null);
-
   useEffect(() => {
     fetchMangas();
   }, [query]);
-
-  // 🔒 Lock body scroll when detail panel is open
-  useEffect(() => {
-    if (selectedManga) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [selectedManga]);
 
   async function fetchMangas() {
     setLoading(true);
@@ -51,9 +34,6 @@ export default function AdminPage() {
 
   const onDelete = (id: number) => {
     setMangas((prev) => prev.filter((m) => m.manga_id !== id));
-    if (selectedManga?.manga_id === id) {
-      setSelectedManga(null);
-    }
   };
 
   return (
@@ -81,23 +61,14 @@ export default function AdminPage() {
             disabled={loading}
           />
         </section>
-
-        {/* List */}
-        <AdminMangaListPanel
-          mangas={mangas}
-          onDelete={onDelete}
-          onSelectManga={setSelectedManga}
-          selectedId={selectedManga?.manga_id}
-        />
+        <MangaDetailsProvider>
+          {/* List */}
+          <AdminMangaListPanel
+            mangas={mangas}
+            onDelete={onDelete}
+          />
+        </MangaDetailsProvider>
       </div>
-
-      {/* Detail panel (overlay / full-screen depending on breakpoint) */}
-      {selectedManga && (
-        <MangaDetailPanel
-          manga={selectedManga}
-          onClose={() => setSelectedManga(null)}
-        />
-      )}
     </>
   );
 }
