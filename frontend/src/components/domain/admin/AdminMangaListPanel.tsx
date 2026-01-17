@@ -2,8 +2,8 @@
 
 import { useState, useRef } from "react";
 import AdminMangaRow from "./AdminMangaRow";
-import {Manga ,  MangaList } from "@/types/manga.type";
-import { ConfirmDialog } from "@/components/ui";
+import { Manga, MangaList } from "@/types/manga.type";
+import { ask } from "../../overlays/confirm/confirm";
 
 export default function AdminMangaListPanel({
   mangas,
@@ -16,30 +16,17 @@ export default function AdminMangaListPanel({
   onSelectManga: (manga: Manga) => void;
   selectedId?: number;
 }) {
-  const [confirmMsg, setConfirmMsg] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const deleteId = useRef<number | null>(null);
 
-  function openConfirm(manga_id: number, manga_title: string) {
-    deleteId.current = manga_id;
-    setConfirmMsg(`"${manga_title}" will be permanently removed.`);
-  }
-  function handleDelete() {
-    setConfirmMsg("");
-    if (deleteId.current) {
-      setLoading(true);
+  async function handleDelete(manga_id: number, manga_title: string) {
+    const res = await ask({
+      title: "Delete Manga",
+      description: `Are you sure you want to delete "${manga_title}"?`,
+      confirmLabel: "Delete",
+      variant: "danger",
+    });
 
-      setTimeout(function () {
-        setLoading(false);
-        if (deleteId.current) onDelete(deleteId.current);
-        deleteId.current = null;
-      }, 1000);
-    }
-  }
-
-  function onCancel() {
-    setConfirmMsg("");
-    deleteId.current = null;
+    if (res) onDelete(manga_id);
   }
 
   if (mangas.length === 0)
@@ -89,7 +76,7 @@ export default function AdminMangaListPanel({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    openConfirm(manga.manga_id, manga.title);
+                    handleDelete(manga.manga_id, manga.title);
                   }}
                   className="text-xs fg-accent"
                 >
@@ -137,7 +124,7 @@ export default function AdminMangaListPanel({
                 <AdminMangaRow
                   key={manga.manga_id}
                   manga={manga}
-                  onDelete={openConfirm}
+                  onDelete={handleDelete}
                   onSelect={onSelectManga}
                   selected={selectedId === manga.manga_id}
                 />
@@ -145,15 +132,6 @@ export default function AdminMangaListPanel({
             </tbody>
           </table>
         </div>
-
-        <ConfirmDialog
-          open={confirmMsg !== ""}
-          title="Delete manga?"
-          description={confirmMsg}
-          confirmLabel="Delete"
-          onCancel={onCancel}
-          onConfirm={handleDelete}
-        />
       </div>
     </section>
   );

@@ -4,7 +4,7 @@ import "./globals.css";
 import APP_CONFIG from "@/config/app.config";
 import { Toaster } from "sonner";
 import QueryProvider from "@/providers/QueryProvider";
-
+import ConfirmOverlay from "@/components/overlays/confirm/ConfirmOverlay";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -42,6 +42,8 @@ export default function RootLayout({
             },
           }}
         />
+
+        <ConfirmOverlay />
       </body>
     </html>
   );

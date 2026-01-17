@@ -11,7 +11,6 @@ import Badge from "./Badge";
 
 import Modal from "./Modal";
 import Dropdown from "./Dropdown";
-import ConfirmDialog from "./ConfirmDialog";
 
 import SafeImage from "./SafeImage";
 
@@ -26,6 +25,5 @@ export {
   Badge,
   Modal,
   Dropdown,
-  ConfirmDialog,
   SafeImage
 };
