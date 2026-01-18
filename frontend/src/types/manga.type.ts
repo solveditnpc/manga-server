@@ -20,3 +20,5 @@ export interface Manga {
 }
 
 export type MangaList = Manga[];
+
+export type Sort = "date" | "likes";

@@ -1,106 +1,44 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Search, ChevronDown, ChevronUp } from "lucide-react";
-import { Input, Button } from "@/components/ui";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import UrlSearch from "@/components/query/UrlSearch";
+import { Dropdown } from "@/components/ui";
+
 function SearchBar() {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState(
-    (pathname.includes("search") && searchParams.get("q")) || ""
-  );
-  const panelRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
-
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!query.trim()) return;
-    router.push(`/search?q=${query}&page=1`);
+  const [isDirty, setIsDirty] = useState(false);
+  const handleOpenChange = (e: boolean) => {
+    if (e) setOpen(e);
+    else if (!isDirty) setOpen(e);
   };
-
-  // Close only if input is empty
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (
-        panelRef.current &&
-        !panelRef.current.contains(e.target as Node) &&
-        query.trim() === ""
-      ) {
-        setOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [query]);
-
   return (
     <>
       {/* ===== Desktop (md+) ===== */}
-      <form
-        onSubmit={handleSearch}
-        className="hidden md:flex w-full max-w-md items-center gap-2"
-      >
-        <Input
-          type="search"
-          name="q"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search manga…"
-          className="bg-card"
-        />
-        <Button type="submit" aria-label="Search" className="h-full">
-          <Search className="h-4 w-4" />
-        </Button>
-      </form>
+      <div className="hidden sm:flex w-full max-w-md items-center gap-2">
+        <UrlSearch onInputDirty={setIsDirty} targetRoute="/search" />
+      </div>
 
       {/* ===== Mobile ===== */}
-      <div className="relative md:hidden" ref={panelRef}>
-        <Button
-          variant="secondary"
-          onClick={() => setOpen((v) => !v)}
-          aria-label="Toggle search"
-          className="flex  h-full"
+      <div className="relative sm:hidden">
+        <Dropdown
+          open={open}
+          onOpenChange={handleOpenChange}
+          trigger={
+            <div className="flex gap-2 p-1.5 border-default border rounded-md bg-card hover-card">
+              <Search className="h-4 w-4" />
+              {open ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </div>
+          }
         >
-          <Search className="h-4 w-4" />
-          {open ? (
-            <ChevronUp className="h-4 w-4" />
-          ) : (
-            <ChevronDown className="h-4 w-4" />
-          )}
-        </Button>
-
-        {open && (
-          <div
-            className="
-              absolute -right-1/2
-              mt-2 w-72
-              bg-card
-              border border-default
-              rounded-md
-              p-3
-              z-50
-            "
-          >
-            <form onSubmit={handleSearch} className="flex items-center gap-2">
-              <Input
-                autoFocus
-                type="search"
-                name="q"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search manga…"
-                className="bg-background"
-              />
-              <Button type="submit" aria-label="Search">
-                <Search className="h-4 w-4" />
-              </Button>
-            </form>
+          <div className="w-72">
+            <UrlSearch onInputDirty={setIsDirty} targetRoute="/search" />
           </div>
-        )}
+        </Dropdown>
       </div>
     </>
   );

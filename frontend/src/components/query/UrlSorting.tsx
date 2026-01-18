@@ -1,27 +1,24 @@
 "use client";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
-import { useUpdateSearchParam } from "@/hooks/useUpdateSearchParam";
-
-export type Sort = "date" | "likes";
+import { useUpdateSearchParams } from "@/hooks/useUpdateSearchParam";
+import { Sort } from "@/types/manga.type";
+import { isSortValid, DEFAULT_SORT } from "@/utils/sorting.utils";
 
 export default function UrlSorting() {
   const searchParams = useSearchParams();
-  const updateSearchParams = useUpdateSearchParam();
-  const paramsSort: string = searchParams.get("sort") || "";
-
-  const isValidSort = (sort: string): sort is Sort =>
-    sort === "date" || sort === "likes";
-
-  useEffect(() => {
-    if (!isValidSort(paramsSort)) sortBy("date");
-  }, [paramsSort]);
+  const updateSearchParams = useUpdateSearchParams();
+  const paramsSort = searchParams.get("sort");
 
   const sortBy = (sort: Sort) => {
-    if (!isValidSort(sort)) sort = "date";
+    if (!isSortValid(sort)) sort = DEFAULT_SORT;
     if (paramsSort === sort) return;
-    updateSearchParams("sort", sort);
+    updateSearchParams({ sort: sort, page: "1" });
   };
+
+  useEffect(() => {
+    if (paramsSort !== null && !isSortValid(paramsSort)) sortBy(DEFAULT_SORT);
+  }, [paramsSort, updateSearchParams]);
 
   return (
     <div className="flex items-center gap-2 text-sm">
@@ -59,10 +56,9 @@ function SortButton({ isActive = false, onClick, title }: SortButtonProps) {
         isActive ? "fg-primary bg-card-hover" : "fg-muted hover:fg-primary"
       }`}
       onClick={onClick}
+      type="button"
     >
       {title}
     </button>
   );
 }
-
-`feat(component:UrlPagination): add UrlPagination component that sync pagination state with URL`;
