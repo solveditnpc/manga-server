@@ -1,25 +1,34 @@
 "use client";
-
 import { useState } from "react";
 import { Button, Input } from "@/components/ui";
+import { delay } from "@/_mock/mockPromise";
 
-export default function AdminAddMangaForm() {
+export default function AdminAddMangaSection() {
   const [value, setValue] = useState("");
-  const [status, setStatus] = useState<string | null>(null);
+  const [status, setStatus] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!value.trim()) return;
+    try {
+      setLoading(true);
+      setStatus(null);
 
-    setLoading(true);
-    setStatus(null);
-
-    setTimeout(() => {
-      setLoading(false);
-      setStatus("Added successfully!");
+      await delay(1000);
+      setStatus({ type: "success", message: `Queued: ${value}` });
       setValue("");
-    }, 1000);
+    } catch (e: any) {
+      setStatus({
+        type: "error",
+        message: `Failed to add manga ${e?.message || ""}`,
+      });
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -39,12 +48,20 @@ export default function AdminAddMangaForm() {
           disabled={loading}
         />
 
-        <Button type="submit" disabled={loading || !value.trim()}>
+        <Button variant="primary" type="submit" disabled={loading}>
           {loading ? "Adding…" : "Add"}
         </Button>
       </form>
 
-      {status && <p className="mt-2 text-xs fg-muted">{status}</p>}
+      {status && (
+        <p
+          className={`mt-2 text-xs ${
+            status.type === "success" ? "fg-success" : "fg-danger"
+          }`}
+        >
+          {status.message}
+        </p>
+      )}
     </section>
   );
 }

@@ -1,79 +1,139 @@
 "use client";
 
 import { Manga } from "@/types/manga.type";
-import { Button } from "@/components/ui/";
-
+import { Button, SafeImage } from "@/components/ui/";
+import { useMangaDetails } from "@/components/overlays/mangaDetails/MangaDetailsContext";
+import { ask } from "@/components/overlays/confirm/confirm";
+import { useAdminMangaDelete } from "./AdminDeleteMangaContext";
 type Props = {
   manga: Manga;
-  onDelete: (id: number, manga_title: string) => void;
-  deleting?: boolean;
-  onSelect: (manga: Manga) => void;
-  selected: boolean;
+  variant?: "table" | "list";
 };
 
-export default function AdminMangaRow({ manga, onDelete, deleting, onSelect, selected }: Props) {
+export default function AdminMangaRow({ manga, variant = "table" }: Props) {
+  const {
+    manga_id,
+    title,
+    author,
+    language,
+    cover_url,
+    likes_count,
+    created_date,
+  } = manga;
+  const date = new Date(created_date).toLocaleDateString();
+
+  const { openManga, manga: selectedManga, closeManga } = useMangaDetails();
+  const { deleteManga, deletingIds } = useAdminMangaDelete();
+
+  const selected = selectedManga?.manga_id === manga.manga_id;
+  const deleting = deletingIds.has(manga_id);
+
+  const onDeleteManga = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (deleting) return;
+    if (selected) closeManga();
+    const res = await ask({
+      title: "Confirm Delete Manga",
+      description: `Are you sure you want to delete "${title}"?`,
+      confirmLabel: "Delete",
+      variant: "danger",
+    });
+
+    console.log(res);
+
+    if (res) deleteManga(manga_id);
+  };
+
+  const handleOpenManga = () => {
+    if (deleting || selected) return;
+    openManga(manga);
+  };
+
+  const cover = (
+    <SafeImage
+      src={cover_url}
+      alt={title}
+      className="object-cover rounded-md"
+      quality={40}
+      width={40}
+      height={56}
+    />
+  );
+
+  const DeleteButton = (
+    <Button
+      onClick={onDeleteManga}
+      variant="danger"
+      disabled={deleting}
+      className="w-20"
+      type="button"
+    >
+      {deleting ? "Deleting…" : "Delete"}
+    </Button>
+  );
+
   return (
     <tr
-      onClick={() => onSelect(manga)}
+      onClick={handleOpenManga}
       className={`
-        cursor-pointer
-        border-l
-        ${selected ? "bg-background border-accent" : "border-transparent"}
+        cursor-pointer 
+        hover-card focus-ring 
+        border-b border-default
+        ${selected && "bg-accent"}
       `}
     >
-      {/* ID */}
-      <td className="py-2 pr-3 text-xs fg-muted font-mono">
-        #{manga.manga_id}
-      </td>
+      {variant == "table" ? (
+        <>
+          {/* ID */}
+          <td className="py-2 pr-3 pl-4 text-xs fg-muted font-mono">
+            #{manga_id}
+          </td>
 
-      {/* Cover */}
-      <td className="py-2 pr-3">
-        <div className="w-10 h-14 bg-background border border-default rounded overflow-hidden">
-          {manga.cover_url && (
-            <img
-              src={manga.cover_url}
-              alt={manga.title}
-              className="w-full h-full object-cover"
-            />
-          )}
-        </div>
-      </td>
+          {/* Cover */}
+          <td className="py-2 pr-3">{cover}</td>
 
-      {/* Title */}
-      <td className="py-2 pr-3 fg-primary truncate max-w-65">{manga.title}</td>
+          {/* Title */}
+          <td className="py-2 pr-3 fg-primary truncate max-w-65">{title}</td>
 
-      {/* Author — desktop only */}
-      <td className="py-2 pr-3 fg-muted truncate hidden lg:table-cell">
-        {manga.author || "—"}
-      </td>
+          {/* Author — desktop only */}
+          <td className="py-2 pr-3 fg-muted truncate hidden lg:table-cell">
+            {author || "—"}
+          </td>
 
-      {/* Language — desktop only */}
-      <td className="py-2 pr-3 fg-muted hidden lg:table-cell">
-        {manga.language || "—"}
-      </td>
+          {/* Language — desktop only */}
+          <td className="py-2 pr-3 fg-muted hidden lg:table-cell">
+            {language || "—"}
+          </td>
 
-      {/* Likes — desktop only */}
-      <td className="py-2 pr-3 text-right fg-muted hidden lg:table-cell">
-        {manga.likes_count ?? "—"}
-      </td>
+          {/* Likes — desktop only */}
+          <td className="py-2 pr-3 text-right fg-muted hidden lg:table-cell">
+            {likes_count ?? "—"}
+          </td>
 
-      {/* Date — desktop only (placeholder for now) */}
-      <td className="py-2 pr-3 fg-muted text-xs hidden lg:table-cell">—</td>
+          {/* Date — desktop only (placeholder for now) */}
+          <td className="py-2 pr-3 fg-muted text-xs hidden lg:table-cell">{date}</td>
+        </>
+      ) : (
+        <>
+          <td>
+            <div className="flex gap-3 p-3">
+              {/* Cover */}
+              {cover}
 
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <div className="fg-primary text-sm truncate">{title}</div>
+                <div className="fg-muted text-xs truncate">{author || "—"}</div>
+                <div className="fg-muted text-xs font-mono mt-1">
+                  #{manga_id}
+                </div>
+              </div>
+            </div>
+          </td>
+        </>
+      )}
       {/* Action */}
-      <td className="py-2 text-right">
-        <Button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(manga.manga_id, manga.title);
-          }}
-          variant="danger"
-          disabled={deleting}
-          className="w-20"
-        >
-          {deleting ? "Deleting…" : "Delete"}
-        </Button>
-      </td>
+      <td className="py-2 pr-4 text-right">{DeleteButton}</td>
     </tr>
   );
 }

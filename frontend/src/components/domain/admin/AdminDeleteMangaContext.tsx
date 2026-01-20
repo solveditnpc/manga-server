@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { Manga } from "@/types/manga.type";
 import { toast } from "sonner";
-import { delay } from "@/_mock/mockPromise";
+import { deleteManga as deleteMangaClient } from "@/client/mangas.client";
 
 interface AdminMangaDeleteContextValue {
   deleteManga: (manga_id: Manga["manga_id"]) => void;
@@ -32,7 +32,7 @@ export const AdminMagnaDeleteContextProvider = ({
         newSet.add(manga_id);
         return newSet;
       });
-      await delay(2000);
+      await deleteMangaClient(manga_id);
       onDeleteComplete?.(manga_id);
     } catch (error) {
       toast.error(`Failed to delete manga ${manga_id}`);

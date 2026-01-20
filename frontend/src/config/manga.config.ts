@@ -8,5 +8,6 @@ export const MangaFallback:Manga = {
   tags : [],
   total_pages : 1,
   likes_count : 0,
-  language : "N/A",
+  language: "N/A",
+  created_date: new Date() 
 };
