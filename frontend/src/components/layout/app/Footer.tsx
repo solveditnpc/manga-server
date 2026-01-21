@@ -1,5 +1,6 @@
 import Link from "next/link";
 import APP_CONFIG from "@/config/app.config";
+import { LinkButton } from "@/components/ui";
 
 export default function Footer() {
   return (
@@ -21,13 +22,14 @@ export default function Footer() {
           "Enjoy your manga reading experience!"
         </p>
 
-        <Link
+        <LinkButton
           href="https://github.com/solveditnpc/manga-server"
-          className="fg-muted hover:fg-primary flex gap-2 items-center h-5"
+          variant="ghost"
+          // className="fg-muted hover:fg-primary flex gap-2 items-center h-5"
         >
           <GithubLogo />
           Github
-        </Link>
+        </LinkButton>
       </div>
     </footer>
   );

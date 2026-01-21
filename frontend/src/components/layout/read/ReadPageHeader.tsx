@@ -1,11 +1,11 @@
-"use client";
-
 import { X } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { Manga } from "@/types/manga.type";
+import { LinkButton } from "@/components/ui";
 
-type MangaHeaderMeta = Pick<Manga, "manga_id" | "title" | "author">;
-interface ReadPageHeaderProps extends MangaHeaderMeta {
+interface ReadPageHeaderProps extends Pick<
+  Manga,
+  "manga_id" | "title" | "author"
+> {
   visible?: boolean;
 }
 
@@ -15,8 +15,6 @@ export default function ReadPageHeader({
   author,
   visible = true,
 }: ReadPageHeaderProps) {
-  const router = useRouter();
-  const onClose = () => router.push(`/manga/${manga_id}`);
   return (
     <header
       className={`
@@ -24,21 +22,22 @@ export default function ReadPageHeader({
         h-15
         px-3 sm:px-4
         flex items-center
-        bg-black/80
+        bg-background/80
         border-b border-default
         text-xs
-        transition-opacity duration-200
+        transition-opacity duration-slow
         ${visible ? "opacity-100" : "opacity-0 pointer-events-none"}
       `}
     >
       {/* Left: Close */}
-      <button
-        onClick={onClose}
-        className="hover-card px-1 py-1 rounded fg-muted"
+      <LinkButton
+        href={`/manga/${manga_id}`}
+        className="px-1.5! hover:bg-background/60"
         title="Close reader"
+        variant="ghost"
       >
         <X size={16} />
-      </button>
+      </LinkButton>
 
       {/* Center: Title */}
       <div className="flex-1 mx-3 overflow-hidden">

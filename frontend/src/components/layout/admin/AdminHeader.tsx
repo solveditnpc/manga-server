@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { Button } from "@/components/ui";
+import { LinkButton } from "@/components/ui";
 import APP_CONFIG from "@/config/app.config";
 export default function AdminHeader() {
   return (
@@ -7,21 +6,20 @@ export default function AdminHeader() {
       <div className="max-w-6xl mx-auto h-14 px-4 flex items-center justify-between">
         {/* Left: App Identity */}
         <div className="flex items-center gap-3">
-          <Link
+          <LinkButton
             href="/"
-            className="text-lg w-full md:w-fit font-semibold fg-primary whitespace-nowrap"
+            className="text-lg! font-semibold fg-primary whitespace-nowrap"
+            variant="ghost"
           >
             {APP_CONFIG.name}
-          </Link>
+          </LinkButton>
 
           <span className="text-xs fg-muted">Admin</span>
         </div>
 
         {/* Right: Session / Exit */}
         <div className="flex items-center gap-2">
-          <Link href="/">
-            <Button> Exit Admin</Button>
-          </Link>
+          <LinkButton href="/">Exit Admin</LinkButton>
         </div>
       </div>
     </header>
