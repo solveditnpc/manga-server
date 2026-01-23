@@ -2,8 +2,7 @@
 import { Pagination, SafeImage } from "@/components/ui";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getMockPagesArray } from "@/_mock/mockPages";
-import { delay } from "@/_mock/mockPromise";
+import { getMangaPagesById } from "@/client/mangas.client";
 
 export default function PagesPreviewSection({
   manga_id,
@@ -27,8 +26,7 @@ export default function PagesPreviewSection({
       // fetch call here
 
       setLoading(true);
-      await delay(1000);
-      const data = getMockPagesArray(BATCH_SIZE);
+      const data = await getMangaPagesById(manga_id);
 
       if (!cancelled) {
         setPages(data);

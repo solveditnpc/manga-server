@@ -239,7 +239,9 @@ body {
 
   color: var(--text-primary);
 
-  transition: background-color 150ms ease, box-shadow 150ms ease;
+  transition:
+    background-color 150ms ease,
+    box-shadow 150ms ease;
 
   &::selection {
     color: var(--text-primary);
@@ -253,7 +255,8 @@ body {
   }
 
   &:focus-visible {
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35),
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.35),
       0 0 0 3px rgba(255, 255, 255, 0.12);
   }
 }
@@ -267,4 +270,27 @@ body {
   &::-webkit-scrollbar {
     display: none;
   }
+}
+
+@keyframes ambient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.ambient-gradient {
+  background-image: linear-gradient(
+    120deg,
+    color-mix(in oklab, var(--background) 92%, var(--accent) 8%),
+    var(--background),
+    color-mix(in oklab, var(--background) 92%, var(--accent) 8%)
+  );
+  background-size: 200% 200%;
+  animation: ambient-shift 15s ease-in-out infinite;
 }

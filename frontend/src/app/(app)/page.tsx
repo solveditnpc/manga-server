@@ -1,5 +1,4 @@
-import { Button } from "@/components/ui";
-import Link from "next/link";
+import { LinkButton } from "@/components/ui";
 export default function HomePage() {
   return (
     <main className="min-h-screen flex items-center justify-center">
@@ -17,14 +16,10 @@ export default function HomePage() {
           This is a simple manga reading site. Browse chapters, read
           comfortably, and keep track of what you like.
         </p>
-        {/* Manga Card */}
 
-        <Link href="/browse">
-          <Button className="w-full mb-5" variant="primary">
-            Browse Manga
-          </Button>
-        </Link>
-
+        <LinkButton href="/home" className="w-full mb-5" variant="primary">
+          Explore Mangas
+        </LinkButton>
       </div>
     </main>
   );

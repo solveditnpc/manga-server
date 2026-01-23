@@ -12,11 +12,16 @@ function SearchBar() {
     if (e) setOpen(e);
     else if (!isDirty) setOpen(e);
   };
+
+  const urlSearchComp = (
+    <UrlSearch onInputDirty={setIsDirty} targetRoute="/browse" />
+  );
+
   return (
     <>
       {/* ===== Desktop (md+) ===== */}
       <div className="hidden sm:flex w-full max-w-md items-center gap-2">
-        <UrlSearch onInputDirty={setIsDirty} targetRoute="/search" />
+        {urlSearchComp}
       </div>
 
       {/* ===== Mobile ===== */}
@@ -35,9 +40,7 @@ function SearchBar() {
             </div>
           }
         >
-          <div className="w-72">
-            <UrlSearch onInputDirty={setIsDirty} targetRoute="/search" />
-          </div>
+          <div className="w-72">{urlSearchComp}</div>
         </Dropdown>
       </div>
     </>

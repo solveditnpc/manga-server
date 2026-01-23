@@ -1,6 +1,6 @@
 import AdminAddMangaSection from "@/components/domain/admin/AdminAddMangaSection";
 import AdminMangaSection from "@/components/domain/admin/AdminMangaSection";
-import { TOTAL_PAGES, listMangas } from "@/client/mangas.client";
+import { getTotalPages, listMangas } from "@/client/mangas.client";
 import { clampPage, isPageValid } from "@/utils/pagination.utils";
 import { isSortValid } from "@/utils/sorting.utils";
 import { redirect } from "next/navigation";
@@ -18,8 +18,9 @@ export default async function AdminPage({
     query: q ?? "",
     sort: isSortValid(sort) ? sort : "date",
   };
+  const totalPages = await getTotalPages("all");
 
-  if (!isSortValid(sort) || !isPageValid(page, TOTAL_PAGES))
+  if (!isSortValid(sort) || !isPageValid(page, totalPages))
     redirect(`/admin?${toSearchParamsString(safeParams)}`);
 
   const initialMangas = await listMangas(safeParams);
@@ -38,7 +39,7 @@ export default async function AdminPage({
       {/* Mangas */}
       <AdminMangaSection
         initialMangas={initialMangas}
-        totalBatches={TOTAL_PAGES}
+        totalBatches={totalPages}
         currentParams={safeParams}
       />
     </div>
