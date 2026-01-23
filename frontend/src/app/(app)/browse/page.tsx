@@ -14,20 +14,20 @@ export default function DashboardPage() {
   return (
     <main className="max-w-7xl mx-auto px-4 py-8 space-y-8">
       {/* Continue Reading */}
-      <HorizontalScroller
-        title="Continue Reading"
-        href="/"
-        mangas={allMangas}
-      />
+      <HorizontalScroller title="Continue Reading" href="/">
+        {allMangas.map((manga: Manga) => (
+          <MangaCard key={manga.manga_id} manga={manga} />
+        ))}
+      </HorizontalScroller>
 
       {/* Separator */}
       <div className=" w-full border-t-2 border-default" />
 
-      <MangasGridSection
-        title="All Mangas"
-        mangas={mockMangas.mangas}
-        href="/"
-      />
+      <MangasGridSection>
+        {allMangas.map((manga: Manga) => (
+          <MangaCard key={manga.manga_id} manga={manga} />
+        ))}
+      </MangasGridSection>
 
       {/* Pagination Controls*/}
       <div

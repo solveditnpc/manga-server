@@ -20,6 +20,9 @@ export interface Manga {
   created_date: Date | string;
 }
 
+export interface ContinueManga extends Manga {
+  href: string;
+}
 export type MangaList = Manga[];
 
 export type Sort = "date" | "likes";

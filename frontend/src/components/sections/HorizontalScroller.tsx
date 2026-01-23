@@ -2,28 +2,25 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
-
 import { Button, LinkButton } from "@/components/ui";
-import MangaCard from "@/components/domain/manga/MangaCard";
-import { MangaList, Manga } from "@/types/manga.type";
 
 interface HorizontalScrollerProps {
   title: string;
-  mangas: MangaList;
   href?: string;
+  children?: React.ReactNode;
 }
 
 export default function HorizontalScroller({
   title,
-  mangas,
   href,
+  children,
 }: HorizontalScrollerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
 
-  const [atStart, setAtStart] = useState(true);
-  const [atEnd, setAtEnd] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [atStart, setAtStart] = useState<boolean>(true);
+  const [atEnd, setAtEnd] = useState<boolean>(false);
+  const [progress, setProgress] = useState<number>(0);
 
   const updateState = () => {
     const section = containerRef.current;
@@ -35,7 +32,7 @@ export default function HorizontalScroller({
     setAtEnd(scrollLeft + clientWidth >= scrollWidth - 1);
 
     const maxScroll = scrollWidth - clientWidth;
-    setProgress(maxScroll > 0 ? scrollLeft / maxScroll : 0);
+    setProgress(maxScroll > 0 ? Math.max(scrollLeft / maxScroll, 0.01) : 0); // min 1%
   };
 
   const scrollLeftFn = () =>
@@ -46,9 +43,9 @@ export default function HorizontalScroller({
 
   useEffect(() => {
     updateState();
-  }, [mangas]);
+  }, [children]);
 
-  if (!mangas || mangas.length === 0) return null;
+  if (!children) return null;
 
   return (
     <section
@@ -132,9 +129,7 @@ export default function HorizontalScroller({
             focus-ring
           "
         >
-          {mangas.map((manga: Manga, i) => (
-            <MangaCard key={i} manga={manga} />
-          ))}
+          {children}
         </div>
       </div>
 
