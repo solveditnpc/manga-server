@@ -1,44 +1,35 @@
 "use client";
-import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-
+import { clampPage } from "@/utils/pagination.utils";
+import { useUpdateSearchParams } from "@/hooks/useUpdateSearchParam";
 export default function PageNavigator({
   total_pages,
   visible,
   pageRefs,
+  initialPage,
 }: {
   total_pages: number;
   visible?: boolean;
   pageRefs: React.RefObject<(HTMLDivElement | null)[]>;
+  initialPage: number;
 }) {
-  // Parse Valid Page Number
-  function getValidPageNumber(page: number) {
-    if (page < 1) return 1;
-    if (total_pages > 0 && page > total_pages) return total_pages;
-    return page;
-  }
-
   // States and Refs
-  const searchParams = useSearchParams();
-  const paramsPage = getValidPageNumber(Number(searchParams.get("page")) || 1);
+  const updateSearchParams = useUpdateSearchParams();
 
-  const router = useRouter();
   const suppressObserver = useRef(false);
-  const [pageInputValue, setPageInputValue] = useState<string>(
-    String(paramsPage)
-  );
-  const [currentPage, setCurrentPage] = useState<number>(paramsPage);
+  const [displayPage, setDisplayPage] = useState<string>(String(initialPage));
+  const [currentPage, setCurrentPage] = useState<number>(initialPage);
+
+  const scrollToPage = (page: number, behavior: ScrollBehavior = "smooth") => {
+    suppressObserver.current = true;
+    pageRefs.current[page - 1]?.scrollIntoView({ behavior });
+
+    const timeout = setTimeout(() => (suppressObserver.current = false), 1000);
+    return () => clearTimeout(timeout);
+  };
 
   // Initial scroll
-  useEffect(() => {
-    suppressObserver.current = true;
-    pageRefs.current[currentPage - 1]?.scrollIntoView({
-      behavior: "auto",
-    });
-    requestAnimationFrame(() => {
-      suppressObserver.current = false;
-    });
-  }, []);
+  useEffect(() => scrollToPage(currentPage), []);
 
   // Observer
   useEffect(() => {
@@ -62,7 +53,7 @@ export default function PageNavigator({
       {
         root: null,
         threshold: [0.25, 0.5, 0.75],
-      }
+      },
     );
 
     pageRefs.current.forEach((el) => el && observer.observe(el));
@@ -72,49 +63,28 @@ export default function PageNavigator({
 
   // URL update logic
   useEffect(() => {
-    setPageInputValue(String(currentPage));
+    setDisplayPage(String(currentPage));
 
-    const paramsPage = searchParams.get("page");
-    if (paramsPage === String(currentPage)) return;
-
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("page", String(currentPage));
-
-    router.replace(`${window.location.pathname}?${params.toString()}`, {
-      scroll: false,
-    });
+    const debounce = setTimeout(
+      () => updateSearchParams({ page: String(currentPage) }),
+      1000,
+    );
+    return () => clearTimeout(debounce);
   }, [currentPage]);
 
   // Page jump
-  const jumpToPage = (e: React.FormEvent) => {
+  const handleJump = (e: React.FormEvent) => {
     e.preventDefault();
-    let jumpPage = Number(pageInputValue);
-
-    if (isNaN(jumpPage)) jumpPage = currentPage;
-    else jumpPage = getValidPageNumber(jumpPage);
-
-    setPageInputValue(String(jumpPage));
-
-    suppressObserver.current = true;
-    pageRefs.current[jumpPage - 1]?.scrollIntoView({
-      behavior: "smooth",
-    });
-    setTimeout(() => (suppressObserver.current = false), 500);
+    let jumpPage = clampPage(displayPage, total_pages, currentPage);
+    setDisplayPage(String(jumpPage));
+    scrollToPage(jumpPage);
   };
 
   // Page Input Events :
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
-
-    if (value === "") {
-      setPageInputValue("");
-      return;
-    }
-
-    if (!/^\d+$/.test(value) || value.length > String(total_pages).length)
-      return;
-
-    setPageInputValue(value);
+    if (value && (!/^\d+$/.test(value) || Number(value) > total_pages)) return;
+    setDisplayPage(value);
   };
 
   return (
@@ -127,14 +97,14 @@ export default function PageNavigator({
           transition-bg duration-200
           ${visible ? "bg-transparent" : "bg-black/80 "}
         `}
-      onSubmit={jumpToPage}
+      onSubmit={handleJump}
     >
       <input
         type="text"
         className="autofit-input"
-        style={{ ["--digits" as any]: String(pageInputValue).length }}
-        value={pageInputValue}
-        onBlur={() => setPageInputValue(String(currentPage))}
+        style={{ ["--digits" as any]: String(displayPage).length }}
+        value={displayPage}
+        onBlur={() => setDisplayPage(String(currentPage))}
         onFocus={(e) => e.target.select()}
         onChange={onChange}
       />

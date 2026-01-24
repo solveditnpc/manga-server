@@ -26,51 +26,53 @@ export default function OverlaysVisibilityControl({
   children,
 }: {
   readerContainer: React.RefObject<HTMLDivElement | null>;
-  children: React.ReactElement<{ visible: boolean }>[];
+  children: React.ReactNode;
 }) {
-  const [showUI, setShowUI] = useState(true);
-  const hideTimerRef = useRef<number | null>(null);
+  const [visible, setVisible] = useState(true);
+  const timeoutRef = useRef<any>(null);
 
-  const showUIWithTimeout = useCallback(() => {
-    setShowUI(true);
+  const showOverlays = useCallback(() => {
+    setVisible(true);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
-    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-
-    hideTimerRef.current = window.setTimeout(() => {
-      setShowUI(false);
-      hideTimerRef.current = null;
+    timeoutRef.current = setTimeout(() => {
+      setVisible(false);
+      timeoutRef.current = null;
     }, 2000);
   }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (isReaderKey(e)) showUIWithTimeout();
+      if (isReaderKey(e)) {
+        e.preventDefault();
+        showOverlays();
+      }
     };
 
     const container = readerContainer.current;
-
-    window.addEventListener("mousemove", showUIWithTimeout);
-    window.addEventListener("touchstart", showUIWithTimeout);
-    window.addEventListener("touchmove", showUIWithTimeout);
+    if (!container) return;
     window.addEventListener("keydown", handleKeyDown);
-    container?.addEventListener("scroll", showUIWithTimeout, { passive: true });
+    container.addEventListener("touchstart", showOverlays);
+    container.addEventListener("mousemove", showOverlays);
+    container.addEventListener("touchmove", showOverlays);
+    container.addEventListener("scroll", showOverlays, { passive: true });
 
     return () => {
-      window.removeEventListener("mousemove", showUIWithTimeout);
-      window.removeEventListener("touchstart", showUIWithTimeout);
-      window.removeEventListener("touchmove", showUIWithTimeout);
       window.removeEventListener("keydown", handleKeyDown);
-      container?.removeEventListener("scroll", showUIWithTimeout);
+      container.removeEventListener("mousemove", showOverlays);
+      container.removeEventListener("touchstart", showOverlays);
+      container.removeEventListener("touchmove", showOverlays);
+      container.removeEventListener("scroll", showOverlays);
 
-      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [readerContainer, showUIWithTimeout]);
+  }, [readerContainer, showOverlays]);
 
-  return React.Children.map(children, (child, i) => {
-    if (!React.isValidElement(child)) return null;
+  return React.Children.map(children, (child) => {
+    if (!React.isValidElement(child)) return child;
 
-    return React.cloneElement(child, {
-      visible: showUI,
+    return React.cloneElement(child as React.ReactElement<any>, {
+      visible,
     });
   });
 }
