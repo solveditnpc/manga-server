@@ -2,64 +2,43 @@
 import { Pagination, SafeImage } from "@/components/ui";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getMangaPagesById } from "@/client/mangas.client";
 
 export default function PagesPreviewSection({
   manga_id,
   total_pages,
+  pages,
 }: {
   manga_id: number;
   total_pages: number;
+  pages: string[];
 }) {
   const BATCH_SIZE = 15;
-
-  const [currentBatch, setCurrentBatch] = useState(1);
   const totalBatches = Math.ceil(total_pages / BATCH_SIZE);
 
-  const [pages, setPages] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState<number>(1);
+  const [currentBatch, setCurrentBatch] = useState<string[]>(
+    pages.slice(0, BATCH_SIZE + 1),
+  );
 
   useEffect(() => {
-    let cancelled = false;
-
-    (async function () {
-      // fetch call here
-
-      setLoading(true);
-      const data = await getMangaPagesById(manga_id);
-
-      if (!cancelled) {
-        setPages(data);
-        setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [currentBatch, manga_id]);
+    const start = (page - 1) * BATCH_SIZE;
+    const end = start + BATCH_SIZE;
+    setCurrentBatch(pages.slice(start, end));
+  }, [page]);
 
   return (
     <div className="flex flex-col gap-4 lg:p-2 lg:border border-default rounded items-center">
       {/* Grid */}
       <div className="w-full grid gap-2 grid-cols-[repeat(3,1fr)] md:grid-cols-[repeat(5,minmax(120px,1fr))]">
-        {loading ? (
-          /* Skeleton loader */
-          Array.from({ length: BATCH_SIZE }).map((_, i) => (
-            <div
-              key={i}
-              className="aspect-2/3 bg-card border border-default rounded animate-pulse"
-            />
-          ))
-        ) : pages.length === 0 ? (
+        {currentBatch.length === 0 ? (
           /* Empty state */
           <div className="col-span-full text-sm fg-muted text-center py-6">
             No preview pages available.
           </div>
         ) : (
           /* Pages */
-          pages.map((page, i) => {
-            const pageIndex = i + (currentBatch - 1) * BATCH_SIZE + 1;
+          currentBatch.map((p, i) => {
+            const pageIndex = i + (page - 1) * BATCH_SIZE + 1;
 
             return (
               <Link
@@ -68,7 +47,7 @@ export default function PagesPreviewSection({
                 className="relative aspect-2/3 bg-card border border-default rounded overflow-hidden"
               >
                 <SafeImage
-                  src={page}
+                  src={p}
                   alt={`Page ${pageIndex}`}
                   fill
                   quality={40}
@@ -77,7 +56,7 @@ export default function PagesPreviewSection({
                     (max-width: 1024px) 20vw,
                     120px
                   "
-                  fallbackMsg="Unable to load page"
+                  fallbackMsg={`Unable to load page ${pageIndex}`}
                 />
               </Link>
             );
@@ -90,9 +69,9 @@ export default function PagesPreviewSection({
       {/* Pagination */}
       {pages.length > 0 && (
         <Pagination
-          currentPage={currentBatch}
+          currentPage={page}
           totalPages={totalBatches}
-          onPageChange={setCurrentBatch}
+          onPageChange={setPage}
         />
       )}
     </div>

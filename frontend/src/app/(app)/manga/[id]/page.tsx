@@ -4,9 +4,9 @@ import LikeButton from "@/components/domain/manga/LikeButton";
 import PagesPreviewSection from "@/components/sections/PagesPreviewSection";
 import CommentsSection from "@/components/sections/CommentsSection";
 import ENV_CONFIG from "@/config/env.config";
-import mockComments from "@/_mock/mockComments.json";
-import { Comment } from "@/types/comment.type";
-import { getMangaById } from "@/client/mangas.client";
+import { getMangaById, getMangaPagesById } from "@/client/mangas.client";
+import { getMangaRootCommentsById } from "@/client/comments.client";
+
 export default async function MangaDetailsPage({
   params,
 }: {
@@ -14,8 +14,13 @@ export default async function MangaDetailsPage({
 }) {
   const { id } = await params;
   const paramID: number = Number(id || 0) || 0;
-  const initialLiked = true; // Whether the manga is liked by user
-  const manga = await getMangaById(paramID);
+  const INTIAL_LIKED = true; // Whether the manga is liked by user
+
+  const [manga, pages, rootComments] = await Promise.all([
+    getMangaById(paramID),
+    getMangaPagesById(paramID),
+    getMangaRootCommentsById(paramID),
+  ]);
 
   const {
     manga_id = paramID,
@@ -27,10 +32,6 @@ export default async function MangaDetailsPage({
     likes_count = 0,
     language = "N/A",
   } = manga || {};
-
-  const rootComments: Comment[] = mockComments.comments.filter(
-    (c) => c.parent_id === null,
-  );
 
   const InfoSection = (
     <div className="space-y-3">
@@ -54,7 +55,7 @@ export default async function MangaDetailsPage({
         <LikeButton
           mangaId={manga_id}
           initialCount={likes_count}
-          initialLiked={initialLiked}
+          initialLiked={INTIAL_LIKED}
         />
 
         <LinkButton href={`/read/${manga_id}?page=1`}>Read </LinkButton>
@@ -101,6 +102,7 @@ export default async function MangaDetailsPage({
             <PagesPreviewSection
               manga_id={manga_id}
               total_pages={total_pages}
+              pages={pages}
             />
           </div>
         </div>

@@ -1,10 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useCurrentUser } from "@/hooks/auth.hooks";
 import { Comment } from "@/types/comment.type";
 import CommentForm from "./CommentForm";
 import { Dropdown } from "@/components/ui";
-import mockComments from "@/_mock/mockComments.json";
+import { getMangaRepliesById, addComment } from "@/client/comments.client";
+import { toast } from "sonner";
+import { Loader } from "lucide-react";
 
 interface CommentItemProps {
   comment: Comment;
@@ -13,19 +15,43 @@ interface CommentItemProps {
 export default function CommentItem({ comment }: CommentItemProps) {
   const [replies, setReplies] = useState<Comment[]>([]);
   const [showReplies, setShowReplies] = useState(false);
-  const [repliesCount, setRepliesCount] = useState(comment.repliesCount || 0);
+  const [loadingReplies, setLoadingReplies] = useState(false);
+
   const { data: user } = useCurrentUser();
+  const repliesCount = useRef<number>(comment.repliesCount || 0);
+  const lastFetchedAt = useRef<Date | null>(null);
+
+  const fetchReplies = async () => {
+    try {
+      setLoadingReplies(true);
+
+      const fetchedReplies = await getMangaRepliesById(comment.comment_id);
+
+      setReplies(fetchedReplies);
+      repliesCount.current = fetchedReplies.length;
+      lastFetchedAt.current = new Date();
+    } catch (error) {
+      toast.error("Failed to load replies");
+    } finally {
+      setLoadingReplies(false);
+    }
+  };
 
   useEffect(() => {
-    if (!showReplies || replies.length > 0) return;
-    // fetch Call Here
-    const fetchedReplies = mockComments.comments.filter(
-      (c) => c.parent_id === comment.comment_id
-    );
-    setReplies(fetchedReplies);
+    if (!showReplies) return;
+
+    const MIN_TIME_GAP = 30000; // 30 seconds
+
+    if (
+      lastFetchedAt.current &&
+      Date.now() - lastFetchedAt.current.getTime() < MIN_TIME_GAP
+    )
+      return;
+
+    fetchReplies();
   }, [comment.comment_id, showReplies]);
 
-  const addReply = (newReply: string) => {
+  const addReply = async (newReply: string) => {
     if (!newReply.trim() || !user?.id || !user?.username) return;
 
     const reply: Comment = {
@@ -39,9 +65,19 @@ export default function CommentItem({ comment }: CommentItemProps) {
       repliesCount: null,
     };
 
-    // fetch Call Here
-    setRepliesCount((prev) => prev + 1);
-    setReplies((prev) => [reply, ...prev]);
+    try {
+      // Optimistic UI
+      setReplies((prev) => [reply, ...prev]);
+      repliesCount.current += 1;
+
+      await addComment(reply);
+    } catch (error) {
+      setReplies((prev) =>
+        prev.filter((r) => r.comment_id !== reply.comment_id),
+      );
+      repliesCount.current -= 1;
+      toast.error("Failed to add reply");
+    }
   };
 
   return (
@@ -64,7 +100,7 @@ export default function CommentItem({ comment }: CommentItemProps) {
         <p className="text-sm fg-primary leading-relaxed">{comment.content}</p>
 
         <AddReply onAddReply={addReply} />
-        {repliesCount > 0 && (
+        {repliesCount.current > 0 && (
           <button
             type="button"
             onClick={() => setShowReplies((v) => !v)}
@@ -77,13 +113,13 @@ export default function CommentItem({ comment }: CommentItemProps) {
           >
             {showReplies
               ? "Hide replies"
-              : `View ${repliesCount} repl${repliesCount > 1 ? "ies" : "y"}`}
+              : `View ${repliesCount.current} repl${repliesCount.current > 1 ? "ies" : "y"}`}
           </button>
         )}
       </div>
 
       {/* Replies */}
-      {showReplies && repliesCount > 0 && (
+      {showReplies && repliesCount.current > 0 && (
         <div className="ml-3 space-y-3">
           {replies.map((r) => (
             <div key={r.comment_id} className="space-y-1">
@@ -97,6 +133,11 @@ export default function CommentItem({ comment }: CommentItemProps) {
               <p className="text-sm fg-primary leading-relaxed">{r.content}</p>
             </div>
           ))}
+        </div>
+      )}
+      {loadingReplies && (
+        <div className="w-full flex items-center justify-center">
+          <Loader className="animate-spin stroke-muted" size={12} />{" "}
         </div>
       )}
     </div>

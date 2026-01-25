@@ -1,10 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useCurrentUser } from "@/hooks/auth.hooks";
 import { Comment } from "@/types/comment.type";
 import { Manga } from "@/types/manga.type";
 import CommentItem from "@/components/domain/comment/CommentItem";
 import CommentForm from "../domain/comment/CommentForm";
+import { addComment } from "@/client/comments.client";
+import { toast } from "sonner";
 
 interface CommentSectionProps {
   rootComments: Comment[];
@@ -18,8 +20,9 @@ export default function CommentsSection({
   const { data: user } = useCurrentUser();
 
   const [comments, setComments] = useState<Comment[]>(rootComments);
+  const commentsCount = useRef<number>(rootComments.length);
 
-  const addComment = (newComment: string) => {
+  const handleAddComment = async (newComment: string) => {
     if (!newComment.trim() || !user?.id || !user?.username) return;
 
     const comment: Comment = {
@@ -34,13 +37,27 @@ export default function CommentsSection({
     };
 
     // fetch Call Here
+    try {
+      // Optimistic UI
+      setComments((prev) => [comment, ...prev]);
+      commentsCount.current += 1;
 
-    setComments((prev) => [comment, ...prev]);
+      await addComment(comment);
+    } catch (error) {
+      toast.error("Failed to add comment");
+      setComments((prev) =>
+        prev.filter((c) => c.comment_id !== comment.comment_id),
+      );
+      commentsCount.current -= 1;
+    }
   };
 
   return (
     <section className="max-w-5xl mx-auto px-4 py-8 space-y-6">
-      <h2 className="text-lg font-semibold fg-primary">Comments</h2>
+      <h2 className="text-lg font-semibold fg-primary flex items-center gap-1">
+        Comments
+        <span className="text-sm fg-muted"> ({commentsCount.current})</span>
+      </h2>
 
       {/* Add comment */}
       <div
@@ -52,7 +69,7 @@ export default function CommentsSection({
           bg-card
         "
       >
-        <CommentForm onSubmit={addComment} buttonLabel="Comment" />
+        <CommentForm onSubmit={handleAddComment} buttonLabel="Comment" />
       </div>
       {/* Comment list */}
       {comments.length === 0 ? (
