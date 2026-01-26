@@ -1,60 +1,56 @@
-"use client";
+import UrlPagination from "@/components/query/UrlPagination";
+import UrlSorting from "@/components/query/UrlSorting";
+import MangasGridSection from "@/components/sections/MangasGridSection";
+import MangaCard from "@/components/domain/manga/MangaCard";
+import { listMangas, getTotalPages } from "@/client/mangas.client";
+import { redirect } from "next/navigation";
+import { isPageValid, clampPage } from "@/utils/pagination.utils";
+import { isSortValid } from "@/utils/sorting.utils";
+import { toSearchParamsString } from "@/utils/params.utils";
 
-import {
-  BrowseMangaCard,
-  ContinueReadingSection,
-} from "@/features/browse/components";
-import { Pagination } from "@/components/ui";
-import mockMangas from "@/mockData/mangas.json";
-import { useState } from "react";
-import { MangaList, Manga } from "@/types/manga.type";
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page: string; q: string; sort: string }>;
+}) {
+  const { page, q, sort } = await searchParams;
 
-export default function DashboardPage() {
-  const allMangas: MangaList = [...mockMangas.mangas, ...mockMangas.mangas];
-  const [page, setPage] = useState(1);
+  const safeParams = {
+    page: clampPage(page, 100, 1),
+    query: q ?? "",
+    sort: isSortValid(sort) ? sort : "date",
+  };
+  const totalPages = await getTotalPages("all");
+
+  if (!isSortValid(sort) || !isPageValid(page, totalPages))
+    redirect(`/browse?${toSearchParamsString(safeParams)}`);
+
+  const mangas = await listMangas(safeParams);
+
   return (
-    <main className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-      {/* Continue Reading */}
-      <ContinueReadingSection />
+    <main className="max-w-7xl mx-auto px-4 py-8 space-y-2">
+      <header className="space-y-1">
+        <h1 className="text-2xl font-semibold fg-primary">
+          Browse Manga Library
+        </h1>
+        <p className="text-sm fg-muted">
+          Search, sort, and discover stories you’ll love.
+        </p>
+      </header>
+      <div className="border-b border-default mb-3" />
 
-      {/* Separator */}
-      <div className=" w-full border-t-2 border-default" />
-
-      {/* All Manga */}
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold fg-primary">All Manga</h2>
-
-        <div
-          className="
-            grid
-            gap-4
-            grid-cols-[repeat(auto-fill,minmax(140px,1fr))]
-            sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))]
-            md:grid-cols-[repeat(auto-fill,minmax(180px,1fr))]
-            lg:grid-cols-[repeat(auto-fill,minmax(200px,1fr))]
-          "
-        >
-          {allMangas.map((manga: Manga, i) => (
-            <BrowseMangaCard key={i /*manga.manga_id*/} {...manga} />
-          ))}
-        </div>
-      </section>
-
-      {/* Pagination Controls*/}
-      <div
-        className="
-          flex justify-center
-          w-full overflow-hidden
-          h-7
-          lg:h-full
-          "
-      >
-        <Pagination
-          currentPage={page}
-          totalPages={50}
-          onPageChange={(page) => setPage(page)}
-        />
-      </div>
+      <UrlPagination totalPages={totalPages} />
+      <UrlSorting />
+      <MangasGridSection>
+        {mangas.length > 0 ? (
+          mangas.map((manga) => (
+            <MangaCard key={manga.manga_id} manga={manga} />
+          ))
+        ) : (
+          <p className="text-sm fg-muted h-screen">No mangas found.</p>
+        )}
+      </MangasGridSection>
+      <UrlPagination totalPages={totalPages} />
     </main>
   );
 }

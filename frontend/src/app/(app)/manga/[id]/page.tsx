@@ -1,15 +1,11 @@
-import Image from "next/image";
-import { CopyToClipboardButton, Button } from "@/components/ui/";
-import {
-  LikeButton,
-  PagesPreviewGrid,
-  MangaTagsSection,
-  CommentsSection,
-} from "@/features/manga/components";
-import mangas from "@/mockData/mangas.json";
-import { Manga } from "@/types/manga.type";
+import { CopyToClipboardButton, SafeImage, LinkButton } from "@/components/ui/";
+import MangaTagsSection from "@/components/domain/manga/MangaTags";
+import LikeButton from "@/components/domain/manga/LikeButton";
+import PagesPreviewSection from "@/components/sections/PagesPreviewSection";
+import CommentsSection from "@/components/sections/CommentsSection";
 import ENV_CONFIG from "@/config/env.config";
-import Link from "next/link";
+import { getMangaById, getMangaPagesById } from "@/client/mangas.client";
+import { getMangaRootCommentsById } from "@/client/comments.client";
 
 export default async function MangaDetailsPage({
   params,
@@ -18,6 +14,13 @@ export default async function MangaDetailsPage({
 }) {
   const { id } = await params;
   const paramID: number = Number(id || 0) || 0;
+  const INTIAL_LIKED = true; // Whether the manga is liked by user
+
+  const [manga, pages, rootComments] = await Promise.all([
+    getMangaById(paramID),
+    getMangaPagesById(paramID),
+    getMangaRootCommentsById(paramID),
+  ]);
 
   const {
     manga_id = paramID,
@@ -28,9 +31,9 @@ export default async function MangaDetailsPage({
     total_pages = 0,
     likes_count = 0,
     language = "N/A",
-  } = mangas.mangas.find((m: Manga) => m.manga_id == paramID) || {};
+  } = manga || {};
 
-  const InfoSection = () => (
+  const InfoSection = (
     <div className="space-y-3">
       <h1 className="text-xl font-semibold fg-primary">{title}</h1>
 
@@ -49,31 +52,31 @@ export default async function MangaDetailsPage({
       </div>
 
       <div className="flex items-center gap-4 pt-2">
-        <LikeButton mangaId={manga_id} initialCount={likes_count} />
+        <LikeButton
+          mangaId={manga_id}
+          initialCount={likes_count}
+          initialLiked={INTIAL_LIKED}
+        />
 
-        <Link href={`/read/${manga_id}?page=1`}>
-          <Button>Read</Button>
-        </Link>
+        <LinkButton href={`/read/${manga_id}?page=1`}>Read </LinkButton>
       </div>
     </div>
   );
 
-  // Temoporary pages filler
-  const page_files: any[] = Array.from({ length: total_pages }, (_, i) => null);
-
   return (
     <div className="w-screen max-w-7xl mx-auto px-4 py-6 space-y-6">
       <div className="grid md:grid-rows-[350px_1fr] lg:grid-cols-[240px_1fr] lg:grid-rows-1 gap-6">
-        {/* Left Column */}
+        {/* Desktop: Left Column ,Mobile: Top Section*/}
         <div className="flex lg:flex-col gap-6">
           {/*Cover */}
           <div className="relative min-w-40 aspect-2/3 bg-card border border-default rounded-lg overflow-hidden">
             {cover_url ? (
-              <Image
+              <SafeImage
                 src={cover_url}
                 alt={title}
                 fill
                 className="object-cover"
+                quality={40}
               />
             ) : (
               <div className="flex items-center justify-center w-full">
@@ -82,30 +85,29 @@ export default async function MangaDetailsPage({
             )}
           </div>
 
-          {/* Info, for small screens */}
+          {/* Info, for Mobile */}
           <div className="space-y-4">
-            <div className="lg:hidden">
-              <InfoSection />
-            </div>
+            <div className="lg:hidden">{InfoSection}</div>
             <MangaTagsSection tags={tags} />
           </div>
         </div>
-
-        {/* Right Column */}
+        {/* Desktop: Right Column ,Mobile: Bottom Section*/}
         <div className="space-y-6">
-          {/* Info , for wide screens */}
-          <div className="hidden lg:block">
-            <InfoSection />
-          </div>
+          {/* Info , for Desktop */}
+          <div className="hidden lg:block">{InfoSection}</div>
           {/* Preview Pages */}
           <div className="w-full">
             <p className="text-xs fg-muted mb-2">Pages :</p>
 
-            <PagesPreviewGrid page_files={page_files} manga_id={manga_id} />
+            <PagesPreviewSection
+              manga_id={manga_id}
+              total_pages={total_pages}
+              pages={pages}
+            />
           </div>
         </div>
       </div>
-      <CommentsSection />
+      <CommentsSection rootComments={rootComments} manga_id={manga_id} />
     </div>
   );
 }

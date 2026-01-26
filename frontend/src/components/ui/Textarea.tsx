@@ -1,15 +1,20 @@
 "use client";
 
-import { TextareaHTMLAttributes, useEffect, useRef, forwardRef } from "react";
+import {
+  TextareaHTMLAttributes,
+  useLayoutEffect,
+  useRef,
+  forwardRef,
+} from "react";
 
 interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
-  className?: string;
-  rows?: number;
+  maxHeight?: string;
 }
 
-const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className = "", rows = 2, ...props }, ref) => {
+export default forwardRef<HTMLTextAreaElement, TextareaProps>(
+  function Textarea({ maxHeight, ...props },ref ) {
     const innerRef = useRef<HTMLTextAreaElement | null>(null);
+    const { className = "", rows, ...rest } = props;
 
     function setRefs(node: HTMLTextAreaElement | null) {
       innerRef.current = node;
@@ -27,37 +32,39 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
 
       el.style.height = "auto";
       el.style.height = `${el.scrollHeight}px`;
+      if (maxHeight) {
+        el.style.maxHeight = maxHeight;
+        el.style.overflowY = "auto";
+      }
     }
 
-    useEffect(() => {
+    useLayoutEffect(() => {
       autoResize();
-    }, []);
+      // console.log("hello");
+    }, [props.value]);
 
     return (
       <textarea
         ref={setRefs}
         rows={rows}
-        {...props}
-        onInput={(e) => {
+        onChange={(e) => {
           autoResize();
-          props.onInput?.(e);
+          props.onChange?.(e);
         }}
         className={`
-        w-full
-        resize-none
-        overflow-hidden
-        border border-default
-        rounded-md
-        px-3 py-2
-        text-sm
-        fg-primary
-        placeholder:fg-muted
-        focus-ring
-        ${className}
-      `}
+          w-full
+          resize-none
+          border border-default
+          rounded-md
+          px-3 py-2
+          text-sm
+          fg-primary
+          placeholder:fg-muted
+          focus-ring
+          ${className}
+        `}
+        {...rest}
       />
     );
   }
 );
-
-export default Textarea;

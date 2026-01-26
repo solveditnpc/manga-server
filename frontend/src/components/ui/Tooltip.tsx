@@ -1,22 +1,14 @@
-import { ReactNode } from "react";
+import { Info } from "lucide-react";
 
-export default function Tooltip({ message }: { message: ReactNode }) {
+interface TooltipProps {
+  message: React.ReactNode;
+  children?: React.ReactNode;
+}
+export default function Tooltip({ children, message }: TooltipProps) {
   return (
-    <span className="relative inline-block group">
+    <span className="relative inline-block group cursor-help">
       {/* Trigger */}
-      <span
-        tabIndex={0}
-        className="
-          ml-1 inline-flex h-4 w-4 items-center justify-center
-          rounded-full border border-lighter
-          text-[10px] fg-secondary
-          cursor-help
-          focus-ring
-        "
-      >
-        ?
-      </span>
-
+      {children || <Info size={16} className="ml-1 stroke-muted" />}
       {/* Tooltip */}
       <span
         className="
@@ -24,7 +16,7 @@ export default function Tooltip({ message }: { message: ReactNode }) {
           mt-2 w-56 -translate-x-1/2
           rounded-md bg-card border border-default
           px-3 py-2 text-xs fg-secondary
-          opacity-0 group-hover:opacity-100 group-focus-within:opacity-100
+          opacity-0 group-hover:opacity-100
           transition-opacity
         "
       >

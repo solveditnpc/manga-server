@@ -16,7 +16,13 @@ export interface Manga {
   total_pages: number;
   language?: string; // derived (e.g. "EN", "JP")
 
-  likes_count?: number;
+  likes_count: number;
+  created_date: Date | string;
 }
 
+export interface ContinueManga extends Manga {
+  href: string;
+}
 export type MangaList = Manga[];
+
+export type Sort = "date" | "likes";

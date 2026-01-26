@@ -1,57 +1,24 @@
 "use client";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from ".";
-
-// Pagination Button Component :
-interface PaginationButtonProps {
-  page: number;
-  currentPage: number;
-  onClick: (page: number) => void;
-}
-
-function PaginationButton({
-  page,
-  currentPage,
-  onClick,
-}: PaginationButtonProps) {
-  const isActive = page === currentPage;
-
-  return (
-    <button
-      onClick={() => onClick(page)}
-      aria-current={isActive ? "page" : undefined}
-      className={`
-        bg-card hover-card 
-        border border-default 
-        rounded-md text-sm 
-        cursor-pointer
-        h-full
-        aspect-square
-        ${isActive ? "fg-primary" : "fg-muted"}
-          `}
-    >
-      {page}
-    </button>
-  );
-}
 
 // Pagination Component :
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
+  windowSize?: number;
   onPageChange: (page: number) => void;
 }
 
 export default function Pagination({
   currentPage,
   totalPages,
+  windowSize = 5,
   onPageChange,
 }: PaginationProps) {
   if (totalPages <= 1) return null;
 
-  const windowSize = 5;
-
-  let start = Math.max(1, currentPage - 2);
+  const half = Math.floor(windowSize / 2);
+  let start = Math.max(1, currentPage - half);
   let end = start + windowSize - 1;
 
   if (end > totalPages) {
@@ -60,42 +27,41 @@ export default function Pagination({
   }
 
   const pages = [];
-  for (let i = start; i <= end; i++) {
-    pages.push(i);
-  }
-
-  const prevNextClassname =
-    "fg-muted disabled:opacity-40 disabled:cursor-not-allowed flex items-center h-full gap-1";
+  for (let i = start; i <= end; i++) pages.push(i);
 
   return (
-    <nav className="flex items-center justify-center gap-1 text-sm" aria-label="Pagination">
+    <nav
+      className="flex gap-1 items-center justify-center py-2"
+      aria-label="Pagination"
+    >
       {/* Prev */}
-      <Button
+      <PaginationButton
         onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-        className={prevNextClassname}
+        disabled={currentPage <= 1}
+        aria-label="Previous page"
       >
         <ChevronLeft size={16} />
         <span className="hidden sm:block"> Prev</span>
-      </Button>
+      </PaginationButton>
 
       <div
         className="
           flex gap-1 
           justify-center items-center 
           md:w-100
-          h-full    
           "
       >
         {/* First page shortcut */}
         {start > 1 && (
           <>
             <PaginationButton
-              page={1}
-              currentPage={currentPage}
-              onClick={onPageChange}
-            />
-            <span className="px-1 fg-muted">…</span>
+              isActive={currentPage === 1}
+              onClick={() => onPageChange(1)}
+              aria-label={`Page ${1}`}
+            >
+              1
+            </PaginationButton>
+            <span className="fg-muted text-sm select-none">…</span>
           </>
         )}
 
@@ -103,33 +69,74 @@ export default function Pagination({
         {pages.map((page) => (
           <PaginationButton
             key={page}
-            page={page}
-            currentPage={currentPage}
-            onClick={onPageChange}
-          />
+            isActive={currentPage === page}
+            onClick={() => onPageChange(page)}
+            aria-label={`Page ${page}`}
+          >
+            {page}
+          </PaginationButton>
         ))}
 
         {/* Last page shortcut */}
         {end < totalPages && (
           <>
-            <span className="px-1 fg-muted">…</span>
+            <span className="fg-muted text-sm select-none">…</span>
             <PaginationButton
-              page={totalPages}
-              currentPage={currentPage}
-              onClick={onPageChange}
-            />
+              isActive={currentPage === totalPages}
+              onClick={() => onPageChange(totalPages)}
+              aria-label={`Page ${totalPages}`}
+            >
+              {totalPages}
+            </PaginationButton>
           </>
         )}
       </div>
       {/* Next */}
-      <Button
+      <PaginationButton
         onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        className={prevNextClassname}
+        disabled={currentPage >= totalPages}
+        aria-label="Next page"
       >
         <span className="hidden sm:block">Next </span>
         <ChevronRight size={16} />
-      </Button>
+      </PaginationButton>
     </nav>
+  );
+}
+
+// Pagination Button Component :
+interface PaginationButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  isActive?: boolean;
+}
+
+function PaginationButton({
+  children,
+  isActive = false,
+  ...props
+}: PaginationButtonProps) {
+  const { type, className = "", onClick, ...rest } = props;
+  return (
+    <button
+      onClick={onClick}
+      type={type || "button"}
+      className={`
+        flex items-center justify-center
+        bg-card hover-card 
+        border border-default 
+        rounded-md cursor-pointer
+        md:text-sm text-xs 
+        md:h-9 h-7 
+        md:min-w-9 min-w-7 px-2
+        disabled:disabled-default 
+        focus-ring
+        ${isActive ? "fg-primary border-light" : "fg-muted"}
+        ${className}
+      `}
+      aria-current={isActive ? "page" : undefined}
+      {...rest}
+    >
+      {children}
+    </button>
   );
 }
