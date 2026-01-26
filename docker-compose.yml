@@ -4,30 +4,45 @@ services:
     volumes:
       - ./mangas:/data
       - ./sqlite:/database
-      - ./suwayomi_standalone/data:/suwayomi_data:ro 
+      - ./suwayomi_standalone/data:/suwayomi_data:ro
     user: "1000:1000"
     ports:
       - "5002:5002"
     environment:
-      - SUWAYOMI_HOST=http://suwayomi:4567           
+      - SUWAYOMI_HOST=http://suwayomi:4567
 
   server:
     build: ./server
     volumes:
       - ./mangas:/data
       - ./sqlite:/database
-      - ./suwayomi_standalone/data:/suwayomi_data:ro  
+      - ./suwayomi_standalone/data:/suwayomi_data:ro
     user: "1000:1000"
     ports:
       - "5001:5001"
 
+  migrate-users-db:
+    build:
+      context: ./frontend
+      target: migrate-db
+    volumes:
+      - ./sqlite:/database
+    environment:
+      DATABASE_URL: file:/database/users_database.db
+    restart: "no"
+
   frontend:
     build: ./frontend
+    depends_on:
+      migrate-users-db:
+        condition: service_completed_successfully
     volumes:
       - ./mangas:/data
       - ./sqlite:/database
-      - ./suwayomi_standalone/data:/suwayomi_data:ro  
+      - ./suwayomi_standalone/data:/suwayomi_data:ro
     user: "1000:1000"
+    environment:
+      DATABASE_URL: file:/database/users_database.db
     ports:
       - "3000:3000"
 
