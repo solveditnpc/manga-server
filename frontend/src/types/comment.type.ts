@@ -1,8 +1,10 @@
+import { User } from "./auth.type";
+
 export interface Comment {
   comment_id: number;
   manga_id: number;
 
-  user_id: string;
+  user_id: User["id"];
   username: string;
 
   content: string;

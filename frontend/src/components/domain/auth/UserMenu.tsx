@@ -10,6 +10,7 @@ export default function UserMenu() {
   const { data: user, isLoading, isError, error } = useCurrentUser();
   const avatar = user?.username.charAt(0).toUpperCase();
   const [open, setOpen] = useState(false);
+  const isAdmin = user?.role === "ADMIN";
   useEffect(() => {
     if (!isError) return;
 
@@ -59,12 +60,10 @@ export default function UserMenu() {
       <div className="flex flex-col gap-1 items-center justify-center w-full text-nowrap">
         <div className="text-sm fg-primary truncate flex items-center gap-1">
           {user.username}{" "}
-          {user.role === "admin" && (
-            <ShieldCheck size={12} className="stroke-muted" />
-          )}
+          {isAdmin && <ShieldCheck size={12} className="stroke-muted" />}
         </div>
         <div className="border-t border-default w-full"></div>
-        {user.role === "admin" && (
+        {isAdmin && (
           <LinkButton
             href="/admin"
             className="w-full justify-center border-mid"
