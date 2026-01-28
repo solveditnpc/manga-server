@@ -1,4 +1,5 @@
 services:
+  # ==================== SCRAPER SERVICES : ====================
   web-scraper:
     build: ./web_scrapers
     volumes:
@@ -11,6 +12,17 @@ services:
     environment:
       - SUWAYOMI_HOST=http://suwayomi:4567
 
+  suwayomi:
+    build: ./suwayomi_standalone
+    container_name: suwayomi
+    volumes:
+      - ./suwayomi_standalone/data:/home/suwayomi/.local/share/Tachidesk
+      - ./suwayomi_standalone/data:/suwayomi_data:ro
+    ports:
+      - "4567:4567"
+    restart: unless-stopped
+
+  # ==================== MANGAS SERVER : ====================
   server:
     build: ./server
     volumes:
@@ -21,20 +33,37 @@ services:
     ports:
       - "5001:5001"
 
-  migrate-users-db:
+  # ==================== WEB-APP SERVICES : ====================
+  users-db-migrate:
     build:
       context: ./frontend
-      target: migrate-db
+      target: users-db-migrate
     volumes:
       - ./sqlite:/database
     environment:
       DATABASE_URL: file:/database/users_database.db
     restart: "no"
 
+  users-admin-seed:
+    build:
+      context: ./frontend
+      target: users-admin-seed
+    depends_on:
+      users-db-migrate:
+        condition: service_completed_successfully
+    volumes:
+      - ./sqlite:/database
+    environment:
+      DATABASE_URL: file:/database/users_database.db
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: admin
+
   frontend:
     build: ./frontend
     depends_on:
-      migrate-users-db:
+      users-db-migrate:
+        condition: service_completed_successfully
+      users-admin-seed:
         condition: service_completed_successfully
     volumes:
       - ./mangas:/data
@@ -45,13 +74,3 @@ services:
       DATABASE_URL: file:/database/users_database.db
     ports:
       - "3000:3000"
-
-  suwayomi:
-    build: ./suwayomi_standalone
-    container_name: suwayomi
-    volumes:
-      - ./suwayomi_standalone/data:/home/suwayomi/.local/share/Tachidesk
-      - ./suwayomi_standalone/data:/suwayomi_data:ro
-    ports:
-      - "4567:4567"
-    restart: unless-stopped

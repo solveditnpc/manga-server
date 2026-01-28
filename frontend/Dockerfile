@@ -10,8 +10,8 @@ FROM base AS deps
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
-# ---------- Migrate ----------
-FROM base AS migrate-db
+# ---------- Prisma Infra Base ----------
+FROM base AS prisma-cli
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
@@ -20,18 +20,26 @@ COPY prisma.config.ts ./
 COPY package.json ./
 
 RUN apt-get update -y && apt-get install -y openssl
+RUN npx prisma generate
 
+# ---------- Migrate ----------
+FROM prisma-cli AS users-db-migrate
 CMD ["npx", "prisma", "migrate", "deploy"]
 
+# ---------- ADD ADMIN ----------
+FROM prisma-cli AS users-admin-seed
+
+CMD ["npx", "prisma", "db", "seed"]
 # ---------- Build ----------
 FROM base AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
 
 # Generate Prisma Client
 RUN npx prisma generate
+
+COPY . .
 
 # Build Next.js
 RUN pnpm build
