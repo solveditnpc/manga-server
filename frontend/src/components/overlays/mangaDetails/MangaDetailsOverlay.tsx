@@ -1,9 +1,9 @@
 "use client";
 import { useEffect } from "react";
-import MangaTagsSection from "../../domain/manga/MangaTags";
+import MangaTagsSection from "@/components/domain/manga/MangaTags";
+import { useMangaDetails } from "./MangaDetailsContext";
 import { CopyToClipboardButton, SafeImage } from "@/components/ui";
 import { X } from "lucide-react";
-import { useMangaDetails } from "./MangaDetailsContext";
 
 export default function MangaDetailsOverlay({}) {
   const { manga, open, closeManga } = useMangaDetails();
@@ -26,9 +26,9 @@ export default function MangaDetailsOverlay({}) {
     title,
     author,
     language,
-    cover_url,
+    cover_image,
     tags,
-    likes_count,
+    like_count,
     total_pages,
   } = manga;
 
@@ -73,9 +73,9 @@ export default function MangaDetailsOverlay({}) {
         <div className="mt-4 space-y-4 text-sm">
           {/* Cover */}
           <div className="relative w-45 aspect-2/3 bg-card border border-default rounded-lg overflow-hidden">
-            {cover_url ? (
+            {cover_image ? (
               <SafeImage
-                src={cover_url}
+                src={cover_image}
                 alt={title || "Manga cover"}
                 className="object-cover"
                 fallbackMsg="Unable to load cover"
@@ -102,7 +102,7 @@ export default function MangaDetailsOverlay({}) {
           <Detail label="Author" value={author || "—"} />
           <Detail label="Language" value={language || "—"} />
           <Detail label="Pages" value={total_pages} />
-          <Detail label="Likes" value={likes_count ?? 0} />
+          <Detail label="Likes" value={like_count ?? 0} />
 
           {/* Tags */}
           <div>

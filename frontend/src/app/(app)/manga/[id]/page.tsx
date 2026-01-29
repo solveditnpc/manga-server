@@ -4,8 +4,10 @@ import LikeButton from "@/components/domain/manga/LikeButton";
 import PagesPreviewSection from "@/components/sections/PagesPreviewSection";
 import CommentsSection from "@/components/sections/CommentsSection";
 import ENV_CONFIG from "@/config/env.config";
-import { getMangaById, getMangaPagesById } from "@/client/mangas.client";
 import { getMangaRootCommentsById } from "@/client/comments.client";
+import { getMangaDetails } from "@/server/manga/manga.action";
+import ToastForServer from "@/components/domain/server/ToastForServer";
+import { MangaFallback } from "@/config/manga.config";
 
 export default async function MangaDetailsPage({
   params,
@@ -16,22 +18,29 @@ export default async function MangaDetailsPage({
   const paramID: number = Number(id || 0) || 0;
   const INTIAL_LIKED = true; // Whether the manga is liked by user
 
-  const [manga, pages, rootComments] = await Promise.all([
-    getMangaById(paramID),
-    getMangaPagesById(paramID),
-    getMangaRootCommentsById(paramID),
-  ]);
+  const res = await getMangaDetails({ id: paramID, server: "S" });
+  if (!res.ok)
+    return (
+      <ToastForServer
+        type={"error"}
+        title="Error Ferching Manga"
+        description={res.error}
+      />
+    );
+
+  const [rootComments] = await Promise.all([getMangaRootCommentsById(paramID)]);
 
   const {
     manga_id = paramID,
     title = "Manga Not Found (404)",
     author = "Unknown Author",
-    cover_url = "",
+    cover_image = "",
     tags = [],
     total_pages = 0,
-    likes_count = 0,
+    like_count = 0,
     language = "N/A",
-  } = manga || {};
+    page_files = [],
+  } = res.value || MangaFallback;
 
   const InfoSection = (
     <div className="space-y-3">
@@ -54,7 +63,7 @@ export default async function MangaDetailsPage({
       <div className="flex items-center gap-4 pt-2">
         <LikeButton
           mangaId={manga_id}
-          initialCount={likes_count}
+          initialCount={like_count}
           initialLiked={INTIAL_LIKED}
         />
 
@@ -70,9 +79,9 @@ export default async function MangaDetailsPage({
         <div className="flex lg:flex-col gap-6">
           {/*Cover */}
           <div className="relative min-w-40 aspect-2/3 bg-card border border-default rounded-lg overflow-hidden">
-            {cover_url ? (
+            {cover_image ? (
               <SafeImage
-                src={cover_url}
+                src={cover_image}
                 alt={title}
                 fill
                 className="object-cover"
@@ -102,7 +111,7 @@ export default async function MangaDetailsPage({
             <PagesPreviewSection
               manga_id={manga_id}
               total_pages={total_pages}
-              pages={pages}
+              pages={page_files}
             />
           </div>
         </div>

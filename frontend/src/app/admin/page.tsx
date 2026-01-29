@@ -1,10 +1,14 @@
 import AdminAddMangaSection from "@/components/domain/admin/AdminAddMangaSection";
 import AdminMangaSection from "@/components/domain/admin/AdminMangaSection";
-import { getTotalPages, listMangas } from "@/client/mangas.client";
+import ToastForServer from "@/components/domain/server/ToastForServer";
+
 import { clampPage, isPageValid } from "@/utils/pagination.utils";
-import { isSortValid } from "@/utils/sorting.utils";
-import { redirect } from "next/navigation";
 import { toSearchParamsString } from "@/utils/params.utils";
+import { isSortValid } from "@/utils/sorting.utils";
+
+import { redirect } from "next/navigation";
+import { listMangas } from "@/server/manga/manga.action";
+import { MangaPrams } from "@/types/manga.type";
 
 export default async function AdminPage({
   searchParams,
@@ -13,17 +17,27 @@ export default async function AdminPage({
 }) {
   const { page, q, sort } = await searchParams;
 
-  const safeParams = {
-    page: clampPage(page, 100 , 1),
+  const safeParams: MangaPrams = {
+    page: clampPage(page, 100, 1),
     query: q ?? "",
     sort: isSortValid(sort) ? sort : "date",
+    server: "S",
   };
-  const totalPages = await getTotalPages("all");
+  const mangasRes = await listMangas(safeParams);
+  if (!mangasRes.ok)
+    return (
+      <ToastForServer
+        type="error"
+        title="Failed to fetch mangas"
+        description={mangasRes.error}
+      />
+    );
+
+  const totalPages = !mangasRes.ok ? 0 : mangasRes?.value.total_pages;
+  const initialMangas = !mangasRes.ok ? [] : mangasRes?.value.mangas;
 
   if (!isSortValid(sort) || !isPageValid(page, totalPages))
     redirect(`/admin?${toSearchParamsString(safeParams)}`);
-
-  const initialMangas = await listMangas(safeParams);
 
   return (
     <div className="space-y-5">

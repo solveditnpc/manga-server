@@ -1,9 +1,10 @@
-import { Manga } from "@/types/manga.type";
+import { FullManga } from "@/types/manga.type";
 
 import { MangaFallback } from "@/config/manga.config";
-import { getMangaById, getMangaPagesById } from "@/client/mangas.client";
 import Reader from "@/components/domain/read/Reader";
 import { clampPage } from "@/utils/pagination.utils";
+import { getMangaDetails } from "@/server/manga/manga.action";
+import ToastForServer from "@/components/domain/server/ToastForServer";
 
 export default async function MangaReadPage({
   params,
@@ -15,10 +16,23 @@ export default async function MangaReadPage({
   const { id } = await params;
   const { page } = await searchParams;
 
-  const manga: Manga = (await getMangaById(Number(id))) || MangaFallback;
+  const res = await getMangaDetails({ id: Number(id), server: "S" });
+
+  if (!res.ok)
+    return (
+      <ToastForServer
+        type={"error"}
+        title="Error Ferching Manga"
+        description={res.error}
+      />
+    );
+  console.log(res.value);
+
+  const manga: FullManga = res.value || MangaFallback;
+
   const parsedPage = clampPage(page, manga.total_pages, 1);
 
-  const pages = await getMangaPagesById(manga.manga_id);
+  const pages = res.value.page_files;
 
   return <Reader pages={pages} manga={manga} initialPage={parsedPage} />;
 }

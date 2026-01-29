@@ -1,34 +1,54 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import AdminMangasTable from "./AdminMangasTable";
-import { MangaList } from "@/types/manga.type";
-import { MangaDetailsProvider } from "@/components/overlays/mangaDetails/MangaDetailsContext";
-import UrlPagination from "@/components/query/UrlPagination";
+
+import { Button } from "@/components/ui";
 import UrlSearch from "@/components/query/UrlSearch";
 import UrlSorting from "@/components/query/UrlSorting";
+import UrlPagination from "@/components/query/UrlPagination";
+import AdminMangasTable from "./AdminMangasTable";
+import { MangaDetailsProvider } from "@/components/overlays/mangaDetails/MangaDetailsContext";
 import { AdminMagnaDeleteContextProvider } from "@/components/domain/admin/AdminDeleteMangaContext";
+
 import { Loader, RefreshCcw } from "lucide-react";
-import { Button } from "@/components/ui";
-import { listMangas, DEFAULT_PAGE_SIZE } from "@/client/mangas.client";
+
+import { listMangas } from "@/server/manga/manga.action";
+import { DEFAULT_PAGE_SIZE } from "@/server/manga/manga.service";
+import { Manga, MangaPrams } from "@/types/manga.type";
+
+import { toast } from "sonner";
 
 export default function AdminMangaSection({
   initialMangas,
   totalBatches,
   currentParams,
 }: {
-  initialMangas: MangaList;
+  initialMangas: Manga[];
   totalBatches: number;
-  currentParams: { page: number; query: string; sort: string };
+  currentParams: MangaPrams;
 }) {
-  const [mangas, setMangas] = useState<MangaList>(initialMangas);
+  const [mangas, setMangas] = useState<Manga[]>(initialMangas);
   const [fetching, setFetching] = useState(false);
   const [isDeletingIdle, setIsDeletingIdle] = useState<boolean>(false);
-  const firstRender = useRef(true);
+  const firstRender = useRef<boolean>(true);
+  const retryCounter = useRef<number>(0);
   const { page } = currentParams;
 
   const handleFetchMangas = async () => {
     setFetching(true);
-    const currentBatch = await listMangas(currentParams);
+    const res = await listMangas(currentParams);
+    if (!res.ok) {
+      if (retryCounter.current < 3) {
+        retryCounter.current += 1;
+        console.log("Retrying");
+        setTimeout(() => handleFetchMangas(), 500);
+      } else {
+        return toast.error("Failed to fetch mangas", {
+          description: res.error,
+        });
+      }
+      return;
+    }
+    const currentBatch = res.value.mangas;
     setMangas(currentBatch);
     setFetching(false);
   };

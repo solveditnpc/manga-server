@@ -9,7 +9,7 @@ interface MangaCardProps {
 }
 
 export default function MangaCard({ manga, href }: MangaCardProps) {
-  const { manga_id, title, author, cover_url, language, likes_count } = manga;
+  const { manga_id, title, author, cover_image, language, like_count } = manga;
   if (!href) href = `/manga/${manga_id}`;
   
   return (
@@ -29,7 +29,7 @@ export default function MangaCard({ manga, href }: MangaCardProps) {
         lg:min-w-50
         "
     >
-      {/* likes_count (read-only) */}
+      {/* like_count (read-only) */}
       <div
         className="
             absolute z-10
@@ -42,14 +42,14 @@ export default function MangaCard({ manga, href }: MangaCardProps) {
             flex gap-0.5 items-center
           "
       >
-        <span className="text-xs fg-primary"> {Number(likes_count || 0)}</span>
+        <span className="text-xs fg-primary"> {Number(like_count || 0)}</span>
         <Heart size={11} className="fill-primary" />
       </div>
 
       {/* Cover */}
       <div className="relative overflow-hidden w-full aspect-2/3 bg-background">
         <SafeImage
-          src={cover_url}
+          src={cover_image}
           alt={title}
           fill
           sizes="(min-width: 1024px) 200px, (min-width: 768px) 180px, 160px"

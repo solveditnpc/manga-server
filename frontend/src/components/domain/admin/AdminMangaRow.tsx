@@ -1,10 +1,10 @@
 "use client";
-
-import { Manga } from "@/types/manga.type";
 import { Button, SafeImage } from "@/components/ui/";
 import { useMangaDetails } from "@/components/overlays/mangaDetails/MangaDetailsContext";
 import { ask } from "@/components/overlays/confirm/confirm";
+import { Manga } from "@/types/manga.type";
 import { useAdminMangaDelete } from "./AdminDeleteMangaContext";
+
 type Props = {
   manga: Manga;
   variant?: "table" | "list";
@@ -16,11 +16,11 @@ export default function AdminMangaRow({ manga, variant = "table" }: Props) {
     title,
     author,
     language,
-    cover_url,
-    likes_count,
-    created_date,
+    cover_image,
+    like_count,
+    download_timestamp,
   } = manga;
-  const date = new Date(created_date).toLocaleDateString();
+  const date = new Date(download_timestamp).toLocaleDateString();
 
   const { openManga, manga: selectedManga, closeManga } = useMangaDetails();
   const { deleteManga, deletingIds } = useAdminMangaDelete();
@@ -51,7 +51,7 @@ export default function AdminMangaRow({ manga, variant = "table" }: Props) {
 
   const cover = (
     <SafeImage
-      src={cover_url}
+      src={cover_image}
       alt={title}
       className="object-cover rounded-md"
       quality={40}
@@ -107,7 +107,7 @@ export default function AdminMangaRow({ manga, variant = "table" }: Props) {
 
           {/* Likes — desktop only */}
           <td className="py-2 pr-3 text-right fg-muted hidden lg:table-cell">
-            {likes_count ?? "—"}
+            {like_count ?? "—"}
           </td>
 
           {/* Date — desktop only (placeholder for now) */}

@@ -1,9 +1,8 @@
 "use client";
-
-import MangasGridSection from "@/components/sections/MangasGridSection";
-import { MangaList, Manga } from "@/types/manga.type";
 import { useState, useEffect } from "react";
-import { listLikedMangas, unlikeManga , DEFAULT_PAGE_SIZE } from "@/client/mangas.client";
+import MangasGridSection from "@/components/sections/MangasGridSection";
+import { listLikedMangas, unlikeManga, DEFAULT_PAGE_SIZE } from "@/client/mangas.client";
+import { Manga } from "@/types/manga.type";
 import { Loader } from "lucide-react";
 import LikedMangaCard from "./LikedMangaCard";
 
@@ -12,11 +11,11 @@ export default function LikedMangasManager({
   page,
   totalPages,
 }: {
-  pageMangas: MangaList;
+  pageMangas: Manga[];
   page: number;
   totalPages: number;
 }) {
-  const [mangas, setMangas] = useState<MangaList>(pageMangas);
+  const [mangas, setMangas] = useState<Manga[]>(pageMangas);
   const [loading, setLoading] = useState<boolean>(false);
 
   const handleFetch = async () => {

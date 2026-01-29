@@ -2,22 +2,23 @@ import HorizontalScroller from "@/components/sections/HorizontalScroller";
 import MangasGridSection from "@/components/sections/MangasGridSection";
 import MangaCard from "@/components/domain/manga/MangaCard";
 import ContinueMangaCard from "@/components/domain/manga/ContinueMangaCard";
-import {
-  listContinueMangas,
-  listLikedMangas,
-  listMangas,
-} from "@/client/mangas.client";
+import { listContinueMangas, listLikedMangas } from "@/client/mangas.client";
 import { LinkButton } from "@/components/ui";
 import { ArrowRight } from "lucide-react";
+import { listMangas } from "@/server/manga/manga.action";
 
 export default async function HomePage() {
   // Independent fetches (do NOT couple them)
-  const [newMangas, likedMangas, continueMangas] = await Promise.all([
-    listMangas({ page: 1, query: "", sort: "date" }),
+  const [newMangasRes, likedMangas, continueMangas] = await Promise.all([
+    listMangas({ page: 1, query: "", sort: "date" , server: "S"}),
     listLikedMangas({ page: 1 }),
     listContinueMangas({ page: 1 }),
   ]);
 
+  if (!newMangasRes.ok) {
+    return;
+  }
+  const newMangas = newMangasRes.value.mangas;
   return (
     <main className="max-w-7xl mx-auto px-4 py-4 space-y-2">
       {/* Greeting */}

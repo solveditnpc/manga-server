@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Button, Input } from "@/components/ui";
-import { delay } from "@/_mock/mockPromise";
+import { addManga } from "@/server/manga/manga.action";
 
 export default function AdminAddMangaSection() {
   const [value, setValue] = useState("");
@@ -18,8 +18,23 @@ export default function AdminAddMangaSection() {
       setLoading(true);
       setStatus(null);
 
-      await delay(1000);
-      setStatus({ type: "success", message: `Queued: ${value}` });
+      const res = await addManga(value);
+
+      if (!res.ok) {
+        setStatus({
+          type: "error",
+          message:
+            res.error.type === "PARTIAL_FAILURE"
+              ? `Failed adding ${res.error.failed} mangas`
+              : res.error.type,
+        });
+        return;
+      }
+
+      setStatus({
+        type: "success",
+        message: `Added Successfully to Download Queue!`,
+      });
       setValue("");
     } catch (e: any) {
       setStatus({
@@ -36,7 +51,7 @@ export default function AdminAddMangaSection() {
       <h2 className="text-sm font-semibold fg-primary mb-2">Add New Manga</h2>
 
       <p className="text-xs fg-muted mb-3">
-        Enter a manga ID, author name, or source URL to queue it for download.
+        Enter a manga ID, author name, or server URL to queue it for download.
       </p>
 
       <form onSubmit={handleSubmit} className="flex gap-2">

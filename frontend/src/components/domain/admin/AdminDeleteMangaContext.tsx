@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { Manga } from "@/types/manga.type";
 import { toast } from "sonner";
-import { deleteManga as deleteMangaClient } from "@/client/mangas.client";
+import { deleteManga as deleteMangaClient } from "@/server/manga/manga.action";
 
 interface AdminMangaDeleteContextValue {
   deleteManga: (manga_id: Manga["manga_id"]) => void;

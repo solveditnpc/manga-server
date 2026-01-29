@@ -1,31 +1,48 @@
-import UrlPagination from "@/components/query/UrlPagination";
-import UrlSorting from "@/components/query/UrlSorting";
-import MangasGridSection from "@/components/sections/MangasGridSection";
 import MangaCard from "@/components/domain/manga/MangaCard";
-import { listMangas, getTotalPages } from "@/client/mangas.client";
-import { redirect } from "next/navigation";
-import { isPageValid, clampPage } from "@/utils/pagination.utils";
+import UrlSorting from "@/components/query/UrlSorting";
+import UrlPagination from "@/components/query/UrlPagination";
+import ToastForServer from "@/components/domain/server/ToastForServer";
+import MangasGridSection from "@/components/sections/MangasGridSection";
+
 import { isSortValid } from "@/utils/sorting.utils";
 import { toSearchParamsString } from "@/utils/params.utils";
+import { isPageValid, clampPage } from "@/utils/pagination.utils";
 
-export default async function DashboardPage({
+import { listMangas } from "@/server/manga/manga.action";
+import { MangaPrams } from "@/types/manga.type";
+import { redirect } from "next/navigation";
+
+export default async function BrowsePage({
   searchParams,
 }: {
   searchParams: Promise<{ page: string; q: string; sort: string }>;
 }) {
   const { page, q, sort } = await searchParams;
 
-  const safeParams = {
+  const safeParams: MangaPrams = {
     page: clampPage(page, 100, 1),
     query: q ?? "",
     sort: isSortValid(sort) ? sort : "date",
+    server: "S",
   };
-  const totalPages = await getTotalPages("all");
+  const mangasRes = await listMangas(safeParams);
+
+  if (!mangasRes.ok) {
+    console.log("Failed");
+    return (
+      <ToastForServer
+        type="error"
+        title="Failed to fetch mangas"
+        description={mangasRes.error}
+      />
+    );
+  }
+
+  const mangas = mangasRes.value.mangas;
+  const totalPages = mangasRes.value.total_pages;
 
   if (!isSortValid(sort) || !isPageValid(page, totalPages))
     redirect(`/browse?${toSearchParamsString(safeParams)}`);
-
-  const mangas = await listMangas(safeParams);
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-8 space-y-2">

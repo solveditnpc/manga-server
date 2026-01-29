@@ -7,22 +7,50 @@ export interface Manga {
   manga_id: number;
 
   title: string;
-  author?: string;
+  author: string;
 
-  cover_url: string; // relative path or URL
+  cover_image: string; // relative path or URL
   download_path?: string; // used to build image URLs (backend-style)
 
   tags?: MangaTag[];
   total_pages: number;
   language?: string; // derived (e.g. "EN", "JP")
 
-  likes_count: number;
-  created_date: Date | string;
+  like_count: number;
+  score?: number;
+  download_timestamp: Date | string;
 }
 
 export interface ContinueManga extends Manga {
   href: string;
 }
-export type MangaList = Manga[];
 
 export type Sort = "date" | "likes";
+
+export type MangaPrams = {
+  page: number;
+  query: string;
+  sort: Sort;
+  server?: "S";
+};
+
+export interface FullManga extends Manga {
+  page_files: string[];
+  chapters: [];
+}
+
+export interface FullMangasResponse {
+  mangas: FullManga[];
+  total_pages: number;
+  total_results: number;
+  current_page: number;
+  total_items: number;
+}
+
+export type MangasResponse = {
+  mangas: Manga[];
+  total_pages: number;
+  total_results: number;
+  current_page: number;
+  total_items: number;
+};
