@@ -34,9 +34,14 @@ export type MangaPrams = {
   server?: "S";
 };
 
+export interface Chapter {
+  title: string;
+  images: string[];
+}
+
 export interface FullManga extends Manga {
   page_files: string[];
-  chapters: [];
+  chapters: Chapter[];
 }
 
 export interface FullMangasResponse {

@@ -16,3 +16,13 @@ export const toSearchParamsString = (updates: Params) => {
 
   return params.toString();
 };
+
+export function toValidUrl(path: string, baseUrl = "") {
+  return (
+    baseUrl +
+    path
+      .split("/")
+      .map((segment) => encodeURIComponent(segment))
+      .join("/")
+  );
+}

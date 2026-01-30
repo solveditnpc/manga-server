@@ -8,6 +8,7 @@ import { getMangaRootCommentsById } from "@/client/comments.client";
 import { getMangaDetails } from "@/server/manga/manga.action";
 import ToastForServer from "@/components/domain/server/ToastForServer";
 import { MangaFallback } from "@/config/manga.config";
+import ChaptersTable from "@/components/domain/manga/ChaptersTable";
 
 export default async function MangaDetailsPage({
   params,
@@ -40,6 +41,7 @@ export default async function MangaDetailsPage({
     like_count = 0,
     language = "N/A",
     page_files = [],
+    chapters = [],
   } = res.value || MangaFallback;
 
   const InfoSection = (
@@ -106,13 +108,18 @@ export default async function MangaDetailsPage({
           <div className="hidden lg:block">{InfoSection}</div>
           {/* Preview Pages */}
           <div className="w-full">
-            <p className="text-xs fg-muted mb-2">Pages :</p>
+            <p className="text-xs fg-muted mb-2">{
+            chapters.length > 0 ? "Chapters" : "Pages Preview"} :</p>
 
-            <PagesPreviewSection
-              manga_id={manga_id}
-              total_pages={total_pages}
-              pages={page_files}
-            />
+            {chapters.length > 0 ? (
+              <ChaptersTable mangaId={manga_id} chapters={chapters} />
+            ) : (
+              <PagesPreviewSection
+                manga_id={manga_id}
+                total_pages={total_pages}
+                pages={page_files}
+              />
+            )}
           </div>
         </div>
       </div>

@@ -13,10 +13,12 @@ export default function Reader({
   manga,
   pages,
   initialPage = 1,
+  chapterTitle,
 }: {
   manga: Manga;
   pages: string[];
-  initialPage?: number;
+    initialPage?: number;
+    chapterTitle?: string
 }) {
   const [zoom, setZoom] = useState(1); // 1 = 100%
 
@@ -83,11 +85,12 @@ export default function Reader({
         <ReadPageHeader
           title={manga.title}
           author={manga.author}
+          chatperTitle={chapterTitle}
           manga_id={manga.manga_id}
         />
 
         <PageNavigator
-          total_pages={manga.total_pages}
+          total_pages={pages.length}
           pageRefs={pageRefs}
           initialPage={initialPage}
         />

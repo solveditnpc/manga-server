@@ -5,7 +5,8 @@ import { LinkButton } from "@/components/ui";
 interface ReadPageHeaderProps extends Pick<
   Manga,
   "manga_id" | "title" | "author"
-> {
+  > {
+  chatperTitle?: string
   visible?: boolean;
 }
 
@@ -13,6 +14,7 @@ export default function ReadPageHeader({
   manga_id,
   title,
   author,
+  chatperTitle,
   visible = true,
 }: ReadPageHeaderProps) {
   return (
@@ -41,7 +43,9 @@ export default function ReadPageHeader({
 
       {/* Center: Title */}
       <div className="flex-1 mx-3 overflow-hidden">
-        <h1 className="fg-primary text-sm sm:text-base truncate">{title}</h1>
+        <h1 className="fg-primary text-sm sm:text-base truncate">
+          {title} / <span className="fg-secondary">{chatperTitle}</span>
+        </h1>
         {author && <span className="fg-muted text-xs truncate">{author}</span>}
       </div>
     </header>

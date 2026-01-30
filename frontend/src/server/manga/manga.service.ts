@@ -4,8 +4,9 @@ import {
   MangaPrams,
   Manga,
   FullManga,
+  Chapter,
 } from "@/types/manga.type";
-import { toSearchParamsString } from "@/utils/params.utils";
+import { toSearchParamsString, toValidUrl } from "@/utils/params.utils";
 import { MangaFallback } from "@/config/manga.config";
 
 export const DEFAULT_PAGE_SIZE: number = 24;
@@ -21,6 +22,8 @@ function parseManga({
   server: "S" | undefined;
   full?: boolean;
 }): FullManga | Manga {
+  const download_path = toValidUrl(manga?.download_path ?? "") ?? "/";
+
   const base_path = server === "S" ? `/` : `${manga.download_path}/`;
 
   const res: Manga = {
@@ -34,7 +37,7 @@ function parseManga({
     total_pages: manga?.total_pages ?? MangaFallback.total_pages,
     download_timestamp:
       manga?.download_timestamp ?? MangaFallback.download_timestamp,
-    download_path: manga?.download_path ?? MangaFallback.download_path,
+    download_path: download_path,
   };
 
   if (full)
@@ -42,7 +45,16 @@ function parseManga({
       ...res,
       page_files:
         manga?.page_files.map((page: string) => `${base_path}${page}`) ?? [],
-      chapters: manga?.chapters ?? [],
+      chapters:
+        manga?.chapters.map((chapter: Chapter) => {
+          const parsedTitle = toValidUrl(chapter?.title ?? "") ?? "";
+          return {
+            ...chapter,
+            images: chapter.images.map(
+              (image: string) => `${download_path}/${parsedTitle}/${image}`,
+            ),
+          };
+        }) ?? [],
     } as FullManga;
 
   return res as Manga;
@@ -102,7 +114,6 @@ export async function getMangaById({
       server: server,
     });
     const res = await fetch(`${API_URL}/mangas?${searchParams}`);
-    console.log(res);
 
     if (!res.ok) return { ok: false, error: "INTERNAL_ERROR" };
 
