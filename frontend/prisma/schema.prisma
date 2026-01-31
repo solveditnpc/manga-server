@@ -19,10 +19,34 @@ enum Role {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
+  id        Int    @id @default(autoincrement())
+  username  String @unique
   password  String
   cover_url String
   role      Role
+
+  comments Comment[]
+
+  @@index([username])
 }
 
+model Comment {
+  id       Int @id @default(autoincrement())
+  manga_id Int
+
+  user_id Int
+  user    User @relation(fields: [user_id], references: [id])
+
+  content    String
+  created_at DateTime @default(now())
+
+  parent_id Int?
+  parent    Comment? @relation("CommentTree", fields: [parent_id], references: [id])
+
+  replies       Comment[] @relation("CommentTree")
+  replies_count Int?      @default(0)
+
+  @@index([manga_id])
+  @@index([user_id])
+  @@index([parent_id])
+}

@@ -3,12 +3,14 @@ import MangaTagsSection from "@/components/domain/manga/MangaTags";
 import LikeButton from "@/components/domain/manga/LikeButton";
 import PagesPreviewSection from "@/components/sections/PagesPreviewSection";
 import CommentsSection from "@/components/sections/CommentsSection";
-import ENV_CONFIG from "@/config/env.config";
-import { getMangaRootCommentsById } from "@/client/comments.client";
-import { getMangaDetails } from "@/server/manga/manga.action";
-import ToastForServer from "@/components/domain/server/ToastForServer";
-import { MangaFallback } from "@/config/manga.config";
 import ChaptersTable from "@/components/domain/manga/ChaptersTable";
+import ToastForServer from "@/components/domain/server/ToastForServer";
+
+import ENV_CONFIG from "@/config/env.config";
+import { MangaFallback } from "@/config/manga.config";
+
+import { getMangaDetails } from "@/server/manga/manga.action";
+import { listRootComments } from "@/server/comment/comment.actions";
 
 export default async function MangaDetailsPage({
   params,
@@ -19,17 +21,21 @@ export default async function MangaDetailsPage({
   const paramID: number = Number(id || 0) || 0;
   const INTIAL_LIKED = true; // Whether the manga is liked by user
 
-  const res = await getMangaDetails({ id: paramID, server: "S" });
-  if (!res.ok)
+  const [mangaRes, commentsRes] = await Promise.all([
+    getMangaDetails({ id: paramID, server: "S" }),
+    listRootComments({ manga_id: paramID }),
+  ]);
+
+  if (!mangaRes.ok)
     return (
       <ToastForServer
         type={"error"}
         title="Error Ferching Manga"
-        description={res.error}
+        description={mangaRes.error}
       />
     );
 
-  const [rootComments] = await Promise.all([getMangaRootCommentsById(paramID)]);
+  const rootComments = commentsRes.ok ? commentsRes.value : [];
 
   const {
     manga_id = paramID,
@@ -42,7 +48,7 @@ export default async function MangaDetailsPage({
     language = "N/A",
     page_files = [],
     chapters = [],
-  } = res.value || MangaFallback;
+  } = mangaRes.value || MangaFallback;
 
   const InfoSection = (
     <div className="space-y-3">
@@ -108,8 +114,9 @@ export default async function MangaDetailsPage({
           <div className="hidden lg:block">{InfoSection}</div>
           {/* Preview Pages */}
           <div className="w-full">
-            <p className="text-xs fg-muted mb-2">{
-            chapters.length > 0 ? "Chapters" : "Pages Preview"} :</p>
+            <p className="text-xs fg-muted mb-2">
+              {chapters.length > 0 ? "Chapters" : "Pages Preview"} :
+            </p>
 
             {chapters.length > 0 ? (
               <ChaptersTable mangaId={manga_id} chapters={chapters} />
@@ -123,7 +130,9 @@ export default async function MangaDetailsPage({
           </div>
         </div>
       </div>
-      <CommentsSection rootComments={rootComments} manga_id={manga_id} />
+      {manga_id > -1 && (
+        <CommentsSection rootComments={rootComments} manga_id={paramID} />
+      )}
     </div>
   );
 }

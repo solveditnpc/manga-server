@@ -1,35 +1,43 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 import { useCurrentUser } from "@/hooks/auth.hooks";
-import { Comment } from "@/types/comment.type";
+import { CommentClient, Comment } from "@/types/comment.type";
 import CommentForm from "./CommentForm";
 import { Dropdown } from "@/components/ui";
-import { getMangaRepliesById, addComment } from "@/client/comments.client";
+import { addComment } from "@/server/comment/comment.actions";
 import { toast } from "sonner";
 import { Loader } from "lucide-react";
+import { listReplies } from "@/server/comment/comment.actions";
+import { Manga } from "@/types/manga.type";
 
 interface CommentItemProps {
-  comment: Comment;
+  comment: CommentClient;
+  manga_id: Manga["manga_id"];
 }
 
-export default function CommentItem({ comment }: CommentItemProps) {
-  const [replies, setReplies] = useState<Comment[]>([]);
+export default function CommentItem({ comment, manga_id }: CommentItemProps) {
+  const [replies, setReplies] = useState<CommentClient[]>([]);
   const [showReplies, setShowReplies] = useState(false);
   const [loadingReplies, setLoadingReplies] = useState(false);
 
   const { data: user } = useCurrentUser();
-  const repliesCount = useRef<number>(comment.repliesCount || 0);
+  const replies_count = useRef<number>(comment.replies_count || 0);
   const lastFetchedAt = useRef<Date | null>(null);
 
   const fetchReplies = async () => {
     try {
       setLoadingReplies(true);
 
-      const fetchedReplies = await getMangaRepliesById(comment.comment_id);
-
-      setReplies(fetchedReplies);
-      repliesCount.current = fetchedReplies.length;
-      lastFetchedAt.current = new Date();
+      const repliesRes = await listReplies({ parent_id: comment.id });
+      if (!repliesRes.ok)
+        toast.error("Failed to load replies", {
+          description: repliesRes.error,
+        });
+      else {
+        setReplies(repliesRes.value);
+        replies_count.current = repliesRes.value.length;
+        lastFetchedAt.current = new Date();
+      }
     } catch (error) {
       toast.error("Failed to load replies");
     } finally {
@@ -49,34 +57,43 @@ export default function CommentItem({ comment }: CommentItemProps) {
       return;
 
     fetchReplies();
-  }, [comment.comment_id, showReplies]);
+  }, [comment.id, showReplies]);
 
   const addReply = async (newReply: string) => {
-    if (!newReply.trim() || !user?.id || !user?.username) return;
+    const trimmedReply = newReply.trim();
+    if (!trimmedReply || !user?.id || !user?.username) return;
 
-    const reply: Comment = {
-      comment_id: Date.now(),
-      manga_id: comment.manga_id,
-      user_id: user.id,
+    const reply: CommentClient = {
+      id: Date.now(),
       username: user.username,
       content: newReply.trim(),
-      created_at: new Date().toISOString(),
-      parent_id: comment.comment_id,
-      repliesCount: null,
+      created_at: new Date(),
+      replies_count: 0,
     };
-
     try {
       // Optimistic UI
       setReplies((prev) => [reply, ...prev]);
-      repliesCount.current += 1;
+      replies_count.current += 1;
 
-      await addComment(reply);
+      const res = await addComment({
+        manga_id: manga_id,
+        parent_id: comment.id,
+        content: newReply.trim(),
+      });
+
+      if (!res.ok) {
+        toast.error("Failed to add comment");
+        setReplies((prev) => prev.filter((c) => c.id !== comment.id));
+        replies_count.current -= 1;
+      } else {
+        setReplies((prev) =>
+          prev.map((c) => (c.id === comment.id ? res.value : c)),
+        );
+      }
     } catch (error) {
-      setReplies((prev) =>
-        prev.filter((r) => r.comment_id !== reply.comment_id),
-      );
-      repliesCount.current -= 1;
-      toast.error("Failed to add reply");
+      setReplies((prev) => prev.filter((r) => r.id !== reply.id));
+      replies_count.current -= 1;
+      toast.error("Failed to add reply", {description: (error as Error).message});
     }
   };
 
@@ -100,7 +117,7 @@ export default function CommentItem({ comment }: CommentItemProps) {
         <p className="text-sm fg-primary leading-relaxed">{comment.content}</p>
 
         <AddReply onAddReply={addReply} />
-        {repliesCount.current > 0 && (
+        {replies_count.current > 0 && (
           <button
             type="button"
             onClick={() => setShowReplies((v) => !v)}
@@ -113,16 +130,16 @@ export default function CommentItem({ comment }: CommentItemProps) {
           >
             {showReplies
               ? "Hide replies"
-              : `View ${repliesCount.current} repl${repliesCount.current > 1 ? "ies" : "y"}`}
+              : `View ${replies_count.current} repl${replies_count.current > 1 ? "ies" : "y"}`}
           </button>
         )}
       </div>
 
       {/* Replies */}
-      {showReplies && repliesCount.current > 0 && (
+      {showReplies && replies_count.current > 0 && (
         <div className="ml-3 space-y-3">
           {replies.map((r) => (
-            <div key={r.comment_id} className="space-y-1">
+            <div key={r.id} className="space-y-1">
               <div className="text-xs fg-secondary flex items-center gap-2">
                 <span className="font-medium fg-primary">{r.username}</span>
                 <span className="fg-muted">
