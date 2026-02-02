@@ -1,3 +1,5 @@
+export type { ContinueReading as ContinueReadingPrisma } from "@/generated/prisma/client";
+
 export interface MangaTag {
   type: string; // e.g. "genre", "theme", "languages"
   name: string; // e.g. "romance", "school", "english"
@@ -21,12 +23,18 @@ export interface Manga {
   download_timestamp: Date | string;
 }
 
-export interface ContinueManga extends Manga {
-  href: string;
+export type ContinueProgress = {
+  chapter: string;
+  page: number;
+  checkpoint: 0 | 0.25 | 0.5 | 0.75 | 1;
+  currTotalPages: number;
+};
+
+export interface Chapter {
+  title: string;
+  images: string[];
 }
-
 export type Sort = "date" | "likes";
-
 export type MangaPrams = {
   page: number;
   query: string;
@@ -34,9 +42,8 @@ export type MangaPrams = {
   server?: "S";
 };
 
-export interface Chapter {
-  title: string;
-  images: string[];
+export interface ContinueManga extends Manga {
+  progress: ContinueProgress;
 }
 
 export interface FullManga extends Manga {
@@ -44,18 +51,12 @@ export interface FullManga extends Manga {
   chapters: Chapter[];
 }
 
-export interface FullMangasResponse {
-  mangas: FullManga[];
-  total_pages: number;
-  total_results: number;
-  current_page: number;
-  total_items: number;
+export interface FullContinueManga extends FullManga {
+  progress: ContinueProgress;
 }
 
-export type MangasResponse = {
-  mangas: Manga[];
+export interface MangasResponse<_MangaType_> {
+  mangas: _MangaType_[];
   total_pages: number;
-  total_results: number;
   current_page: number;
-  total_items: number;
-};
+}

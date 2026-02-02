@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Heart } from "lucide-react";
-import { Manga } from "@/types/manga.type";
 import SafeImage from "@/components/ui/SafeImage";
+import { Manga } from "@/types/manga.type";
+import { Heart } from "lucide-react";
 
 interface MangaCardProps {
   manga: Manga;
@@ -11,7 +11,7 @@ interface MangaCardProps {
 export default function MangaCard({ manga, href }: MangaCardProps) {
   const { manga_id, title, author, cover_image, language, like_count } = manga;
   if (!href) href = `/manga/${manga_id}`;
-  
+
   return (
     <Link
       href={href}
@@ -53,7 +53,7 @@ export default function MangaCard({ manga, href }: MangaCardProps) {
           alt={title}
           fill
           sizes="(min-width: 1024px) 200px, (min-width: 768px) 180px, 160px"
-          className="object-cover"
+          className="object-fill"
           quality={40}
           fallbackMsg="Unable to get cover"
         />

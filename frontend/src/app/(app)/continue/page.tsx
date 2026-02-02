@@ -1,7 +1,10 @@
+import { redirect } from "next/navigation";
+
 import ContinueMangasManager from "@/components/domain/manga/ContinueMangasManager";
 import UrlPagination from "@/components/query/UrlPagination";
-import { listContinueMangas, getTotalPages } from "@/client/mangas.client";
-import { redirect } from "next/navigation";
+import ToastForServer from "@/components/domain/server/ToastForServer";
+
+import { listContinueMangas } from "@/server/manga/manga.action";
 import { clampPage, isPageValid } from "@/utils/pagination.utils";
 
 export default async function ContinuePage({
@@ -10,12 +13,26 @@ export default async function ContinuePage({
   searchParams: Promise<{ page: string }>;
 }) {
   const { page } = await searchParams;
-  const totalPages = await getTotalPages("continue");
+  const pageNum = Number(page) || 1;
+  const mangasRes = await listContinueMangas({
+    page: Number.isInteger(pageNum) ? pageNum : 1,
+  });
+
+  if (!mangasRes.ok)
+    return (
+      <ToastForServer
+        type="error"
+        title="Failed to fetch mangas"
+        description={mangasRes.error}
+      />
+    );
+
+  const mangas = mangasRes.value.mangas;
+  const totalPages = mangasRes.value.total_pages;
   const safePage = clampPage(page, totalPages, 1);
+
   if (!isPageValid(page, totalPages))
     return redirect(`/continue?page=${safePage}`);
-
-  const mangas = await listContinueMangas({ page: safePage });
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-8 space-y-2">

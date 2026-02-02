@@ -1,6 +1,7 @@
 import { delay } from "@/_mock/mockPromise";
 import mockMangas from "@/_mock/mangas.json";
-import { Manga, ContinueManga } from "@/types/manga.type";
+import { Manga } from "@/types/manga.type";
+import { DEFAULT_PAGE_SIZE } from "@/config/manga.config";
 
 // AI generated mockMangasArray creator :)
 // simple deterministic PRNG (Mulberry32)
@@ -44,20 +45,8 @@ const _getMockMangasArray = (size: number): Manga[] => {
 };
 
 // Mock Mangas DataSet
-let ALL_MANGAS = _getMockMangasArray(100);
 let LIKED_MANGAS = _getMockMangasArray(50);
-let CONTINUE_MANGAS = _getMockMangasArray(50).map((manga) => {
-  const minPage = Math.ceil(manga.total_pages * 0.1);
-  const maxPage = Math.floor(manga.total_pages * 0.8);
-  const page = minPage + Math.floor(rng() * (maxPage - minPage + 1));
 
-  return {
-    ...manga,
-    href: `/read/${manga.manga_id}?page=${page}`,
-  };
-});
-
-export const DEFAULT_PAGE_SIZE = 15;
 
 // Get total number of pages
 export async function getTotalPages(scope: "all" | "liked" | "continue") {
@@ -65,33 +54,11 @@ export async function getTotalPages(scope: "all" | "liked" | "continue") {
   let len = 0;
 
   switch (scope) {
-    case "all":
-      len = ALL_MANGAS.length;
     case "liked":
       len = LIKED_MANGAS.length;
-    case "continue":
-      len = CONTINUE_MANGAS.length;
   }
 
   return Math.ceil(len / DEFAULT_PAGE_SIZE);
-}
-
-// Continue Mangas
-export async function listContinueMangas({
-  page,
-}: {
-  page: number;
-}): Promise<ContinueManga[]> {
-  await delay(500);
-  const start = (page - 1) * DEFAULT_PAGE_SIZE;
-  const end = start + DEFAULT_PAGE_SIZE;
-  return CONTINUE_MANGAS.slice(start, end);
-}
-
-// Remove Continue Manga
-export async function removeContinueManga(id: number) {
-  await delay(500);
-  CONTINUE_MANGAS = CONTINUE_MANGAS.filter((m) => m.manga_id !== id);
 }
 
 // Liked Mangas
@@ -111,26 +78,3 @@ export async function unlikeManga(id: number) {
   await delay(500);
   LIKED_MANGAS = LIKED_MANGAS.filter((m) => m.manga_id !== id);
 }
-
-export async function getMangaPagesById(
-  id: Manga["manga_id"],
-): Promise<string[]> {
-  await delay(500);
-
-  const mock_pages = [
-    "/mock-pages/page-0.jpg",
-    "/mock-pages/page-1.jpg",
-    "/mock-pages/page-2.jpg",
-    "/mock-pages/page-3.jpg",
-    "/mock-pages/page-4.jpg",
-  ];
-
-  let array = [];
-  for (let i = 0; i < 100; i++) {
-    array.push(mock_pages[i % 5]);
-  }
-
-  return array;
-}
-
-/*TODO : Read about automatic fetch caching in next */

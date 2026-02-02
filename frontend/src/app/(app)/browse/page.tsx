@@ -1,16 +1,17 @@
+import { redirect } from "next/navigation";
+
 import MangaCard from "@/components/domain/manga/MangaCard";
 import UrlSorting from "@/components/query/UrlSorting";
 import UrlPagination from "@/components/query/UrlPagination";
 import ToastForServer from "@/components/domain/server/ToastForServer";
 import MangasGridSection from "@/components/sections/MangasGridSection";
 
+import { listMangas } from "@/server/manga/manga.action";
+import { MangaPrams } from "@/types/manga.type";
+
 import { isSortValid } from "@/utils/sorting.utils";
 import { toSearchParamsString } from "@/utils/params.utils";
 import { isPageValid, clampPage } from "@/utils/pagination.utils";
-
-import { listMangas } from "@/server/manga/manga.action";
-import { MangaPrams } from "@/types/manga.type";
-import { redirect } from "next/navigation";
 
 export default async function BrowsePage({
   searchParams,
@@ -28,7 +29,6 @@ export default async function BrowsePage({
   const mangasRes = await listMangas(safeParams);
 
   if (!mangasRes.ok) {
-    console.log("Failed");
     return (
       <ToastForServer
         type="error"

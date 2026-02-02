@@ -13,3 +13,5 @@ export const MangaFallback: FullManga = {
   chapters: [],
   page_files: [],
 };
+
+export const DEFAULT_PAGE_SIZE = 24;

@@ -5,14 +5,14 @@ import { Button } from "@/components/ui";
 import UrlSearch from "@/components/query/UrlSearch";
 import UrlSorting from "@/components/query/UrlSorting";
 import UrlPagination from "@/components/query/UrlPagination";
-import AdminMangasTable from "./AdminMangasTable";
+import AdminMangasTable from "@/components/domain/admin/AdminMangasTable";
 import { MangaDetailsProvider } from "@/components/overlays/mangaDetails/MangaDetailsContext";
 import { AdminMagnaDeleteContextProvider } from "@/components/domain/admin/AdminDeleteMangaContext";
 
 import { Loader, RefreshCcw } from "lucide-react";
 
 import { listMangas } from "@/server/manga/manga.action";
-import { DEFAULT_PAGE_SIZE } from "@/server/manga/manga.service";
+import { DEFAULT_PAGE_SIZE } from "@/config/manga.config";
 import { Manga, MangaPrams } from "@/types/manga.type";
 
 import { toast } from "sonner";
@@ -39,7 +39,6 @@ export default function AdminMangaSection({
     if (!res.ok) {
       if (retryCounter.current < 3) {
         retryCounter.current += 1;
-        console.log("Retrying");
         setTimeout(() => handleFetchMangas(), 500);
       } else {
         return toast.error("Failed to fetch mangas", {

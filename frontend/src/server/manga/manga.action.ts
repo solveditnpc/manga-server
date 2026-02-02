@@ -1,24 +1,38 @@
 "use server";
+import { cookies } from "next/headers";
+
 import {
   Manga,
   MangaPrams,
   MangasResponse,
   FullManga,
+  ContinueManga,
+  ContinueProgress,
+  FullContinueManga,
 } from "@/types/manga.type";
 import { AsyncResult } from "@/types/server.types";
+
 import {
   getMangas,
   deleteMangaService,
   addMangaService,
   getMangaById,
-} from "./manga.service";
-import { cookies } from "next/headers";
-import { validateSession } from "../auth/auth.service";
+} from "@/server/manga/manga.service";
+import { validateSession } from "@/server/auth/auth.service";
+import {
+  getContinueMangas,
+  deleteContinueManga,
+  addContinueManga,
+  getContinueMangaProgress,
+  toContinueProgress,
+} from "@/server/manga/continueManga.service";
 
+// ================= MANGA ACTIONS : =================
+// ANCHOR Manga Actions
 // -------------------- All Mangas--------------------
 export async function listMangas(
   params: MangaPrams,
-): AsyncResult<MangasResponse, "INTERNAL_ERROR"> {
+): AsyncResult<MangasResponse<Manga>, "INTERNAL_ERROR"> {
   return await getMangas({ ...params });
 }
 
@@ -42,7 +56,6 @@ export async function deleteManga(
   const res = await validateSession(session);
 
   if (!res.ok) {
-    if (res.error === "UNAUTHORIZED") store.delete("session");
     return res;
   }
 
@@ -66,7 +79,6 @@ export async function addManga(
   const res = await validateSession(session);
 
   if (!res.ok) {
-    if (res.error === "UNAUTHORIZED") store.delete("session");
     return { ok: false, error: { type: res.error } };
   }
 
@@ -100,4 +112,112 @@ export async function addManga(
   } else {
     return addMangaService({ author: query });
   }
+}
+
+// ===================== CONTINUE READING ACTIONS : =====================
+// ANCHOR Continue Reading
+// -------------------- Continue Reading List --------------------
+export async function listContinueMangas({
+  page,
+  server = "S",
+}: {
+  page: number;
+  server?: "S";
+}): AsyncResult<MangasResponse<ContinueManga>, "INTERNAL_ERROR"> {
+  const store = await cookies();
+  const session = store.get("session")?.value;
+  const resUser = await validateSession(session);
+
+  if (!resUser.ok) {
+    return { ok: true, value: { mangas: [], total_pages: 1, current_page: 1 } };
+  }
+
+  const user_id = resUser.value.id;
+  return getContinueMangas({ user_id, page, server });
+}
+
+// -------------------- Get Reader Mnaga With Progress --------------------
+export async function getReaderData({
+  manga_id,
+  server = "S",
+}: {
+  manga_id: ContinueManga["manga_id"];
+  server?: "S";
+}): AsyncResult<FullContinueManga, "INTERNAL_ERROR"> {
+  const mangaRes = await getMangaById({ id: manga_id, server });
+  if (!mangaRes.ok) return { ok: false, error: "INTERNAL_ERROR" };
+
+  let progress: ContinueProgress = {
+    chapter: "",
+    page: 1,
+    checkpoint: 0,
+    currTotalPages: 1,
+  };
+
+  const store = await cookies();
+  const session = store.get("session")?.value;
+  const resUser = await validateSession(session);
+
+  if (resUser.ok) {
+    const user_id = resUser.value.id;
+
+    const progressRes = await getContinueMangaProgress({
+      user_id,
+      manga_id,
+      server,
+    });
+    console.log(progressRes);
+
+    if (!progressRes.ok) {
+      if (progressRes.error === "INTERNAL_ERROR")
+        return { ok: false, error: "INTERNAL_ERROR" };
+    } else {
+      progress = toContinueProgress(mangaRes.value, progressRes.value);
+    }
+  }
+  return { ok: true, value: { ...mangaRes.value, progress } };
+}
+
+// -------------------- Remove Continue Reading --------------------
+export async function removeContinueManga({
+  manga_id,
+  server,
+}: {
+  manga_id: ContinueManga["manga_id"];
+  server?: "S";
+}): AsyncResult<void, "INTERNAL_ERROR"> {
+  const store = await cookies();
+  const session = store.get("session")?.value;
+  const resUser = await validateSession(session);
+
+  if (!resUser.ok) {
+    return { ok: false, error: "INTERNAL_ERROR" };
+  }
+
+  const user_id = resUser.value.id;
+
+  return deleteContinueManga({ user_id, manga_id, server });
+}
+
+// -------------------- Add Continue Reading --------------------
+export async function saveProgress({
+  manga_id,
+  progress,
+  server,
+}: {
+  manga_id: ContinueManga["manga_id"];
+  progress: ContinueProgress;
+  server?: "S";
+}): AsyncResult<void, "INTERNAL_ERROR"> {
+  const store = await cookies();
+  const session = store.get("session")?.value;
+  const resUser = await validateSession(session);
+
+  if (!resUser.ok) {
+    return { ok: false, error: "INTERNAL_ERROR" };
+  }
+
+  const user_id = resUser.value.id;
+
+  return addContinueManga({ user_id, manga_id, progress, server });
 }

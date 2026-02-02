@@ -18,6 +18,11 @@ enum Role {
   USER
 }
 
+enum Server {
+  S
+  N
+}
+
 model User {
   id        Int    @id @default(autoincrement())
   username  String @unique
@@ -25,28 +30,38 @@ model User {
   cover_url String
   role      Role
 
-  comments Comment[]
+  comments         Comment[]
+  continueReadings ContinueReading[]
 
   @@index([username])
 }
 
 model Comment {
-  id       Int @id @default(autoincrement())
-  manga_id Int
-
-  user_id Int
-  user    User @relation(fields: [user_id], references: [id])
-
-  content    String
-  created_at DateTime @default(now())
-
-  parent_id Int?
-  parent    Comment? @relation("CommentTree", fields: [parent_id], references: [id])
-
+  id            Int       @id @default(autoincrement())
+  manga_id      Int
+  user_id       Int
+  user          User      @relation(fields: [user_id], references: [id])
+  content       String
+  created_at    DateTime  @default(now())
+  parent_id     Int?
+  parent        Comment?  @relation("CommentTree", fields: [parent_id], references: [id])
   replies       Comment[] @relation("CommentTree")
   replies_count Int?      @default(0)
 
   @@index([manga_id])
   @@index([user_id])
   @@index([parent_id])
+}
+
+model ContinueReading {
+  user_id    Int
+  user       User     @relation(fields: [user_id], references: [id])
+  manga_id   Int
+  chapter    String
+  page       Int
+  checkpoint Float
+  updated_at DateTime @default(now())
+  server     Server
+
+  @@id([user_id, manga_id, server])
 }

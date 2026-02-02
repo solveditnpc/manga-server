@@ -59,7 +59,11 @@ export default async function MangaDetailsPage({
       <div className="flex items-center gap-4 text-sm fg-muted flex-wrap">
         <span>{language}</span>
         <span>•</span>
-        <span>{total_pages} pages</span>
+        <span>
+          {chapters.length > 0
+            ? `${chapters.length} Chapters`
+            : `${total_pages} Pages`}
+        </span>
         <span>•</span>
         <CopyToClipboardButton
           displayText={`#${manga_id}`}

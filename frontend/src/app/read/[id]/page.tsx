@@ -1,9 +1,11 @@
-import { FullManga } from "@/types/manga.type";
+import { FullContinueManga } from "@/types/manga.type";
 import { MangaFallback } from "@/config/manga.config";
 import Reader from "@/components/domain/read/Reader";
-import { clampPage } from "@/utils/pagination.utils";
-import { getMangaDetails } from "@/server/manga/manga.action";
 import ToastForServer from "@/components/domain/server/ToastForServer";
+
+import { getReaderData } from "@/server/manga/manga.action";
+import { clampPage } from "@/utils/pagination.utils";
+
 export default async function MangaReadPage({
   params,
   searchParams,
@@ -14,7 +16,7 @@ export default async function MangaReadPage({
   const { id } = await params;
   const { page, chapter } = await searchParams;
 
-  const res = await getMangaDetails({ id: Number(id), server: "S" });
+  const res = await getReaderData({ manga_id: Number(id), server: "S" });
 
   if (!res.ok)
     return (
@@ -24,9 +26,15 @@ export default async function MangaReadPage({
         description={res.error}
       />
     );
-  console.log(res.value);
 
-  const manga: FullManga = res.value || MangaFallback;
+  const manga: FullContinueManga = res.value || {
+    ...MangaFallback,
+    progress: {
+      chapter: "",
+      page: 0,
+      checkpoint: 0,
+    },
+  };
   let pages;
   let parsedPage;
   let chapterTitle = "";
@@ -44,7 +52,7 @@ export default async function MangaReadPage({
     <Reader
       pages={pages}
       manga={manga}
-      initialPage={parsedPage}
+      urlPage={parsedPage}
       chapterTitle={chapterTitle}
     />
   );

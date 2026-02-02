@@ -1,15 +1,17 @@
 "use client";
+import { useState, useEffect } from "react";
 
 import MangasGridSection from "@/components/sections/MangasGridSection";
-import { ContinueManga, Manga } from "@/types/manga.type";
-import { useState, useEffect } from "react";
+import ContinueMangaCard from "@/components/domain/manga/ContinueMangaCard";
+import { toast } from "sonner";
+
 import {
   listContinueMangas,
   removeContinueManga,
-  DEFAULT_PAGE_SIZE,
-} from "@/client/mangas.client";
+} from "@/server/manga/manga.action";
+import { DEFAULT_PAGE_SIZE } from "@/config/manga.config";
+import { ContinueManga, Manga } from "@/types/manga.type";
 import { Loader } from "lucide-react";
-import ContinueMangaCard from "./ContinueMangaCard";
 
 export default function ContinueMangasManager({
   pageMangas,
@@ -27,19 +29,41 @@ export default function ContinueMangasManager({
     if (loading) return;
     setLoading(true);
     try {
-      const updatedBatch = await listContinueMangas({
+      const res = await listContinueMangas({
         page,
       });
+      if (!res.ok) {
+        toast.error("Failed to fetch mangas", {
+          description: res.error,
+        });
+        return;
+      }
+      const updatedBatch = res.value.mangas;
       setMangas(updatedBatch);
     } catch (error) {
+      toast.error("Failed to fetch mangas", {
+        description: (error as Error).message,
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const onRemove = async (id: Manga["manga_id"]) => {
-    await removeContinueManga(id);
-    setMangas((prev) => prev.filter((m) => m.manga_id !== id));
+    try {
+      const res = await removeContinueManga({ manga_id: id, server: "S" });
+      if (!res.ok) {
+        toast.error("Failed to remove manga", {
+          description: res.error,
+        });
+        return;
+      }
+      setMangas((prev) => prev.filter((m) => m.manga_id !== id));
+    } catch (error) {
+      toast.error("Failed to remove manga", {
+        description: (error as Error).message,
+      });
+    }
   };
 
   useEffect(() => {

@@ -2,23 +2,26 @@ import HorizontalScroller from "@/components/sections/HorizontalScroller";
 import MangasGridSection from "@/components/sections/MangasGridSection";
 import MangaCard from "@/components/domain/manga/MangaCard";
 import ContinueMangaCard from "@/components/domain/manga/ContinueMangaCard";
-import { listContinueMangas, listLikedMangas } from "@/client/mangas.client";
 import { LinkButton } from "@/components/ui";
+
+import { listLikedMangas } from "@/client/mangas.client";
+import { listMangas, listContinueMangas } from "@/server/manga/manga.action";
+import { ContinueManga, Manga } from "@/types/manga.type";
 import { ArrowRight } from "lucide-react";
-import { listMangas } from "@/server/manga/manga.action";
 
 export default async function HomePage() {
-  // Independent fetches (do NOT couple them)
-  const [newMangasRes, likedMangas, continueMangas] = await Promise.all([
-    listMangas({ page: 1, query: "", sort: "date" , server: "S"}),
+  const [newMangasRes, likedMangas, continueMangasRes] = await Promise.all([
+    listMangas({ page: 1, query: "", sort: "date", server: "S" }),
     listLikedMangas({ page: 1 }),
-    listContinueMangas({ page: 1 }),
+    listContinueMangas({ page: 1, server: "S" }),
   ]);
 
-  if (!newMangasRes.ok) {
-    return;
-  }
-  const newMangas = newMangasRes.value.mangas;
+  let newMangas: Manga[] = [];
+  let continueMangas: ContinueManga[] = [];
+
+  if (newMangasRes.ok) newMangas = newMangasRes.value.mangas;
+  if (continueMangasRes.ok) continueMangas = continueMangasRes.value.mangas;
+
   return (
     <main className="max-w-7xl mx-auto px-4 py-4 space-y-2">
       {/* Greeting */}
@@ -45,20 +48,40 @@ export default async function HomePage() {
       </section>
 
       {/* Continue Reading */}
-      <HorizontalScroller title="Continue Reading" href="/continue?page=1">
-        {continueMangas.map((manga) => (
-          <ContinueMangaCard
-            key={manga.manga_id}
-            manga={manga}
-            disableActions
-          />
-        ))}
-      </HorizontalScroller>
+      {continueMangas.length > 0 && (
+        <HorizontalScroller title="Continue Reading" href="/continue?page=1">
+          {continueMangas.map((manga) => (
+            <div
+              className="
+                w-35
+                sm:w-40
+                md:w-45
+                lg:w-50
+              "
+            >
+              <ContinueMangaCard
+                key={manga.manga_id}
+                manga={manga}
+                disableActions
+              />
+            </div>
+          ))}
+        </HorizontalScroller>
+      )}
 
       {/* Bookmarked */}
       <HorizontalScroller title="Liked By You" href="/liked?page=1">
         {likedMangas.map((manga) => (
-          <MangaCard key={manga.manga_id} manga={manga} />
+          <div
+            className="
+                w-35
+                sm:w-40
+                md:w-45
+                lg:w-50
+              "
+          >
+            <MangaCard key={manga.manga_id} manga={manga} />
+          </div>
         ))}
       </HorizontalScroller>
 

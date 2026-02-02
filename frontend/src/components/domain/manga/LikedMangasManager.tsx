@@ -1,10 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import MangasGridSection from "@/components/sections/MangasGridSection";
-import { listLikedMangas, unlikeManga, DEFAULT_PAGE_SIZE } from "@/client/mangas.client";
+import { listLikedMangas, unlikeManga } from "@/client/mangas.client";
 import { Manga } from "@/types/manga.type";
 import { Loader } from "lucide-react";
 import LikedMangaCard from "./LikedMangaCard";
+import { DEFAULT_PAGE_SIZE } from "@/config/manga.config";
 
 export default function LikedMangasManager({
   pageMangas,
