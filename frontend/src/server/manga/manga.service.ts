@@ -121,3 +121,29 @@ export async function addMangaService(
     return { ok: false, error: { type: "INTERNAL_ERROR" } };
   }
 }
+
+// -------------------- Update Mnage Likes Count --------------------
+export async function updateMangaLikesCount({
+  manga_id,
+  liked,
+  server,
+}: {
+  manga_id: Manga["manga_id"];
+  liked: boolean;
+  server?: "S";
+}): AsyncResult<void, "INTERNAL_ERROR"> {
+  try {
+    const res = await fetch(
+      `${API_URL}/${server === "S" ? "s_" : ""}mangas/${manga_id}/${liked ? "like" : "unlike"}`,
+      {
+        method: "POST",
+      },
+    );
+    if (!res.ok) return { ok: false, error: "INTERNAL_ERROR" };
+
+    return { ok: true, value: undefined };
+  } catch (error) {
+    console.log("Error `manga.service/updateMangaLikesCount` : \n", error);
+    return { ok: false, error: "INTERNAL_ERROR" };
+  }
+}

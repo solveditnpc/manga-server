@@ -12,13 +12,14 @@ import {
 } from "@/types/manga.type";
 import { AsyncResult } from "@/types/server.types";
 
+import { validateSession } from "@/server/auth/auth.service";
 import {
   getMangas,
   deleteMangaService,
   addMangaService,
   getMangaById,
+  updateMangaLikesCount,
 } from "@/server/manga/manga.service";
-import { validateSession } from "@/server/auth/auth.service";
 import {
   getContinueMangas,
   deleteContinueManga,
@@ -26,6 +27,12 @@ import {
   getContinueMangaProgress,
   toContinueProgress,
 } from "@/server/manga/continueManga.service";
+import {
+  addLikedManga,
+  deleteLikedManga,
+  getIsMangaLikedByUser,
+  getLikedMangas,
+} from "./likedMangas.service";
 
 // ================= MANGA ACTIONS : =================
 // ANCHOR Manga Actions
@@ -220,4 +227,78 @@ export async function saveProgress({
   const user_id = resUser.value.id;
 
   return addContinueManga({ user_id, manga_id, progress, server });
+}
+
+// ===================== LIKED MANGAS ACTIONS : =====================
+// ANCHOR Liked Managas
+// -------------------- Continue Reading List --------------------
+export async function listLikedMangas({
+  page,
+  server = "S",
+}: {
+  page: number;
+  server?: "S";
+}): AsyncResult<MangasResponse<Manga>, "INTERNAL_ERROR"> {
+  const store = await cookies();
+  const session = store.get("session")?.value;
+  const resUser = await validateSession(session);
+
+  if (!resUser.ok) {
+    return { ok: true, value: { mangas: [], total_pages: 1, current_page: 1 } };
+  }
+
+  const user_id = resUser.value.id;
+  return getLikedMangas({ user_id, page, server });
+}
+
+// -------------------- Toogle Like --------------------
+export async function toogleLike({
+  manga_id,
+  server,
+  liked,
+}: {
+  manga_id: ContinueManga["manga_id"];
+  server?: "S";
+  liked: boolean;
+}): AsyncResult<void, "INTERNAL_ERROR"> {
+  const store = await cookies();
+  const session = store.get("session")?.value;
+  const resUser = await validateSession(session);
+
+  if (!resUser.ok) {
+    return { ok: false, error: "INTERNAL_ERROR" };
+  }
+
+  const user_id = resUser.value.id;
+  let res;
+  if (liked) res = await addLikedManga({ user_id, manga_id, server });
+  else res = await deleteLikedManga({ user_id, manga_id, server });
+
+  if (!res.ok) return res;
+
+  res = await updateMangaLikesCount({ manga_id, liked, server });
+  if (!res.ok) return res;
+
+  return { ok: true, value: undefined };
+}
+
+// -------------------- Is Liked Status --------------------
+export async function isMangaLiked({
+  manga_id,
+  server,
+}: {
+  manga_id: ContinueManga["manga_id"];
+  server?: "S";
+}): AsyncResult<boolean, "INTERNAL_ERROR"> {
+  const store = await cookies();
+  const session = store.get("session")?.value;
+  const resUser = await validateSession(session);
+
+  if (!resUser.ok) {
+    return { ok: false, error: "INTERNAL_ERROR" };
+  }
+
+  const user_id = resUser.value.id;
+
+  return getIsMangaLikedByUser({ user_id, manga_id, server });
 }

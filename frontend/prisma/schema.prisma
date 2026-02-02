@@ -32,6 +32,7 @@ model User {
 
   comments         Comment[]
   continueReadings ContinueReading[]
+  likes            Likes[]
 
   @@index([username])
 }
@@ -60,6 +61,16 @@ model ContinueReading {
   chapter    String
   page       Int
   checkpoint Float
+  updated_at DateTime @default(now())
+  server     Server
+
+  @@id([user_id, manga_id, server])
+}
+
+model Likes {
+  user_id    Int
+  user       User     @relation(fields: [user_id], references: [id])
+  manga_id   Int
   updated_at DateTime @default(now())
   server     Server
 

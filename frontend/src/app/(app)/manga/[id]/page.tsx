@@ -9,7 +9,7 @@ import ToastForServer from "@/components/domain/server/ToastForServer";
 import ENV_CONFIG from "@/config/env.config";
 import { MangaFallback } from "@/config/manga.config";
 
-import { getMangaDetails } from "@/server/manga/manga.action";
+import { getMangaDetails, isMangaLiked } from "@/server/manga/manga.action";
 import { listRootComments } from "@/server/comment/comment.actions";
 
 export default async function MangaDetailsPage({
@@ -19,11 +19,11 @@ export default async function MangaDetailsPage({
 }) {
   const { id } = await params;
   const paramID: number = Number(id || 0) || 0;
-  const INTIAL_LIKED = true; // Whether the manga is liked by user
 
-  const [mangaRes, commentsRes] = await Promise.all([
+  const [mangaRes, commentsRes, isLikedRes] = await Promise.all([
     getMangaDetails({ id: paramID, server: "S" }),
     listRootComments({ manga_id: paramID }),
+    isMangaLiked({ manga_id: paramID , server: "S"}),
   ]);
 
   if (!mangaRes.ok)
@@ -36,6 +36,7 @@ export default async function MangaDetailsPage({
     );
 
   const rootComments = commentsRes.ok ? commentsRes.value : [];
+  const isLiked = isLikedRes.ok ? isLikedRes.value : false;
 
   const {
     manga_id = paramID,
@@ -76,7 +77,7 @@ export default async function MangaDetailsPage({
         <LikeButton
           mangaId={manga_id}
           initialCount={like_count}
-          initialLiked={INTIAL_LIKED}
+          initialLiked={isLiked}
         />
 
         <LinkButton href={`/read/${manga_id}?page=1`}>Read </LinkButton>

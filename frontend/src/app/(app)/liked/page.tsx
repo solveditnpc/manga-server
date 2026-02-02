@@ -1,8 +1,9 @@
 import UrlPagination from "@/components/query/UrlPagination";
 import LikedMangasManager from "@/components/domain/manga/LikedMangasManager";
-import { listLikedMangas, getTotalPages } from "@/client/mangas.client";
 import { redirect } from "next/navigation";
 import { isPageValid, clampPage } from "@/utils/pagination.utils";
+import { listLikedMangas } from "@/server/manga/manga.action";
+import ToastForServer from "@/components/domain/server/ToastForServer";
 
 export default async function LikedPage({
   searchParams,
@@ -10,13 +11,24 @@ export default async function LikedPage({
   searchParams: Promise<{ page: string }>;
 }) {
   const { page } = await searchParams;
-  const totalPages = await getTotalPages("liked");
+
+  const res = await listLikedMangas({ page: Number(page) });
+
+  if (!res.ok)
+    return (
+      <ToastForServer
+        type="error"
+        title="Failed to fetch mangas"
+        description={res.error}
+      />
+    );
+
+  const mangas = res.value.mangas;
+  const totalPages = res.value.total_pages;
 
   const safePage = clampPage(page, totalPages, 1);
   if (!isPageValid(page, totalPages))
     return redirect(`/liked?page=${safePage}`);
-
-  const mangas = await listLikedMangas({ page: safePage });
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-8 space-y-2">

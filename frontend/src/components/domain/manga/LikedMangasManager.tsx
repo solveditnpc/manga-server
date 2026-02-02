@@ -1,11 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
 import MangasGridSection from "@/components/sections/MangasGridSection";
-import { listLikedMangas, unlikeManga } from "@/client/mangas.client";
 import { Manga } from "@/types/manga.type";
 import { Loader } from "lucide-react";
 import LikedMangaCard from "./LikedMangaCard";
 import { DEFAULT_PAGE_SIZE } from "@/config/manga.config";
+import { listLikedMangas, toogleLike } from "@/server/manga/manga.action";
+import { toast } from "sonner";
 
 export default function LikedMangasManager({
   pageMangas,
@@ -23,17 +24,29 @@ export default function LikedMangasManager({
     if (loading) return;
     setLoading(true);
     try {
-      const updatedBatch = await listLikedMangas({
+      const res = await listLikedMangas({
         page,
+        server: "S",
       });
+      if (!res.ok) {
+        toast.error("Failed to fetch mangas", {
+          description: res.error,
+        });
+        return;
+      }
+      const updatedBatch = res.value.mangas;
       setMangas(updatedBatch);
+    } catch (error) {
+      toast.error("Failed to fetch mangas", {
+        description: (error as Error).message,
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const onUnlike = async (id: Manga["manga_id"]) => {
-    await unlikeManga(id);
+    await toogleLike({ manga_id: id, liked: false, server: "S" });
     setMangas((prev) => prev.filter((m) => m.manga_id !== id));
   };
 

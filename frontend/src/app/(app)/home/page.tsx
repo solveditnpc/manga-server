@@ -4,13 +4,16 @@ import MangaCard from "@/components/domain/manga/MangaCard";
 import ContinueMangaCard from "@/components/domain/manga/ContinueMangaCard";
 import { LinkButton } from "@/components/ui";
 
-import { listLikedMangas } from "@/client/mangas.client";
-import { listMangas, listContinueMangas } from "@/server/manga/manga.action";
+import {
+  listMangas,
+  listContinueMangas,
+  listLikedMangas,
+} from "@/server/manga/manga.action";
 import { ContinueManga, Manga } from "@/types/manga.type";
 import { ArrowRight } from "lucide-react";
 
 export default async function HomePage() {
-  const [newMangasRes, likedMangas, continueMangasRes] = await Promise.all([
+  const [newMangasRes, likedMangasRes, continueMangasRes] = await Promise.all([
     listMangas({ page: 1, query: "", sort: "date", server: "S" }),
     listLikedMangas({ page: 1 }),
     listContinueMangas({ page: 1, server: "S" }),
@@ -18,10 +21,11 @@ export default async function HomePage() {
 
   let newMangas: Manga[] = [];
   let continueMangas: ContinueManga[] = [];
+  let likedMangas: Manga[] = [];
 
   if (newMangasRes.ok) newMangas = newMangasRes.value.mangas;
   if (continueMangasRes.ok) continueMangas = continueMangasRes.value.mangas;
-
+  if (likedMangasRes.ok) likedMangas = likedMangasRes.value.mangas;
   return (
     <main className="max-w-7xl mx-auto px-4 py-4 space-y-2">
       {/* Greeting */}
@@ -70,20 +74,22 @@ export default async function HomePage() {
       )}
 
       {/* Bookmarked */}
-      <HorizontalScroller title="Liked By You" href="/liked?page=1">
-        {likedMangas.map((manga) => (
-          <div
-            className="
+      {likedMangas.length > 0 && (
+        <HorizontalScroller title="Liked By You" href="/liked?page=1">
+          {likedMangas.map((manga) => (
+            <div
+              className="
                 w-35
                 sm:w-40
                 md:w-45
                 lg:w-50
               "
-          >
-            <MangaCard key={manga.manga_id} manga={manga} />
-          </div>
-        ))}
-      </HorizontalScroller>
+            >
+              <MangaCard key={manga.manga_id} manga={manga} />
+            </div>
+          ))}
+        </HorizontalScroller>
+      )}
 
       {/* New Uploads */}
       <div className="flex items-center justify-between">
