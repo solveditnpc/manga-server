@@ -4,6 +4,7 @@ import {
   MangaPrams,
   Manga,
   FullManga,
+  Server,
 } from "@/types/manga.type";
 import { toSearchParamsString } from "@/utils/params.utils";
 import { parseManga } from "@/utils/mangas.utils";
@@ -20,7 +21,7 @@ export async function getMangas(
       page: params.page,
       q: params.query,
       sort: params.sort,
-      server: params?.server,
+      server: params.server === "S" ? params.server : "",
     });
     const res = await fetch(`${API_URL}/mangas?${searchParams}`);
 
@@ -52,7 +53,7 @@ export async function getMangaById({
   server,
 }: {
   id: Manga["manga_id"];
-  server?: "S";
+  server: Server;
 }): AsyncResult<FullManga, "INTERNAL_ERROR"> {
   try {
     const searchParams = toSearchParamsString({
@@ -106,8 +107,6 @@ export async function addMangaService(
   payload: { author: string } | { manga_id: number },
 ): AsyncResult<void, { type: "INTERNAL_ERROR" }> {
   try {
-    console.log(payload);
-
     const res = await fetch(`${API_URL}/download`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -130,7 +129,7 @@ export async function updateMangaLikesCount({
 }: {
   manga_id: Manga["manga_id"];
   liked: boolean;
-  server?: "S";
+  server: Server;
 }): AsyncResult<void, "INTERNAL_ERROR"> {
   try {
     const res = await fetch(

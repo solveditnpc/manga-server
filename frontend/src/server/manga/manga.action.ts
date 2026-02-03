@@ -9,6 +9,7 @@ import {
   ContinueManga,
   ContinueProgress,
   FullContinueManga,
+  Server
 } from "@/types/manga.type";
 import { AsyncResult } from "@/types/server.types";
 
@@ -49,7 +50,7 @@ export async function getMangaDetails({
   server,
 }: {
   id: Manga["manga_id"];
-  server?: "S";
+  server: Server;
 }): AsyncResult<FullManga, "INTERNAL_ERROR"> {
   return await getMangaById({ id, server });
 }
@@ -126,10 +127,10 @@ export async function addManga(
 // -------------------- Continue Reading List --------------------
 export async function listContinueMangas({
   page,
-  server = "S",
+  server,
 }: {
   page: number;
-  server?: "S";
+  server: Server;
 }): AsyncResult<MangasResponse<ContinueManga>, "INTERNAL_ERROR"> {
   const store = await cookies();
   const session = store.get("session")?.value;
@@ -146,10 +147,10 @@ export async function listContinueMangas({
 // -------------------- Get Reader Mnaga With Progress --------------------
 export async function getReaderData({
   manga_id,
-  server = "S",
+  server,
 }: {
   manga_id: ContinueManga["manga_id"];
-  server?: "S";
+  server: Server;
 }): AsyncResult<FullContinueManga, "INTERNAL_ERROR"> {
   const mangaRes = await getMangaById({ id: manga_id, server });
   if (!mangaRes.ok) return { ok: false, error: "INTERNAL_ERROR" };
@@ -191,7 +192,7 @@ export async function removeContinueManga({
   server,
 }: {
   manga_id: ContinueManga["manga_id"];
-  server?: "S";
+  server: Server;
 }): AsyncResult<void, "INTERNAL_ERROR"> {
   const store = await cookies();
   const session = store.get("session")?.value;
@@ -214,7 +215,7 @@ export async function saveProgress({
 }: {
   manga_id: ContinueManga["manga_id"];
   progress: ContinueProgress;
-  server?: "S";
+  server: Server;
 }): AsyncResult<void, "INTERNAL_ERROR"> {
   const store = await cookies();
   const session = store.get("session")?.value;
@@ -234,10 +235,10 @@ export async function saveProgress({
 // -------------------- Continue Reading List --------------------
 export async function listLikedMangas({
   page,
-  server = "S",
+  server,
 }: {
   page: number;
-  server?: "S";
+  server: Server;
 }): AsyncResult<MangasResponse<Manga>, "INTERNAL_ERROR"> {
   const store = await cookies();
   const session = store.get("session")?.value;
@@ -258,7 +259,7 @@ export async function toogleLike({
   liked,
 }: {
   manga_id: ContinueManga["manga_id"];
-  server?: "S";
+  server: Server;
   liked: boolean;
 }): AsyncResult<void, "INTERNAL_ERROR"> {
   const store = await cookies();
@@ -288,7 +289,7 @@ export async function isMangaLiked({
   server,
 }: {
   manga_id: ContinueManga["manga_id"];
-  server?: "S";
+  server: Server;
 }): AsyncResult<boolean, "INTERNAL_ERROR"> {
   const store = await cookies();
   const session = store.get("session")?.value;

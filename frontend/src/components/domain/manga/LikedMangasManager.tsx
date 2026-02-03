@@ -7,6 +7,7 @@ import LikedMangaCard from "./LikedMangaCard";
 import { DEFAULT_PAGE_SIZE } from "@/config/manga.config";
 import { listLikedMangas, toogleLike } from "@/server/manga/manga.action";
 import { toast } from "sonner";
+import { useServerContext } from "@/components/domain/server/ServerContext";
 
 export default function LikedMangasManager({
   pageMangas,
@@ -19,14 +20,15 @@ export default function LikedMangasManager({
 }) {
   const [mangas, setMangas] = useState<Manga[]>(pageMangas);
   const [loading, setLoading] = useState<boolean>(false);
-
+  const {server} = useServerContext();
+  
   const handleFetch = async () => {
     if (loading) return;
     setLoading(true);
     try {
       const res = await listLikedMangas({
         page,
-        server: "S",
+        server,
       });
       if (!res.ok) {
         toast.error("Failed to fetch mangas", {
@@ -46,7 +48,7 @@ export default function LikedMangasManager({
   };
 
   const onUnlike = async (id: Manga["manga_id"]) => {
-    await toogleLike({ manga_id: id, liked: false, server: "S" });
+    await toogleLike({ manga_id: id, liked: false, server });
     setMangas((prev) => prev.filter((m) => m.manga_id !== id));
   };
 

@@ -17,7 +17,11 @@ export default function HomePage() {
           comfortably, and keep track of what you like.
         </p>
 
-        <LinkButton href="/home" className="w-full mb-5" variant="primary">
+        <LinkButton
+          href="/user/S/home"
+          className="w-full mb-5"
+          variant="primary"
+        >
           Explore Mangas
         </LinkButton>
       </div>

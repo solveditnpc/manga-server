@@ -3,6 +3,7 @@ import MangasGridSection from "@/components/sections/MangasGridSection";
 import MangaCard from "@/components/domain/manga/MangaCard";
 import ContinueMangaCard from "@/components/domain/manga/ContinueMangaCard";
 import { LinkButton } from "@/components/ui";
+import { Server } from "@/types/manga.type";
 
 import {
   listMangas,
@@ -12,12 +13,18 @@ import {
 import { ContinueManga, Manga } from "@/types/manga.type";
 import { ArrowRight } from "lucide-react";
 
-export default async function HomePage() {
+export default async function HomePage({
+  params,
+}: {
+  params: Promise<{ server: Server }>;
+}) {
+  const { server } = await params;
   const [newMangasRes, likedMangasRes, continueMangasRes] = await Promise.all([
-    listMangas({ page: 1, query: "", sort: "date", server: "S" }),
-    listLikedMangas({ page: 1 }),
-    listContinueMangas({ page: 1, server: "S" }),
+    listMangas({ page: 1, query: "", sort: "date", server }),
+    listLikedMangas({ page: 1, server }),
+    listContinueMangas({ page: 1, server }),
   ]);
+  const baseHref = `/user/${server}`;
 
   let newMangas: Manga[] = [];
   let continueMangas: ContinueManga[] = [];
@@ -53,7 +60,10 @@ export default async function HomePage() {
 
       {/* Continue Reading */}
       {continueMangas.length > 0 && (
-        <HorizontalScroller title="Continue Reading" href="/continue?page=1">
+        <HorizontalScroller
+          title="Continue Reading"
+          href={`${baseHref}/continue?page=1`}
+        >
           {continueMangas.map((manga) => (
             <div
               className="
@@ -75,7 +85,10 @@ export default async function HomePage() {
 
       {/* Bookmarked */}
       {likedMangas.length > 0 && (
-        <HorizontalScroller title="Liked By You" href="/liked?page=1">
+        <HorizontalScroller
+          title="Liked By You"
+          href={`${baseHref}/liked?page=1`}
+        >
           {likedMangas.map((manga) => (
             <div
               className="
@@ -85,7 +98,11 @@ export default async function HomePage() {
                 lg:w-50
               "
             >
-              <MangaCard key={manga.manga_id} manga={manga} />
+              <MangaCard
+                key={manga.manga_id}
+                manga={manga}
+                href={`${baseHref}/manga/${manga.manga_id}`}
+              />
             </div>
           ))}
         </HorizontalScroller>
@@ -96,7 +113,7 @@ export default async function HomePage() {
         <h2 className="text-lg font-semibold fg-primary">{"New Uploads"}</h2>
         <LinkButton
           variant="ghost"
-          href={"/browse?page=1&sort=date"}
+          href={`${baseHref}/browse?page=1&sort=date`}
           className="text-sm fg-muted"
         >
           View All <ArrowRight size={14} />
@@ -104,7 +121,11 @@ export default async function HomePage() {
       </div>
       <MangasGridSection>
         {newMangas.map((manga) => (
-          <MangaCard key={manga.manga_id} manga={manga} />
+          <MangaCard
+            key={manga.manga_id}
+            manga={manga}
+            href={`${baseHref}/manga/${manga.manga_id}`}
+          />
         ))}
       </MangasGridSection>
     </main>

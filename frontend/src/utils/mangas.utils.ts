@@ -1,7 +1,7 @@
 import { ContinueProgress } from "@/types/manga.type";
-import { MangaFallback } from "@/config/manga.config";
+import { MangaFallback as _FB } from "@/config/manga.config";
 import { toValidUrl } from "./params.utils";
-import { Manga, FullManga , Chapter } from "@/types/manga.type";
+import { Manga, FullManga, Chapter, Server } from "@/types/manga.type";
 
 export function clampCheckpoint(
   checkpoint: unknown,
@@ -14,49 +14,69 @@ export function clampCheckpoint(
   return 0;
 }
 
-
 export function parseManga({
-  manga,
+  manga: m,
   server,
   full = false,
 }: {
   manga: any;
-  server: "S" | undefined;
+  server: Server;
   full?: boolean;
 }): FullManga | Manga {
-  const download_path = toValidUrl(manga?.download_path ?? "") ?? "/";
+  const manga_id = Number(m.manga_id ?? _FB.manga_id);
 
-  const base_path = server === "S" ? `/` : `${manga.download_path}/`;
+  const title = m?.title ?? _FB.title;
+  const author = m?.author ?? _FB.author;
+  const like_count = m?.like_count ?? _FB.like_count;
+  const total_pages = m?.total_pages ?? _FB.total_pages;
+  const download_timestamp = m?.download_timestamp ?? _FB.download_timestamp;
+
+  const tags =
+    typeof m?.tags === "string" ? JSON.parse(m?.tags ?? "[]") : (m?.tags ?? []);
+
+  const language = (
+    m?.language
+      ? m.language
+      : (tags.find((t: any) => t?.type === "languages")?.name ?? _FB.language)
+  ).toUpperCase();
+
+  const base_path = server === "S" ? `/` : `${m.download_path}/`;
+  const download_path = toValidUrl(m?.download_path ?? "");
+  const cover_image = toValidUrl(m?.cover_image, base_path);
+
   const res: Manga = {
-    manga_id: Number(manga?.manga_id ?? MangaFallback.manga_id),
-    title: manga?.title ?? MangaFallback.title,
-    author: manga?.author ?? MangaFallback.author,
-    cover_image: manga?.cover_image ? `${base_path}${manga?.cover_image}` : "",
-    language: manga?.language ?? MangaFallback.language,
-    like_count: manga?.like_count ?? MangaFallback.like_count,
-    tags: JSON.parse(manga?.tags ?? "[]") ?? [],
-    total_pages: manga?.total_pages ?? MangaFallback.total_pages,
-    download_timestamp:
-      manga?.download_timestamp ?? MangaFallback.download_timestamp,
-    download_path: download_path,
+    manga_id,
+    title,
+    author,
+    cover_image,
+    language,
+    like_count,
+    total_pages,
+    download_timestamp,
+    download_path,
+    tags,
   };
 
-  if (full)
-    return {
-      ...res,
-      page_files:
-        manga?.page_files.map((page: string) => `${base_path}${page}`) ?? [],
-      chapters:
-        manga?.chapters.map((chapter: Chapter) => {
-          const parsedTitle = toValidUrl(chapter?.title ?? "") ?? "";
-          return {
-            ...chapter,
-            images: chapter.images.map(
-              (image: string) => `${download_path}/${parsedTitle}/${image}`,
-            ),
-          };
-        }) ?? [],
-    } as FullManga;
+  if (!full) return res as Manga;
 
-  return res as Manga;
+  const page_files = m?.page_files.map((p: string) => `${base_path}${p}`);
+  const chapters =
+    m?.chapters.map((ch: Chapter) => {
+      const images = ch.images.map(
+        (i) => `${toValidUrl(ch.title, m.download_path)}${toValidUrl(i)}`,
+      );
+      return { ...ch, images };
+    }) ?? [];
+
+  return { ...res, page_files, chapters } as FullManga;
+}
+
+export function isServerValid(server: string | undefined): boolean {
+  return ["N", "S"].includes(server ?? "");
+}
+
+export function toValidServer(server: string | undefined): Server {
+  const isN = ["n", "N"].includes(server ?? "");
+  if (!isN) return "S";
+  return "N";
 }

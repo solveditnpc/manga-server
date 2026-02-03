@@ -5,18 +5,18 @@ import ToastForServer from "@/components/domain/server/ToastForServer";
 
 import { getReaderData } from "@/server/manga/manga.action";
 import { clampPage } from "@/utils/pagination.utils";
-
+import { Server } from "@/types/manga.type";
 export default async function MangaReadPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; server: Server }>;
   searchParams: Promise<{ page: string; chapter: string }>;
 }) {
-  const { id } = await params;
+  const { id, server } = await params;
   const { page, chapter } = await searchParams;
 
-  const res = await getReaderData({ manga_id: Number(id), server: "S" });
+  const res = await getReaderData({ manga_id: Number(id), server });
 
   if (!res.ok)
     return (

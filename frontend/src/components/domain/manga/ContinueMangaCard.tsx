@@ -1,11 +1,11 @@
 "use client";
 import MangaCard from "@/components/domain/manga/MangaCard";
 import { Button } from "@/components/ui";
+import { useServerContext } from "@/components/domain/server/ServerContext";
 
 import { toSearchParamsString } from "@/utils/params.utils";
 import { ContinueManga } from "@/types/manga.type";
 import { X } from "lucide-react";
-
 interface ContinueMangaCardProps {
   manga: ContinueManga;
   disableActions?: boolean;
@@ -17,7 +17,8 @@ export default function ContinueMangaCard({
   disableActions = false,
   onRemove,
 }: ContinueMangaCardProps) {
-  const href = `/read/${manga.manga_id}?${toSearchParamsString({
+  const { routePrefix } = useServerContext();
+  const href = `${routePrefix}read/${manga.manga_id}?${toSearchParamsString({
     chapter: manga.progress.chapter,
     page: manga.progress.page,
   })}`;
@@ -32,7 +33,6 @@ export default function ContinueMangaCard({
   ) {
     progressPercent = Math.max((currentPage / totalPages) * 100, 1);
   }
-  console.log(progressPercent);
 
   const handleRemove = () => {
     onRemove?.(manga.manga_id);

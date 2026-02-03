@@ -1,17 +1,19 @@
 "use server";
 import { Comment, AddCommentProps, CommentClient } from "@/types/comment.type";
 import { AsyncResult } from "@/types/server.types";
-import { Manga } from "@/types/manga.type";
+import { Manga, Server } from "@/types/manga.type";
 import { getComments, addCommentService } from "./comment.service";
 import { validateSession } from "../auth/auth.service";
 import { cookies } from "next/headers";
 
 export async function listRootComments({
   manga_id,
+  server,
 }: {
   manga_id: Manga["manga_id"];
+  server: Server;
 }): AsyncResult<CommentClient[], "INTERNAL_ERROR"> {
-  const res = await getComments({ manga_id });
+  const res = await getComments({ manga_id  , server});
 
   if (!res.ok) return { ok: false, error: "INTERNAL_ERROR" };
 

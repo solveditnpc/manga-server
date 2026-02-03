@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 
 import MangasGridSection from "@/components/sections/MangasGridSection";
 import ContinueMangaCard from "@/components/domain/manga/ContinueMangaCard";
+import { useServerContext } from "@/components/domain/server/ServerContext";
 import { toast } from "sonner";
 
 import {
@@ -10,7 +11,7 @@ import {
   removeContinueManga,
 } from "@/server/manga/manga.action";
 import { DEFAULT_PAGE_SIZE } from "@/config/manga.config";
-import { ContinueManga, Manga } from "@/types/manga.type";
+import { ContinueManga, Manga, Server } from "@/types/manga.type";
 import { Loader } from "lucide-react";
 
 export default function ContinueMangasManager({
@@ -24,6 +25,7 @@ export default function ContinueMangasManager({
 }) {
   const [mangas, setMangas] = useState<ContinueManga[]>(pageMangas);
   const [loading, setLoading] = useState<boolean>(false);
+  const {server} = useServerContext();
 
   const handleFetch = async () => {
     if (loading) return;
@@ -31,6 +33,7 @@ export default function ContinueMangasManager({
     try {
       const res = await listContinueMangas({
         page,
+        server,
       });
       if (!res.ok) {
         toast.error("Failed to fetch mangas", {
@@ -51,7 +54,7 @@ export default function ContinueMangasManager({
 
   const onRemove = async (id: Manga["manga_id"]) => {
     try {
-      const res = await removeContinueManga({ manga_id: id, server: "S" });
+      const res = await removeContinueManga({ manga_id: id, server });
       if (!res.ok) {
         toast.error("Failed to remove manga", {
           description: res.error,

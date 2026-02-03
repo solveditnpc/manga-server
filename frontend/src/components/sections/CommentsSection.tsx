@@ -7,6 +7,7 @@ import { Manga } from "@/types/manga.type";
 
 import CommentItem from "@/components/domain/comment/CommentItem";
 import CommentForm from "@/components/domain/comment/CommentForm";
+import { useServerContext } from "../domain/server/ServerContext";
 
 import { addComment } from "@/server/comment/comment.actions";
 import { toast } from "sonner";
@@ -21,13 +22,13 @@ export default function CommentsSection({
   manga_id,
 }: CommentSectionProps) {
   const { data: user } = useCurrentUser();
-
+  const { server } = useServerContext();
   const [comments, setComments] = useState<CommentClient[]>(rootComments);
   const commentsCount = useRef<number>(rootComments.length);
 
   const handleAddComment = async (newComment: string) => {
     if (!newComment.trim() || !user?.id || !user?.username) return;
-    
+
     const comment: CommentClient = {
       id: Date.now(),
       username: user.username,
@@ -40,11 +41,12 @@ export default function CommentsSection({
       // Optimistic UI
       setComments((prev) => [comment, ...prev]);
       commentsCount.current += 1;
-      
+
       const res = await addComment({
         manga_id: manga_id,
         content: newComment,
         parent_id: null,
+        server,
       });
 
       if (!res.ok) {

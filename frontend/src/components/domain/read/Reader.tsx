@@ -7,6 +7,7 @@ import PageNavigator from "@/components/domain/read/PageNavigator";
 import ReadPageHeader from "@/components/layout/read/ReadPageHeader";
 import OverlaysVisibilityControl from "@/components/domain/read/OverlaysVisibilityControl";
 import PageZoomControls from "@/components/domain/read/PageZoomControls";
+import { useServerContext } from "@/components/domain/server/ServerContext";
 
 import { saveProgress } from "@/server/manga/manga.action";
 import { clampCheckpoint } from "@/utils/mangas.utils";
@@ -40,6 +41,7 @@ export default function Reader({
   const readerContainer = useRef<HTMLDivElement>(null);
 
   const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const {server} = useServerContext();
 
   let lastProgress = useRef<ContinueProgress>(manga.progress);
   let nextProgress = useRef<ContinueProgress | null>(null);
@@ -47,7 +49,7 @@ export default function Reader({
 
   function commitSaveProgress(source: string) {
     console.log(source);
-    
+
     if (!nextProgress.current) return;
 
     if (commitTimer.current) {
@@ -63,7 +65,7 @@ export default function Reader({
     saveProgress({
       manga_id: manga.manga_id,
       progress: { chapter, page, checkpoint, currTotalPages },
-      server: "S",
+      server,
     });
   }
 
@@ -94,8 +96,11 @@ export default function Reader({
       chapter: chapterTitle,
       currTotalPages: pages.length,
     };
-    
-    commitTimer.current = setTimeout(() => commitSaveProgress("Scroll Timer"), 3000); // 3s dwell
+
+    commitTimer.current = setTimeout(
+      () => commitSaveProgress("Scroll Timer"),
+      3000,
+    ); // 3s dwell
   }
 
   useEffect(() => {

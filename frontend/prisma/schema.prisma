@@ -48,6 +48,7 @@ model Comment {
   parent        Comment?  @relation("CommentTree", fields: [parent_id], references: [id])
   replies       Comment[] @relation("CommentTree")
   replies_count Int?      @default(0)
+  server     Server
 
   @@index([manga_id])
   @@index([user_id])

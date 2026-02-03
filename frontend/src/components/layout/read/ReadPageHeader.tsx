@@ -1,12 +1,13 @@
 import { X } from "lucide-react";
 import { Manga } from "@/types/manga.type";
 import { LinkButton } from "@/components/ui";
+import { useServerContext } from "@/components/domain/server/ServerContext";
 
 interface ReadPageHeaderProps extends Pick<
   Manga,
   "manga_id" | "title" | "author"
-  > {
-  chatperTitle?: string
+> {
+  chatperTitle?: string;
   visible?: boolean;
 }
 
@@ -17,6 +18,7 @@ export default function ReadPageHeader({
   chatperTitle,
   visible = true,
 }: ReadPageHeaderProps) {
+  const { routePrefix } = useServerContext();
   return (
     <header
       className={`
@@ -33,7 +35,7 @@ export default function ReadPageHeader({
     >
       {/* Left: Close */}
       <LinkButton
-        href={`/manga/${manga_id}`}
+        href={`${routePrefix}/manga/${manga_id}`}
         className="px-1.5! hover:bg-background/60"
         title="Close reader"
         variant="ghost"

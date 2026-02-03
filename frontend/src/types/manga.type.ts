@@ -1,4 +1,7 @@
+import { Server } from "@/generated/prisma/enums";
+
 export type { ContinueReading as ContinueReadingPrisma } from "@/generated/prisma/client";
+export type { Server };
 
 export interface MangaTag {
   type: string; // e.g. "genre", "theme", "languages"
@@ -39,7 +42,7 @@ export type MangaPrams = {
   page: number;
   query: string;
   sort: Sort;
-  server?: "S";
+  server: Server;
 };
 
 export interface ContinueManga extends Manga {

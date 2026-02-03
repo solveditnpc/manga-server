@@ -11,19 +11,20 @@ import { MangaFallback } from "@/config/manga.config";
 
 import { getMangaDetails, isMangaLiked } from "@/server/manga/manga.action";
 import { listRootComments } from "@/server/comment/comment.actions";
+import { Server } from "@/types/manga.type";
 
 export default async function MangaDetailsPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; server: Server }>;
 }) {
-  const { id } = await params;
+  const { id, server } = await params;
   const paramID: number = Number(id || 0) || 0;
 
   const [mangaRes, commentsRes, isLikedRes] = await Promise.all([
-    getMangaDetails({ id: paramID, server: "S" }),
-    listRootComments({ manga_id: paramID }),
-    isMangaLiked({ manga_id: paramID , server: "S"}),
+    getMangaDetails({ id: paramID, server }),
+    listRootComments({ manga_id: paramID, server }),
+    isMangaLiked({ manga_id: paramID, server }),
   ]);
 
   if (!mangaRes.ok)
@@ -80,7 +81,9 @@ export default async function MangaDetailsPage({
           initialLiked={isLiked}
         />
 
-        <LinkButton href={`/read/${manga_id}?page=1`}>Read </LinkButton>
+        <LinkButton href={`user/${server}/read/${manga_id}?page=1`}>
+          Read{" "}
+        </LinkButton>
       </div>
     </div>
   );

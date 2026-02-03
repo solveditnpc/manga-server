@@ -17,12 +17,22 @@ export const toSearchParamsString = (updates: Params) => {
   return params.toString();
 };
 
-export function toValidUrl(path: string, baseUrl = "") {
-  return (
-    baseUrl +
-    path
-      .split("/")
-      .map((segment) => encodeURIComponent(segment))
-      .join("/")
-  );
+export function toValidUrl(path: string, base = "") {
+  const encodeSegments = (value: string) =>
+    value.split("/").filter(Boolean).map(encodeURIComponent).join("/");
+
+  const encodedBase = encodeSegments(base);
+  const encodedPath = encodeSegments(path);
+
+  if (!encodedBase && !encodedPath) return "/";
+
+  if (!encodedBase) return `/${encodedPath}`;
+  if (!encodedPath) return `/${encodedBase}`;
+
+  return `/${encodedBase}/${encodedPath}`;
+}
+
+export function stripUserServerPrefix(pathname: string) {
+  // removes the `/user/[server]/` prefix
+  return pathname.replace(/^\/user\/[^/]+/, "") || "/";
 }

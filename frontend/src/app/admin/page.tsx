@@ -21,7 +21,7 @@ export default async function AdminPage({
     page: clampPage(page, 100, 1),
     query: q ?? "",
     sort: isSortValid(sort) ? sort : "date",
-    server: "S",
+    server: "N",
   };
   const mangasRes = await listMangas(safeParams);
   if (!mangasRes.ok)
@@ -37,7 +37,7 @@ export default async function AdminPage({
   const initialMangas = !mangasRes.ok ? [] : mangasRes?.value.mangas;
 
   if (!isSortValid(sort) || !isPageValid(page, totalPages))
-    redirect(`/admin?${toSearchParamsString(safeParams)}`);
+    redirect(`/admin?${toSearchParamsString({ ...safeParams, server: "" })}`);
 
   return (
     <div className="space-y-5">

@@ -7,6 +7,7 @@ import {
   ContinueProgress,
   ContinueReadingPrisma,
   FullManga,
+  Server,
 } from "@/types/manga.type";
 import { User } from "@/types/auth.type";
 
@@ -34,22 +35,22 @@ export function toContinueProgress(
 export async function getContinueMangas({
   page,
   user_id,
-  server = "S",
+  server,
 }: {
   page: number;
   user_id: User["id"];
-  server?: "S";
+  server: Server;
 }): AsyncResult<MangasResponse<ContinueManga>, "INTERNAL_ERROR"> {
   try {
     const [resPrisma, total_items] = await prisma.$transaction([
       prisma.continueReading.findMany({
-        where: { user_id, server: server ?? "N" },
+        where: { user_id, server: server },
         take: DEFAULT_PAGE_SIZE,
         skip: (page - 1) * DEFAULT_PAGE_SIZE,
         orderBy: { updated_at: "desc" },
       }),
       prisma.continueReading.count({
-        where: { user_id, server: server ?? "N" },
+        where: { user_id, server: server },
       }),
     ]);
 
@@ -94,16 +95,16 @@ export async function getContinueMangas({
 export async function deleteContinueManga({
   user_id,
   manga_id,
-  server = "S",
+  server,
 }: {
   user_id: User["id"];
   manga_id: ContinueManga["manga_id"];
-  server?: "S";
+  server: Server;
 }): AsyncResult<void, "INTERNAL_ERROR"> {
   try {
     const res = await prisma.continueReading.delete({
       where: {
-        user_id_manga_id_server: { user_id, manga_id, server: server ?? "N" },
+        user_id_manga_id_server: { user_id, manga_id, server: server },
       },
     });
 
@@ -126,12 +127,12 @@ export async function addContinueManga({
   user_id: User["id"];
   manga_id: ContinueManga["manga_id"];
   progress: ContinueProgress;
-  server?: "S";
+  server: Server;
 }): AsyncResult<void, "INTERNAL_ERROR"> {
   try {
     const res = await prisma.continueReading.upsert({
       where: {
-        user_id_manga_id_server: { user_id, manga_id, server: server ?? "N" },
+        user_id_manga_id_server: { user_id, manga_id, server: server },
       },
       create: {
         user_id,
@@ -139,7 +140,7 @@ export async function addContinueManga({
         chapter: progress.chapter,
         page: progress.page,
         checkpoint: progress.checkpoint,
-        server: server ?? "N",
+        server: server,
       },
       update: {
         chapter: progress.chapter,
@@ -165,12 +166,12 @@ export async function getContinueMangaProgress({
 }: {
   user_id: User["id"];
   manga_id: ContinueManga["manga_id"];
-  server?: "S";
+  server: Server;
 }): AsyncResult<ContinueReadingPrisma, "INTERNAL_ERROR" | "NOT_FOUND"> {
   try {
     const res = await prisma.continueReading.findUnique({
       where: {
-        user_id_manga_id_server: { user_id, manga_id, server: server ?? "N" },
+        user_id_manga_id_server: { user_id, manga_id, server: server },
       },
     });
 

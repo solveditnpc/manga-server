@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Loader } from "lucide-react";
 import { listReplies } from "@/server/comment/comment.actions";
 import { Manga } from "@/types/manga.type";
+import { useServerContext } from "../server/ServerContext";
 
 interface CommentItemProps {
   comment: CommentClient;
@@ -19,7 +20,7 @@ export default function CommentItem({ comment, manga_id }: CommentItemProps) {
   const [replies, setReplies] = useState<CommentClient[]>([]);
   const [showReplies, setShowReplies] = useState(false);
   const [loadingReplies, setLoadingReplies] = useState(false);
-
+  const { server } = useServerContext();
   const { data: user } = useCurrentUser();
   const replies_count = useRef<number>(comment.replies_count || 0);
   const lastFetchedAt = useRef<Date | null>(null);
@@ -79,6 +80,7 @@ export default function CommentItem({ comment, manga_id }: CommentItemProps) {
         manga_id: manga_id,
         parent_id: comment.id,
         content: newReply.trim(),
+        server,
       });
 
       if (!res.ok) {
@@ -93,7 +95,9 @@ export default function CommentItem({ comment, manga_id }: CommentItemProps) {
     } catch (error) {
       setReplies((prev) => prev.filter((r) => r.id !== reply.id));
       replies_count.current -= 1;
-      toast.error("Failed to add reply", {description: (error as Error).message});
+      toast.error("Failed to add reply", {
+        description: (error as Error).message,
+      });
     }
   };
 

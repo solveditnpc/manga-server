@@ -1,10 +1,10 @@
 import { Comment, AddCommentProps, CommentPrisma } from "@/types/comment.type";
 import { AsyncResult } from "@/types/server.types";
-import { Manga } from "@/types/manga.type";
+import { Manga, Server } from "@/types/manga.type";
 import { prisma } from "@/libs/prisma";
 
 type getCommentsParams =
-  | { manga_id: Manga["manga_id"] }
+  | { manga_id: Manga["manga_id"]; server: Server }
   | { parent_id?: Comment["id"] };
 
 export async function getComments(
@@ -13,7 +13,7 @@ export async function getComments(
   try {
     const where =
       "manga_id" in query
-        ? { manga_id: query.manga_id, parent_id: null }
+        ? { manga_id: query.manga_id, parent_id: null, server: query.server }
         : { parent_id: query.parent_id };
 
     const res = await prisma.comment.findMany({
@@ -46,10 +46,10 @@ export async function addCommentService(
 ): AsyncResult<CommentPrisma, "INTERNAL_ERROR"> {
   try {
     const res = await prisma.$transaction(async (tx) => {
-      const resAdd = await prisma.comment.create({ data });
+      const resAdd = await tx.comment.create({ data });
 
       if (data.parent_id !== null) {
-        await prisma.comment.update({
+        await tx.comment.update({
           where: { id: data.parent_id },
           data: { replies_count: { increment: 1 } },
         });

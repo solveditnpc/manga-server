@@ -7,26 +7,31 @@ import ToastForServer from "@/components/domain/server/ToastForServer";
 import MangasGridSection from "@/components/sections/MangasGridSection";
 
 import { listMangas } from "@/server/manga/manga.action";
-import { MangaPrams } from "@/types/manga.type";
+import { MangaPrams, Server } from "@/types/manga.type";
 
 import { isSortValid } from "@/utils/sorting.utils";
 import { toSearchParamsString } from "@/utils/params.utils";
 import { isPageValid, clampPage } from "@/utils/pagination.utils";
+import { headers } from "next/headers";
 
 export default async function BrowsePage({
   searchParams,
+  params,
 }: {
   searchParams: Promise<{ page: string; q: string; sort: string }>;
+  params: Promise<{ server: Server }>;
 }) {
   const { page, q, sort } = await searchParams;
+  const { server } = await params;
 
-  const safeParams: MangaPrams = {
-    page: clampPage(page, 100, 1),
+  const parsedParams: MangaPrams = {
+    page: Number(page),
     query: q ?? "",
     sort: isSortValid(sort) ? sort : "date",
-    server: "S",
+    server,
   };
-  const mangasRes = await listMangas(safeParams);
+
+  const mangasRes = await listMangas(parsedParams);
 
   if (!mangasRes.ok) {
     return (
@@ -39,10 +44,18 @@ export default async function BrowsePage({
   }
 
   const mangas = mangasRes.value.mangas;
-  const totalPages = mangasRes.value.total_pages;
+  const total_pages = mangasRes.value.total_pages;
+  console.log(isPageValid(page, total_pages));
 
-  if (!isSortValid(sort) || !isPageValid(page, totalPages))
-    redirect(`/browse?${toSearchParamsString(safeParams)}`);
+  if (!isSortValid(sort) || !isPageValid(page, total_pages)) {
+    const header = await headers();
+    const search = {
+      q: parsedParams.query,
+      page: parsedParams.page,
+      sort: parsedParams.sort,
+    };
+    redirect(`${header.get("x-pathname")}?${toSearchParamsString(search)}`);
+  }
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-8 space-y-2">
@@ -56,18 +69,22 @@ export default async function BrowsePage({
       </header>
       <div className="border-b border-default mb-3" />
 
-      <UrlPagination totalPages={totalPages} />
+      <UrlPagination totalPages={total_pages} />
       <UrlSorting />
       <MangasGridSection>
         {mangas.length > 0 ? (
           mangas.map((manga) => (
-            <MangaCard key={manga.manga_id} manga={manga} />
+            <MangaCard
+              key={manga.manga_id}
+              manga={manga}
+              href={`user/${server}/manga/${manga.manga_id}`}
+            />
           ))
         ) : (
           <p className="text-sm fg-muted h-screen">No mangas found.</p>
         )}
       </MangasGridSection>
-      <UrlPagination totalPages={totalPages} />
+      <UrlPagination totalPages={total_pages} />
     </main>
   );
 }

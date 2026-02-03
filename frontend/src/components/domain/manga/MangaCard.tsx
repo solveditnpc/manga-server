@@ -5,12 +5,11 @@ import { Heart } from "lucide-react";
 
 interface MangaCardProps {
   manga: Manga;
-  href?: string;
+  href: string;
 }
 
 export default function MangaCard({ manga, href }: MangaCardProps) {
-  const { manga_id, title, author, cover_image, language, like_count } = manga;
-  if (!href) href = `/manga/${manga_id}`;
+  const { title, author, cover_image, language, like_count } = manga;
 
   return (
     <Link
