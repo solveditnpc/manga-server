@@ -28,12 +28,10 @@ function getProgress(pageEl: HTMLElement): number {
 export default function Reader({
   manga,
   pages,
-  urlPage = 1,
   chapterTitle = "",
 }: {
   manga: FullContinueManga;
   pages: string[];
-  urlPage?: number;
   chapterTitle?: string;
 }) {
   const [zoom, setZoom] = useState(1); // 1 = 100%
@@ -41,15 +39,13 @@ export default function Reader({
   const readerContainer = useRef<HTMLDivElement>(null);
 
   const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const {server} = useServerContext();
+  const { server } = useServerContext();
 
   let lastProgress = useRef<ContinueProgress>(manga.progress);
   let nextProgress = useRef<ContinueProgress | null>(null);
   let commitTimer = useRef<NodeJS.Timeout | null>(null);
 
-  function commitSaveProgress(source: string) {
-    console.log(source);
-
+  function commitSaveProgress() {
     if (!nextProgress.current) return;
 
     if (commitTimer.current) {
@@ -70,10 +66,13 @@ export default function Reader({
   }
 
   // Current Page Ref :
-  const currentPageRef = useRef<number>(urlPage);
-  useEffect(() => {
-    currentPageRef.current = urlPage;
-  }, [urlPage]);
+  const currentPageRef = useRef<number>(1);
+
+  function setCurrentPage(page: number) {
+    console.log(page);
+
+    currentPageRef.current = page;
+  }
 
   // Scroll Progress Logic :
   function proceedToCommit(progress: number) {
@@ -97,10 +96,7 @@ export default function Reader({
       currTotalPages: pages.length,
     };
 
-    commitTimer.current = setTimeout(
-      () => commitSaveProgress("Scroll Timer"),
-      3000,
-    ); // 3s dwell
+    commitTimer.current = setTimeout(() => commitSaveProgress(), 3000); // 3s dwell
   }
 
   useEffect(() => {
@@ -123,18 +119,13 @@ export default function Reader({
 
   // Save Progress on Visibility Change
   useEffect(() => {
-    const handler = () => {
-      console.log("Here 1");
-      if (document.hidden) commitSaveProgress("Visibility Change");
-    };
+    const handler = () => document.hidden && commitSaveProgress();
 
     document.addEventListener("visibilitychange", handler);
 
     return () => {
       document.removeEventListener("visibilitychange", handler);
-      console.log("Here 2");
-
-      commitSaveProgress("Visibility Change - 2");
+      commitSaveProgress();
     };
   }, []);
 
@@ -185,6 +176,7 @@ export default function Reader({
                       decoding="async"
                       quality={85}
                     />
+                    <div className="w-full border-4 border-red-500"></div>
                   </div>
                 );
               })}
@@ -205,8 +197,10 @@ export default function Reader({
         <PageNavigator
           total_pages={pages.length}
           pageRefs={pageRefs}
-          initialPage={urlPage}
+          initialPage={manga.progress.page}
           initialCheckpoint={manga.progress?.checkpoint || 0}
+          onPageChange={setCurrentPage}
+          readerContainer={readerContainer}
         />
 
         <PageZoomControls zoom={zoom} setZoom={setZoom} />

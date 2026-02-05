@@ -3,18 +3,23 @@ import { useState, useEffect, useRef } from "react";
 import { clampPage } from "@/utils/pagination.utils";
 import { useUpdateSearchParams } from "@/hooks/useUpdateSearchParam";
 import { ContinueProgress } from "@/types/manga.type";
+
 export default function PageNavigator({
   total_pages,
   visible,
   pageRefs,
   initialPage,
   initialCheckpoint,
+  onPageChange,
+  readerContainer,
 }: {
   total_pages: number;
   visible?: boolean;
   pageRefs: React.RefObject<(HTMLDivElement | null)[]>;
   initialPage: number;
   initialCheckpoint: ContinueProgress["checkpoint"];
+  onPageChange?: (page: number) => void;
+  readerContainer: React.RefObject<HTMLDivElement | null>;
 }) {
   // States and Refs
   const updateSearchParams = useUpdateSearchParams();
@@ -23,22 +28,28 @@ export default function PageNavigator({
   const [displayPage, setDisplayPage] = useState<string>(String(initialPage));
   const [currentPage, setCurrentPage] = useState<number>(initialPage);
 
-  const scrollToPage = (page: number, behavior: ScrollBehavior = "smooth") => {
-    suppressObserver.current = true;
-    pageRefs.current[page - 1]?.scrollIntoView({ behavior });
+  function scrollToPage(page: number) {
+    const el = pageRefs.current[page - 1];
+    if (!el) return;
 
-    const timeout = setTimeout(() => (suppressObserver.current = false), 1000);
-    return () => clearTimeout(timeout);
-  };
+    suppressObserver.current = true;
+
+    el.scrollIntoView({ behavior: "smooth" });
+
+    requestAnimationFrame(() => {
+      suppressObserver.current = false;
+      selectCurrentPage();
+    });
+  }
 
   // Initial scroll
   useEffect(() => {
     suppressObserver.current = true;
 
-    // 1. Scroll to page (no animation)
+    // Scroll to page (no animation)
     pageRefs.current[currentPage - 1]?.scrollIntoView({ behavior: "auto" });
 
-    // 2. Wait for layout + image decode
+    // Wait for layout + image decode
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         if (initialCheckpoint && initialCheckpoint > 0) {
@@ -57,46 +68,123 @@ export default function PageNavigator({
           window.scrollTo({ top: targetScroll, behavior: "auto" });
         }
 
-        // 3. Re-enable observer after restore
-        setTimeout(() => {
-          suppressObserver.current = false;
-        }, 300);
+        // Re-enable observer after restore
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            suppressObserver.current = false;
+            selectCurrentPage();
+          });
+        });
       });
     });
   }, []);
 
   // Observer
+  const visiblePagesRef = useRef<Set<number>>(new Set());
+
+  function selectCurrentPage() {
+    const viewportHeight = window.innerHeight;
+    const viewportMid = viewportHeight / 2;
+
+    let ownerPage: number | null = null;
+    let dominantPage: number | null = null;
+    let maxVisibleHeight = 0;
+
+    for (const page of visiblePagesRef.current) {
+      const el = pageRefs.current[page - 1];
+      if (!el) continue;
+
+      const rect = el.getBoundingClientRect();
+
+      // completely outside
+      if (rect.bottom <= 0 || rect.top >= viewportHeight) continue;
+
+      // 1️⃣ Ownership rule (hard switch)
+      if (rect.top <= viewportMid && rect.bottom >= viewportMid) {
+        ownerPage = page;
+      }
+
+      // 2️⃣ Dominance rule (soft switch)
+      const visibleHeight =
+        Math.min(rect.bottom, viewportHeight) - Math.max(rect.top, 0);
+
+      if (visibleHeight > maxVisibleHeight) {
+        maxVisibleHeight = visibleHeight;
+        dominantPage = page;
+      }
+    }
+
+    // Decision priority
+    const nextPage = ownerPage ?? dominantPage;
+    if (nextPage !== null) {
+      setCurrentPage(nextPage);
+    }
+  }
+
   useEffect(() => {
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+
+      requestAnimationFrame(() => {
+        if (!suppressObserver.current) {
+          selectCurrentPage();
+        }
+        ticking = false;
+      });
+    };
+
+    console.log(readerContainer);
+
+    readerContainer.current?.addEventListener("scroll", onScroll, {
+      passive: true,
+    });
+    return () =>
+      readerContainer.current?.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    // observer will just check the visibility of pages and maintain a list of visible pages
     const observer = new IntersectionObserver(
       (entries) => {
-        let bestEntry: IntersectionObserverEntry | null = null;
+        // this will keep track if there is any change in visible pages like new page enter or a page leave viewport
+        let visibilityChanged = false;
 
         for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
+          // calculate the page number of entry
+          const page = Number((entry.target as HTMLElement).dataset.page);
 
-          const isBestEntry =
-            !bestEntry || entry.intersectionRatio > bestEntry.intersectionRatio;
-          if (isBestEntry) bestEntry = entry;
+          // if the page is entering the viewport
+          if (entry.isIntersecting) {
+            // add it to visible pages if not present
+            if (!visiblePagesRef.current.has(page)) {
+              visiblePagesRef.current.add(page);
+              visibilityChanged = true;
+            }
+          } else {
+            // remove it from visible pages as it is leaving the viewport
+            if (visiblePagesRef.current.delete(page)) {
+              visibilityChanged = true;
+            }
+          }
         }
-
-        if (bestEntry && !suppressObserver.current) {
-          const page = Number((bestEntry.target as HTMLElement).dataset.page);
-          setCurrentPage(page);
-        }
+        // if visibility changed then again run best-current-page-selector
+        if (visibilityChanged && !suppressObserver.current) selectCurrentPage();
       },
       {
         root: null,
-        threshold: [0.25, 0.5, 0.75],
+        threshold: 0,
       },
     );
 
     pageRefs.current.forEach((el) => el && observer.observe(el));
-
     return () => observer.disconnect();
   }, []);
 
   // URL update logic
   useEffect(() => {
+    onPageChange?.(currentPage);
     setDisplayPage(String(currentPage));
 
     const debounce = setTimeout(
