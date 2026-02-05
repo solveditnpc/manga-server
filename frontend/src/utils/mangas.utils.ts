@@ -1,0 +1,82 @@
+import { ContinueProgress } from "@/types/manga.type";
+import { MangaFallback as _FB } from "@/config/manga.config";
+import { toValidUrl } from "./params.utils";
+import { Manga, FullManga, Chapter, Server } from "@/types/manga.type";
+
+export function clampCheckpoint(
+  checkpoint: unknown,
+): ContinueProgress["checkpoint"] {
+  const numCheckPnt = Number(checkpoint);
+  if (numCheckPnt > 1) return 1;
+  if (numCheckPnt > 0.75) return 0.75;
+  if (numCheckPnt > 0.5) return 0.5;
+  if (numCheckPnt > 0.25) return 0.25;
+  return 0;
+}
+
+export function parseManga({
+  manga: m,
+  server,
+  full = false,
+}: {
+  manga: any;
+  server: Server;
+  full?: boolean;
+}): FullManga | Manga {
+  const manga_id = Number(m.manga_id ?? _FB.manga_id);
+
+  const title = m?.title ?? _FB.title;
+  const author = m?.author ?? _FB.author;
+  const like_count = m?.like_count ?? _FB.like_count;
+  const total_pages = m?.total_pages ?? _FB.total_pages;
+  const download_timestamp = m?.download_timestamp ?? _FB.download_timestamp;
+
+  const tags =
+    typeof m?.tags === "string" ? JSON.parse(m?.tags ?? "[]") : (m?.tags ?? []);
+
+  const language = (
+    m?.language
+      ? m.language
+      : (tags.find((t: any) => t?.type === "languages")?.name ?? _FB.language)
+  ).toUpperCase();
+
+  const base_path = server === "S" ? `/` : `${m.download_path}/`;
+  const download_path = toValidUrl(m?.download_path ?? "");
+  const cover_image = toValidUrl(m?.cover_image, base_path);
+
+  const res: Manga = {
+    manga_id,
+    title,
+    author,
+    cover_image,
+    language,
+    like_count,
+    total_pages,
+    download_timestamp,
+    download_path,
+    tags,
+  };
+
+  if (!full) return res as Manga;
+
+  const page_files = m?.page_files.map((p: string) => `${base_path}${p}`);
+  const chapters =
+    m?.chapters.map((ch: Chapter) => {
+      const images = ch.images.map(
+        (i) => `${toValidUrl(ch.title, m.download_path)}${toValidUrl(i)}`,
+      );
+      return { ...ch, images };
+    }) ?? [];
+
+  return { ...res, page_files, chapters } as FullManga;
+}
+
+export function isServerValid(server: string | undefined): boolean {
+  return ["N", "S"].includes(server ?? "");
+}
+
+export function toValidServer(server: string | undefined): Server {
+  const isN = ["n", "N"].includes(server ?? "");
+  if (!isN) return "S";
+  return "N";
+}

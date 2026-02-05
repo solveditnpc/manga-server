@@ -3,6 +3,7 @@ import APP_CONFIG from "@/config/app.config";
 import UserMenu from "../../domain/auth/UserMenu";
 import { Suspense } from "react";
 import { LinkButton } from "@/components/ui";
+import ServerToggle from "@/components/domain/server/ServerToogle";
 
 export default function Header() {
   return (
@@ -17,6 +18,7 @@ export default function Header() {
           >
             {APP_CONFIG.name}
           </LinkButton>
+          <ServerToggle />
         </div>
         {/* Center: Search */}
         <div className="flex justify-end">

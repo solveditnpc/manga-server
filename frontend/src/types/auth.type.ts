@@ -1,9 +1,7 @@
-export interface User {
-  id: string;
-  username: string;
-  cover_url: string;
-  role: "admin" | "user";
-}
+import { User as UserPrsima } from "@/generated/prisma/client";
+
+export type { UserPrsima };
+export type User = Omit<UserPrsima, "password">;
 
 export interface LoginData {
   username: string;

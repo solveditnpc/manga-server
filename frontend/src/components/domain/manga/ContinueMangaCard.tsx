@@ -1,10 +1,11 @@
 "use client";
 import MangaCard from "@/components/domain/manga/MangaCard";
 import { Button } from "@/components/ui";
-import { X } from "lucide-react";
-import { ContinueManga } from "@/types/manga.type";
-import ENV_CONFIG from "@/config/env.config";
+import { useServerContext } from "@/components/domain/server/ServerContext";
 
+import { toSearchParamsString } from "@/utils/params.utils";
+import { ContinueManga } from "@/types/manga.type";
+import { X } from "lucide-react";
 interface ContinueMangaCardProps {
   manga: ContinueManga;
   disableActions?: boolean;
@@ -16,10 +17,13 @@ export default function ContinueMangaCard({
   disableActions = false,
   onRemove,
 }: ContinueMangaCardProps) {
-  const hrefUrl = new URL(manga.href, ENV_CONFIG.client_url);
-  const currentPage = Number(hrefUrl.searchParams.get("page"));
-  const totalPages = manga.total_pages;
-
+  const { routePrefix } = useServerContext();
+  const href = `${routePrefix}read/${manga.manga_id}?${toSearchParamsString({
+    chapter: manga.progress.chapter,
+    page: manga.progress.page,
+  })}`;
+  const currentPage = Number(manga.progress.page);
+  let totalPages = manga.progress.currTotalPages;
   let progressPercent = 0;
 
   if (
@@ -29,6 +33,7 @@ export default function ContinueMangaCard({
   ) {
     progressPercent = Math.max((currentPage / totalPages) * 100, 1);
   }
+
   const handleRemove = () => {
     onRemove?.(manga.manga_id);
   };
@@ -36,7 +41,7 @@ export default function ContinueMangaCard({
   return (
     <div className="relative group">
       {/* Card */}
-      <MangaCard manga={manga} href={manga.href} />
+      <MangaCard manga={manga} href={href} />
 
       {/* Progress bar */}
       <div

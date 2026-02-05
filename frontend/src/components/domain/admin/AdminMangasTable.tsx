@@ -1,9 +1,9 @@
 "use client";
-import AdminMangaRow from "./AdminMangaRow";
-import { MangaList } from "@/types/manga.type";
 import { useWindowWidth } from "@/hooks/useWindowSize";
+import AdminMangaRow from "./AdminMangaRow";
+import { Manga } from "@/types/manga.type";
 
-export default function AdminMangasTable({ mangas }: { mangas: MangaList }) {
+export default function AdminMangasTable({ mangas }: { mangas: Manga[] }) {
   const width = useWindowWidth();
   const isSmallScreen = width !== null && width < 640;
 

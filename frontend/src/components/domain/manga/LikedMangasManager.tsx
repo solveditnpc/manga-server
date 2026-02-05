@@ -1,39 +1,54 @@
 "use client";
-
-import MangasGridSection from "@/components/sections/MangasGridSection";
-import { MangaList, Manga } from "@/types/manga.type";
 import { useState, useEffect } from "react";
-import { listLikedMangas, unlikeManga , DEFAULT_PAGE_SIZE } from "@/client/mangas.client";
+import MangasGridSection from "@/components/sections/MangasGridSection";
+import { Manga } from "@/types/manga.type";
 import { Loader } from "lucide-react";
 import LikedMangaCard from "./LikedMangaCard";
+import { DEFAULT_PAGE_SIZE } from "@/config/manga.config";
+import { listLikedMangas, toogleLike } from "@/server/manga/manga.action";
+import { toast } from "sonner";
+import { useServerContext } from "@/components/domain/server/ServerContext";
 
 export default function LikedMangasManager({
   pageMangas,
   page,
   totalPages,
 }: {
-  pageMangas: MangaList;
+  pageMangas: Manga[];
   page: number;
   totalPages: number;
 }) {
-  const [mangas, setMangas] = useState<MangaList>(pageMangas);
+  const [mangas, setMangas] = useState<Manga[]>(pageMangas);
   const [loading, setLoading] = useState<boolean>(false);
-
+  const {server} = useServerContext();
+  
   const handleFetch = async () => {
     if (loading) return;
     setLoading(true);
     try {
-      const updatedBatch = await listLikedMangas({
+      const res = await listLikedMangas({
         page,
+        server,
       });
+      if (!res.ok) {
+        toast.error("Failed to fetch mangas", {
+          description: res.error,
+        });
+        return;
+      }
+      const updatedBatch = res.value.mangas;
       setMangas(updatedBatch);
+    } catch (error) {
+      toast.error("Failed to fetch mangas", {
+        description: (error as Error).message,
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const onUnlike = async (id: Manga["manga_id"]) => {
-    await unlikeManga(id);
+    await toogleLike({ manga_id: id, liked: false, server });
     setMangas((prev) => prev.filter((m) => m.manga_id !== id));
   };
 

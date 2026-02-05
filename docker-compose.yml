@@ -1,35 +1,16 @@
 services:
+  # ==================== SCRAPER SERVICES : ====================
   web-scraper:
     build: ./web_scrapers
     volumes:
       - ./mangas:/data
       - ./sqlite:/database
-      - ./suwayomi_standalone/data:/suwayomi_data:ro 
+      - ./suwayomi_standalone/data:/suwayomi_data:ro
     user: "1000:1000"
     ports:
       - "5002:5002"
     environment:
-      - SUWAYOMI_HOST=http://suwayomi:4567           
-
-  server:
-    build: ./server
-    volumes:
-      - ./mangas:/data
-      - ./sqlite:/database
-      - ./suwayomi_standalone/data:/suwayomi_data:ro  
-    user: "1000:1000"
-    ports:
-      - "5001:5001"
-
-  frontend:
-    build: ./frontend
-    volumes:
-      - ./mangas:/data
-      - ./sqlite:/database
-      - ./suwayomi_standalone/data:/suwayomi_data:ro  
-    user: "1000:1000"
-    ports:
-      - "3000:3000"
+      - SUWAYOMI_HOST=http://suwayomi:4567
 
   suwayomi:
     build: ./suwayomi_standalone
@@ -40,3 +21,56 @@ services:
     ports:
       - "4567:4567"
     restart: unless-stopped
+
+  # ==================== MANGAS SERVER : ====================
+  server:
+    build: ./server
+    volumes:
+      - ./mangas:/data
+      - ./sqlite:/database
+      - ./suwayomi_standalone/data:/suwayomi_data:ro
+    user: "1000:1000"
+    ports:
+      - "5001:5001"
+
+  # ==================== WEB-APP SERVICES : ====================
+  users-db-migrate:
+    build:
+      context: ./frontend
+      target: users-db-migrate
+    volumes:
+      - ./sqlite:/database
+    environment:
+      DATABASE_URL: file:/database/users_database.db
+    restart: "no"
+
+  users-admin-seed:
+    build:
+      context: ./frontend
+      target: users-admin-seed
+    depends_on:
+      users-db-migrate:
+        condition: service_completed_successfully
+    volumes:
+      - ./sqlite:/database
+    environment:
+      DATABASE_URL: file:/database/users_database.db
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: admin
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      users-db-migrate:
+        condition: service_completed_successfully
+      users-admin-seed:
+        condition: service_completed_successfully
+    volumes:
+      - ./mangas:/data
+      - ./sqlite:/database
+      - ./suwayomi_standalone/data:/suwayomi_data:ro
+    user: "1000:1000"
+    environment:
+      DATABASE_URL: file:/database/users_database.db
+    ports:
+      - "3000:3000"

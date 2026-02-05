@@ -1,11 +1,13 @@
 import { X } from "lucide-react";
 import { Manga } from "@/types/manga.type";
 import { LinkButton } from "@/components/ui";
+import { useServerContext } from "@/components/domain/server/ServerContext";
 
 interface ReadPageHeaderProps extends Pick<
   Manga,
   "manga_id" | "title" | "author"
 > {
+  chatperTitle?: string;
   visible?: boolean;
 }
 
@@ -13,8 +15,10 @@ export default function ReadPageHeader({
   manga_id,
   title,
   author,
+  chatperTitle,
   visible = true,
 }: ReadPageHeaderProps) {
+  const { routePrefix } = useServerContext();
   return (
     <header
       className={`
@@ -31,7 +35,7 @@ export default function ReadPageHeader({
     >
       {/* Left: Close */}
       <LinkButton
-        href={`/manga/${manga_id}`}
+        href={`${routePrefix}/manga/${manga_id}`}
         className="px-1.5! hover:bg-background/60"
         title="Close reader"
         variant="ghost"
@@ -41,7 +45,9 @@ export default function ReadPageHeader({
 
       {/* Center: Title */}
       <div className="flex-1 mx-3 overflow-hidden">
-        <h1 className="fg-primary text-sm sm:text-base truncate">{title}</h1>
+        <h1 className="fg-primary text-sm sm:text-base truncate">
+          {title} / <span className="fg-secondary">{chatperTitle}</span>
+        </h1>
         {author && <span className="fg-muted text-xs truncate">{author}</span>}
       </div>
     </header>

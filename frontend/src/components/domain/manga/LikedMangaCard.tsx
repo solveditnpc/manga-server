@@ -3,7 +3,7 @@ import MangaCard from "@/components/domain/manga/MangaCard";
 import { Manga } from "@/types/manga.type";
 import { Heart } from "lucide-react";
 import { Button } from "@/components/ui";
-
+import { useServerContext } from "@/components/domain/server/ServerContext";
 interface LikedMangaCardProps {
   manga: Manga;
   disableActions?: boolean;
@@ -15,6 +15,7 @@ export default function LikedMangaCard({
   disableActions = false,
   onUnlike,
 }: LikedMangaCardProps) {
+  const { routePrefix } = useServerContext();
   const handleUnlike = () => {
     onUnlike?.(manga.manga_id);
   };
@@ -22,7 +23,10 @@ export default function LikedMangaCard({
   return (
     <div className="relative group">
       {/* Card */}
-      <MangaCard manga={manga} />
+      <MangaCard
+        manga={manga}
+        href={`${routePrefix}/manga/${manga.manga_id}`}
+      />
 
       {!disableActions && (
         <Button

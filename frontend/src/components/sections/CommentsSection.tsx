@@ -1,15 +1,19 @@
 "use client";
 import { useState, useRef } from "react";
 import { useCurrentUser } from "@/hooks/auth.hooks";
-import { Comment } from "@/types/comment.type";
+
+import { CommentClient } from "@/types/comment.type";
 import { Manga } from "@/types/manga.type";
+
 import CommentItem from "@/components/domain/comment/CommentItem";
-import CommentForm from "../domain/comment/CommentForm";
-import { addComment } from "@/client/comments.client";
+import CommentForm from "@/components/domain/comment/CommentForm";
+import { useServerContext } from "../domain/server/ServerContext";
+
+import { addComment } from "@/server/comment/comment.actions";
 import { toast } from "sonner";
 
 interface CommentSectionProps {
-  rootComments: Comment[];
+  rootComments: CommentClient[];
   manga_id: Manga["manga_id"];
 }
 
@@ -18,36 +22,45 @@ export default function CommentsSection({
   manga_id,
 }: CommentSectionProps) {
   const { data: user } = useCurrentUser();
-
-  const [comments, setComments] = useState<Comment[]>(rootComments);
+  const { server } = useServerContext();
+  const [comments, setComments] = useState<CommentClient[]>(rootComments);
   const commentsCount = useRef<number>(rootComments.length);
 
   const handleAddComment = async (newComment: string) => {
     if (!newComment.trim() || !user?.id || !user?.username) return;
 
-    const comment: Comment = {
-      comment_id: Date.now(),
-      manga_id: manga_id,
-      user_id: user.id,
+    const comment: CommentClient = {
+      id: Date.now(),
       username: user.username,
       content: newComment,
-      created_at: new Date().toISOString(),
-      parent_id: null,
-      repliesCount: 0,
+      created_at: new Date(),
+      replies_count: 0,
     };
 
-    // fetch Call Here
     try {
       // Optimistic UI
       setComments((prev) => [comment, ...prev]);
       commentsCount.current += 1;
 
-      await addComment(comment);
+      const res = await addComment({
+        manga_id: manga_id,
+        content: newComment,
+        parent_id: null,
+        server,
+      });
+
+      if (!res.ok) {
+        toast.error("Failed to add comment");
+        setComments((prev) => prev.filter((c) => c.id !== comment.id));
+        commentsCount.current -= 1;
+      } else {
+        setComments((prev) =>
+          prev.map((c) => (c.id === comment.id ? res.value : c)),
+        );
+      }
     } catch (error) {
       toast.error("Failed to add comment");
-      setComments((prev) =>
-        prev.filter((c) => c.comment_id !== comment.comment_id),
-      );
+      setComments((prev) => prev.filter((c) => c.id !== comment.id));
       commentsCount.current -= 1;
     }
   };
@@ -77,7 +90,7 @@ export default function CommentsSection({
       ) : (
         <div className="space-y-3">
           {comments.map((c) => (
-            <CommentItem key={c.comment_id} comment={c} />
+            <CommentItem key={c.id} comment={c} manga_id={manga_id} />
           ))}
         </div>
       )}

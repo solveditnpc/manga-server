@@ -1,28 +1,143 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { Manga } from "@/types/manga.type";
-import { SafeImage } from "@/components/ui";
+import { useState, useRef, useEffect } from "react";
 
+import { SafeImage } from "@/components/ui";
 import PageNavigator from "@/components/domain/read/PageNavigator";
 import ReadPageHeader from "@/components/layout/read/ReadPageHeader";
 import OverlaysVisibilityControl from "@/components/domain/read/OverlaysVisibilityControl";
 import PageZoomControls from "@/components/domain/read/PageZoomControls";
+import { useServerContext } from "@/components/domain/server/ServerContext";
+
+import { saveProgress } from "@/server/manga/manga.action";
+import { clampCheckpoint } from "@/utils/mangas.utils";
+import { ContinueProgress, FullContinueManga } from "@/types/manga.type";
+
+function getProgress(pageEl: HTMLElement): number {
+  const rect = pageEl.getBoundingClientRect();
+  const viewportHeight = window.innerHeight;
+
+  const totalScrollable = rect.height - viewportHeight;
+  if (totalScrollable <= 0) return 1;
+
+  const scrolled = Math.min(Math.max(-rect.top, 0), totalScrollable);
+
+  return scrolled / totalScrollable;
+}
 
 export default function Reader({
   manga,
   pages,
-  initialPage = 1,
+  urlPage = 1,
+  chapterTitle = "",
 }: {
-  manga: Manga;
+  manga: FullContinueManga;
   pages: string[];
-  initialPage?: number;
+  urlPage?: number;
+  chapterTitle?: string;
 }) {
   const [zoom, setZoom] = useState(1); // 1 = 100%
 
   const readerContainer = useRef<HTMLDivElement>(null);
 
   const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const {server} = useServerContext();
+
+  let lastProgress = useRef<ContinueProgress>(manga.progress);
+  let nextProgress = useRef<ContinueProgress | null>(null);
+  let commitTimer = useRef<NodeJS.Timeout | null>(null);
+
+  function commitSaveProgress(source: string) {
+    console.log(source);
+
+    if (!nextProgress.current) return;
+
+    if (commitTimer.current) {
+      clearTimeout(commitTimer.current);
+      commitTimer.current = null;
+    }
+    const { checkpoint, page, chapter, currTotalPages } = nextProgress.current;
+    console.log("WROTE : \n", nextProgress.current);
+
+    lastProgress.current = nextProgress.current;
+    nextProgress.current = null;
+
+    saveProgress({
+      manga_id: manga.manga_id,
+      progress: { chapter, page, checkpoint, currTotalPages },
+      server,
+    });
+  }
+
+  // Current Page Ref :
+  const currentPageRef = useRef<number>(urlPage);
+  useEffect(() => {
+    currentPageRef.current = urlPage;
+  }, [urlPage]);
+
+  // Scroll Progress Logic :
+  function proceedToCommit(progress: number) {
+    const nextCheckpoint = clampCheckpoint(progress);
+
+    const { checkpoint: lastCheckpoint, page: lastPage } = lastProgress.current;
+    const currentPage = currentPageRef.current;
+
+    if (
+      lastPage > currentPage ||
+      (lastPage === currentPage && lastCheckpoint >= nextCheckpoint)
+    )
+      return;
+
+    if (commitTimer.current) clearTimeout(commitTimer.current);
+
+    nextProgress.current = {
+      checkpoint: nextCheckpoint,
+      page: currentPage,
+      chapter: chapterTitle,
+      currTotalPages: pages.length,
+    };
+
+    commitTimer.current = setTimeout(
+      () => commitSaveProgress("Scroll Timer"),
+      3000,
+    ); // 3s dwell
+  }
+
+  useEffect(() => {
+    function onScroll() {
+      const currentPage = currentPageRef.current;
+      const pageRef = pageRefs.current[currentPage - 1];
+
+      if (!pageRef) return;
+      const progress = getProgress(pageRef);
+      proceedToCommit(progress);
+    }
+
+    const container = readerContainer.current;
+    if (!container) return;
+    container.addEventListener("scroll", onScroll);
+    return () => {
+      container.removeEventListener("scroll", onScroll);
+    };
+  }, []);
+
+  // Save Progress on Visibility Change
+  useEffect(() => {
+    const handler = () => {
+      console.log("Here 1");
+      if (document.hidden) commitSaveProgress("Visibility Change");
+    };
+
+    document.addEventListener("visibilitychange", handler);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handler);
+      console.log("Here 2");
+
+      commitSaveProgress("Visibility Change - 2");
+    };
+  }, []);
+
   return (
     <div className="reader min-h-screen relative">
       {/* Reader Viewport */}
@@ -83,13 +198,15 @@ export default function Reader({
         <ReadPageHeader
           title={manga.title}
           author={manga.author}
+          chatperTitle={chapterTitle}
           manga_id={manga.manga_id}
         />
 
         <PageNavigator
-          total_pages={manga.total_pages}
+          total_pages={pages.length}
           pageRefs={pageRefs}
-          initialPage={initialPage}
+          initialPage={urlPage}
+          initialCheckpoint={manga.progress?.checkpoint || 0}
         />
 
         <PageZoomControls zoom={zoom} setZoom={setZoom} />

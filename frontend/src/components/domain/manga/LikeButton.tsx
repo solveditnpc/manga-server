@@ -1,10 +1,12 @@
 "use client";
 import { useRef, useState } from "react";
 import { Heart } from "lucide-react";
-import { delay } from "@/_mock/mockPromise";
+import { toogleLike } from "@/server/manga/manga.action";
+import { Manga } from "@/types/manga.type";
+import { useServerContext } from "@/components/domain/server/ServerContext";
 
 interface LikeButtonProps {
-  mangaId: string | number;
+  mangaId: Manga["manga_id"];
   initialLiked: boolean;
   initialCount: number;
 }
@@ -16,7 +18,7 @@ export default function LikeButton({
 }: LikeButtonProps) {
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
-
+  const {server} = useServerContext();
   // internal control state (not for rendering)
   const desiredLikedRef = useRef(initialLiked);
   const pendingRef = useRef(false);
@@ -40,9 +42,7 @@ export default function LikeButton({
     pendingRef.current = true;
 
     try {
-      await delay(800);
-      console.log("set liked as :" , sentLiked);
-      
+      await toogleLike({ manga_id: mangaId, liked: sentLiked, server });
     } catch {
       // rollback to last known good state
       const rollback = !sentLiked;
@@ -50,7 +50,6 @@ export default function LikeButton({
       setLiked(rollback);
       setCount((c) => c + (rollback ? 1 : -1));
       sentLiked = rollback;
-
     } finally {
       pendingRef.current = false;
 

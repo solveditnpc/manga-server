@@ -2,16 +2,19 @@
 import { useState, useEffect, useRef } from "react";
 import { clampPage } from "@/utils/pagination.utils";
 import { useUpdateSearchParams } from "@/hooks/useUpdateSearchParam";
+import { ContinueProgress } from "@/types/manga.type";
 export default function PageNavigator({
   total_pages,
   visible,
   pageRefs,
   initialPage,
+  initialCheckpoint,
 }: {
   total_pages: number;
   visible?: boolean;
   pageRefs: React.RefObject<(HTMLDivElement | null)[]>;
   initialPage: number;
+  initialCheckpoint: ContinueProgress["checkpoint"];
 }) {
   // States and Refs
   const updateSearchParams = useUpdateSearchParams();
@@ -29,7 +32,38 @@ export default function PageNavigator({
   };
 
   // Initial scroll
-  useEffect(() => scrollToPage(currentPage), []);
+  useEffect(() => {
+    suppressObserver.current = true;
+
+    // 1. Scroll to page (no animation)
+    pageRefs.current[currentPage - 1]?.scrollIntoView({ behavior: "auto" });
+
+    // 2. Wait for layout + image decode
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (initialCheckpoint && initialCheckpoint > 0) {
+          const el = pageRefs.current[currentPage - 1];
+          if (!el) return;
+
+          const rect = el.getBoundingClientRect();
+          const viewportHeight = window.innerHeight;
+
+          const totalScrollable = rect.height - viewportHeight;
+          if (totalScrollable <= 0) return;
+
+          const targetScroll =
+            window.scrollY + rect.top + initialCheckpoint * totalScrollable;
+
+          window.scrollTo({ top: targetScroll, behavior: "auto" });
+        }
+
+        // 3. Re-enable observer after restore
+        setTimeout(() => {
+          suppressObserver.current = false;
+        }, 300);
+      });
+    });
+  }, []);
 
   // Observer
   useEffect(() => {

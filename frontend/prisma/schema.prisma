@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum Server {
+  S
+  N
+}
+
+model User {
+  id        Int    @id @default(autoincrement())
+  username  String @unique
+  password  String
+  cover_url String
+  role      Role
+
+  comments         Comment[]
+  continueReadings ContinueReading[]
+  likes            Likes[]
+
+  @@index([username])
+}
+
+model Comment {
+  id            Int       @id @default(autoincrement())
+  manga_id      Int
+  user_id       Int
+  user          User      @relation(fields: [user_id], references: [id])
+  content       String
+  created_at    DateTime  @default(now())
+  parent_id     Int?
+  parent        Comment?  @relation("CommentTree", fields: [parent_id], references: [id])
+  replies       Comment[] @relation("CommentTree")
+  replies_count Int?      @default(0)
+  server     Server
+
+  @@index([manga_id])
+  @@index([user_id])
+  @@index([parent_id])
+}
+
+model ContinueReading {
+  user_id    Int
+  user       User     @relation(fields: [user_id], references: [id])
+  manga_id   Int
+  chapter    String
+  page       Int
+  checkpoint Float
+  updated_at DateTime @default(now())
+  server     Server
+
+  @@id([user_id, manga_id, server])
+}
+
+model Likes {
+  user_id    Int
+  user       User     @relation(fields: [user_id], references: [id])
+  manga_id   Int
+  updated_at DateTime @default(now())
+  server     Server
+
+  @@id([user_id, manga_id, server])
+}

@@ -4,17 +4,18 @@ import { useState } from "react";
 import { Search, ChevronDown, ChevronUp } from "lucide-react";
 import UrlSearch from "@/components/query/UrlSearch";
 import { Dropdown } from "@/components/ui";
-
+import { useServerContext } from "../server/ServerContext";
 function SearchBar() {
   const [open, setOpen] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+  const { routePrefix } = useServerContext();
   const handleOpenChange = (e: boolean) => {
     if (e) setOpen(e);
     else if (!isDirty) setOpen(e);
   };
 
   const urlSearchComp = (
-    <UrlSearch onInputDirty={setIsDirty} targetRoute="/browse" />
+    <UrlSearch onInputDirty={setIsDirty} targetRoute={`${routePrefix}browse`} />
   );
 
   return (
