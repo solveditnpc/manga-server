@@ -1,18 +1,6 @@
-import { ContinueProgress } from "@/types/manga.type";
 import { MangaFallback as _FB } from "@/config/manga.config";
 import { toValidUrl } from "./params.utils";
 import { Manga, FullManga, Chapter, Server } from "@/types/manga.type";
-
-export function clampCheckpoint(
-  checkpoint: unknown,
-): ContinueProgress["checkpoint"] {
-  const numCheckPnt = Number(checkpoint);
-  if (numCheckPnt > 1) return 1;
-  if (numCheckPnt > 0.75) return 0.75;
-  if (numCheckPnt > 0.5) return 0.5;
-  if (numCheckPnt > 0.25) return 0.25;
-  return 0;
-}
 
 export function parseManga({
   manga: m,

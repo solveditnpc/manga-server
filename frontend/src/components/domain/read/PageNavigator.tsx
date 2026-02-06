@@ -1,94 +1,52 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { clampPage } from "@/utils/pagination.utils";
-import { useUpdateSearchParams } from "@/hooks/useUpdateSearchParam";
-import { ContinueProgress } from "@/types/manga.type";
 
 export default function PageNavigator({
+  currentPage,
   total_pages,
   visible,
   pageRefs,
-  initialPage,
-  initialCheckpoint,
-  onPageChange,
   readerContainer,
+  onPageChange,
+  onPageJump,
 }: {
+  currentPage: number;
   total_pages: number;
   visible?: boolean;
   pageRefs: React.RefObject<(HTMLDivElement | null)[]>;
-  initialPage: number;
-  initialCheckpoint: ContinueProgress["checkpoint"];
-  onPageChange?: (page: number) => void;
   readerContainer: React.RefObject<HTMLDivElement | null>;
+  onPageChange?: (page: number) => void;
+  onPageJump?: (page: number) => void;
 }) {
   // States and Refs
-  const updateSearchParams = useUpdateSearchParams();
+  const [displayPage, setDisplayPage] = useState<string>(String(currentPage));
 
-  const suppressObserver = useRef(false);
-  const [displayPage, setDisplayPage] = useState<string>(String(initialPage));
-  const [currentPage, setCurrentPage] = useState<number>(initialPage);
-
-  function scrollToPage(page: number) {
-    const el = pageRefs.current[page - 1];
-    if (!el) return;
-
-    suppressObserver.current = true;
-
-    el.scrollIntoView({ behavior: "smooth" });
-
-    requestAnimationFrame(() => {
-      suppressObserver.current = false;
-      selectCurrentPage();
-    });
-  }
-
-  // Initial scroll
-  useEffect(() => {
-    suppressObserver.current = true;
-
-    // Scroll to page (no animation)
-    pageRefs.current[currentPage - 1]?.scrollIntoView({ behavior: "auto" });
-
-    // Wait for layout + image decode
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (initialCheckpoint && initialCheckpoint > 0) {
-          const el = pageRefs.current[currentPage - 1];
-          if (!el) return;
-
-          const rect = el.getBoundingClientRect();
-          const viewportHeight = window.innerHeight;
-
-          const totalScrollable = rect.height - viewportHeight;
-          if (totalScrollable <= 0) return;
-
-          const targetScroll =
-            window.scrollY + rect.top + initialCheckpoint * totalScrollable;
-
-          window.scrollTo({ top: targetScroll, behavior: "auto" });
-        }
-
-        // Re-enable observer after restore
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            suppressObserver.current = false;
-            selectCurrentPage();
-          });
-        });
-      });
-    });
-  }, []);
-
-  // Observer
   const visiblePagesRef = useRef<Set<number>>(new Set());
 
-  function selectCurrentPage() {
-    const viewportHeight = window.innerHeight;
+  function updatePage(page: number) {
+    page = clampPage(page, total_pages, 1);
+    setDisplayPage(String(page));
+    onPageChange?.(page);
+  }
+
+  // Page jump
+  const handleJump = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Called Jump");
+    const jumpPage = clampPage(displayPage, total_pages, currentPage);
+    setDisplayPage(String(jumpPage));
+    onPageJump?.(jumpPage);
+  };
+
+  function getDominantPage(): number | null {
+    const container = readerContainer.current;
+    if (!container) return null;
+    const containerRect = container.getBoundingClientRect();
+    const viewportHeight = container.clientHeight;
     const viewportMid = viewportHeight / 2;
 
-    let ownerPage: number | null = null;
     let dominantPage: number | null = null;
-    let maxVisibleHeight = 0;
 
     for (const page of visiblePagesRef.current) {
       const el = pageRefs.current[page - 1];
@@ -96,29 +54,22 @@ export default function PageNavigator({
 
       const rect = el.getBoundingClientRect();
 
+      // normalize page rect relative to container
+      const top = rect.top - containerRect.top;
+      const bottom = rect.bottom - containerRect.top;
+
       // completely outside
-      if (rect.bottom <= 0 || rect.top >= viewportHeight) continue;
 
-      // 1️⃣ Ownership rule (hard switch)
-      if (rect.top <= viewportMid && rect.bottom >= viewportMid) {
-        ownerPage = page;
-      }
+      if (bottom <= 0 || top >= viewportHeight) continue;
 
-      // 2️⃣ Dominance rule (soft switch)
-      const visibleHeight =
-        Math.min(rect.bottom, viewportHeight) - Math.max(rect.top, 0);
+      // check if mid of viewport is inside this page, then this is the dominant page
 
-      if (visibleHeight > maxVisibleHeight) {
-        maxVisibleHeight = visibleHeight;
+      if (top <= viewportMid && bottom >= viewportMid) {
         dominantPage = page;
       }
     }
 
-    // Decision priority
-    const nextPage = ownerPage ?? dominantPage;
-    if (nextPage !== null) {
-      setCurrentPage(nextPage);
-    }
+    return dominantPage;
   }
 
   useEffect(() => {
@@ -127,15 +78,10 @@ export default function PageNavigator({
       if (ticking) return;
       ticking = true;
 
-      requestAnimationFrame(() => {
-        if (!suppressObserver.current) {
-          selectCurrentPage();
-        }
-        ticking = false;
-      });
+      const dominantPage = getDominantPage();
+      if (dominantPage !== null) updatePage(dominantPage);
+      ticking = false;
     };
-
-    console.log(readerContainer);
 
     readerContainer.current?.addEventListener("scroll", onScroll, {
       passive: true,
@@ -145,12 +91,9 @@ export default function PageNavigator({
   }, []);
 
   useEffect(() => {
-    // observer will just check the visibility of pages and maintain a list of visible pages
+    // observer will check the visibility of pages and maintain a set of visible pages
     const observer = new IntersectionObserver(
       (entries) => {
-        // this will keep track if there is any change in visible pages like new page enter or a page leave viewport
-        let visibilityChanged = false;
-
         for (const entry of entries) {
           // calculate the page number of entry
           const page = Number((entry.target as HTMLElement).dataset.page);
@@ -158,19 +101,14 @@ export default function PageNavigator({
           // if the page is entering the viewport
           if (entry.isIntersecting) {
             // add it to visible pages if not present
-            if (!visiblePagesRef.current.has(page)) {
+            if (!visiblePagesRef.current.has(page))
               visiblePagesRef.current.add(page);
-              visibilityChanged = true;
-            }
           } else {
             // remove it from visible pages as it is leaving the viewport
             if (visiblePagesRef.current.delete(page)) {
-              visibilityChanged = true;
             }
           }
         }
-        // if visibility changed then again run best-current-page-selector
-        if (visibilityChanged && !suppressObserver.current) selectCurrentPage();
       },
       {
         root: null,
@@ -181,26 +119,6 @@ export default function PageNavigator({
     pageRefs.current.forEach((el) => el && observer.observe(el));
     return () => observer.disconnect();
   }, []);
-
-  // URL update logic
-  useEffect(() => {
-    onPageChange?.(currentPage);
-    setDisplayPage(String(currentPage));
-
-    const debounce = setTimeout(
-      () => updateSearchParams({ page: String(currentPage) }),
-      1000,
-    );
-    return () => clearTimeout(debounce);
-  }, [currentPage]);
-
-  // Page jump
-  const handleJump = (e: React.FormEvent) => {
-    e.preventDefault();
-    let jumpPage = clampPage(displayPage, total_pages, currentPage);
-    setDisplayPage(String(jumpPage));
-    scrollToPage(jumpPage);
-  };
 
   // Page Input Events :
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -12,7 +12,7 @@ import {
 import { User } from "@/types/auth.type";
 
 import { DEFAULT_PAGE_SIZE } from "@/config/manga.config";
-import { clampCheckpoint } from "@/utils/mangas.utils";
+import { clampCheckpoint } from "@/utils/reader.utils";
 import { getMangaById } from "@/server/manga/manga.service";
 
 // Helpers :
