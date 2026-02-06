@@ -41,7 +41,14 @@ export default function Reader({
   const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
   const { server } = useServerContext();
 
-  let lastProgress = useRef<ContinueProgress>(manga.progress);
+  let lastProgress = useRef<ContinueProgress>(
+    manga.progress ?? {
+      chapter: chapterTitle,
+      checkpoint: 0,
+      page: 1,
+      currTotalPages: pages.length,
+    },
+  );
   let nextProgress = useRef<ContinueProgress | null>(null);
   let commitTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -197,7 +204,7 @@ export default function Reader({
         <PageNavigator
           total_pages={pages.length}
           pageRefs={pageRefs}
-          initialPage={manga.progress.page}
+          initialPage={manga.progress?.page ?? 1}
           initialCheckpoint={manga.progress?.checkpoint || 0}
           onPageChange={setCurrentPage}
           readerContainer={readerContainer}

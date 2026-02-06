@@ -18,12 +18,10 @@ export default function ContinueMangaCard({
   onRemove,
 }: ContinueMangaCardProps) {
   const { routePrefix } = useServerContext();
-  const href = `${routePrefix}read/${manga.manga_id}?${toSearchParamsString({
-    chapter: manga.progress.chapter,
-    page: manga.progress.page,
-  })}`;
-  const currentPage = Number(manga.progress.page);
-  let totalPages = manga.progress.currTotalPages;
+  const currentPage = Number(manga.progress?.page ?? 1);
+  const chapter = manga.progress?.chapter ?? "";
+  const href = `${routePrefix}read/${manga.manga_id}${chapter && `/${chapter}`}?${toSearchParamsString({ page :currentPage })}`;
+  const totalPages = manga.progress?.currTotalPages ?? -1; // -1 means we not have correct data
   let progressPercent = 0;
 
   if (

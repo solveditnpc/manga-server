@@ -1,8 +1,11 @@
 "use client";
-import { Pagination, SafeImage } from "@/components/ui";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+
+import { Pagination, SafeImage } from "@/components/ui";
 import { useServerContext } from "@/components/domain/server/ServerContext";
+
+import { toSearchParamsString } from "@/utils/params.utils";
 
 export default function PagesPreviewSection({
   manga_id,
@@ -20,7 +23,7 @@ export default function PagesPreviewSection({
   const [currentBatch, setCurrentBatch] = useState<string[]>(
     pages.slice(0, BATCH_SIZE + 1),
   );
-  const { routePrefix} = useServerContext();
+  const { routePrefix } = useServerContext();
 
   useEffect(() => {
     const start = (page - 1) * BATCH_SIZE;
@@ -45,7 +48,7 @@ export default function PagesPreviewSection({
             return (
               <Link
                 key={pageIndex}
-                href={`${routePrefix}/read/${manga_id}?page=${pageIndex}`}
+                href={`${routePrefix}/read/${manga_id}?${toSearchParamsString({ page: pageIndex })}`}
                 className="relative aspect-2/3 bg-card border border-default rounded overflow-hidden"
               >
                 <SafeImage
