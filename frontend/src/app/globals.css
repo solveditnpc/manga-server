@@ -25,7 +25,7 @@
 
   --accent: #8a3a01;
   --focus: #5f7d8a;
-  --highlight: #8f8a6a;
+  --highlight: rgba(93, 68, 50, 0.5);
 
   --reader-background: #08090c;
   --reader-text: #dadce3;
@@ -44,10 +44,25 @@ html,
 body {
   background-color: var(--background);
   color: var(--text-primary);
+  
   font-family: Arial, Helvetica, sans-serif;
 }
 
 /* ===== Foreground ===== */
+
+@layer base {
+
+  ::selection {
+    background-color: var(--highlight);
+    color: white;
+  }
+
+  ::-moz-selection {
+    background-color: var(--highlight);
+    color: white;
+  }
+}
+
 
 @utility fg-primary {
   color: var(--text-primary);
