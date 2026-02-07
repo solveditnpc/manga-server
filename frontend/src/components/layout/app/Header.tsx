@@ -12,7 +12,7 @@ export default function Header() {
         {/* Left: App Name */}
         <div className="w-full sm:w-fit">
           <LinkButton
-            href="/"
+            href="/user/S/home"
             className="text-lg! font-semibold fg-primary whitespace-nowrap"
             variant="ghost"
           >

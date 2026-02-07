@@ -69,7 +69,7 @@ export async function getMangaById({
     const json = await res.json();
 
     const manga: FullManga = parseManga({
-      manga: json?.mangas[0],
+      manga: json?.mangas.find((manga: any) => Number(manga.manga_id) === id),
       full: true,
       server: server,
     }) as FullManga;

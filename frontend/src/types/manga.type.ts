@@ -46,7 +46,7 @@ export type MangaPrams = {
 };
 
 export interface ContinueManga extends Manga {
-  progress: ContinueProgress;
+  progress: ContinueProgress | null;
 }
 
 export interface FullManga extends Manga {
@@ -55,7 +55,7 @@ export interface FullManga extends Manga {
 }
 
 export interface FullContinueManga extends FullManga {
-  progress: ContinueProgress;
+  progress: ContinueProgress | null;
 }
 
 export interface MangasResponse<_MangaType_> {

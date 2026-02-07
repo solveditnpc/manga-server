@@ -9,9 +9,10 @@ import ToastForServer from "@/components/domain/server/ToastForServer";
 import ENV_CONFIG from "@/config/env.config";
 import { MangaFallback } from "@/config/manga.config";
 
-import { getMangaDetails, isMangaLiked } from "@/server/manga/manga.action";
+import { getMangaDetailsWithProgress, isMangaLiked } from "@/server/manga/manga.action";
 import { listRootComments } from "@/server/comment/comment.actions";
 import { Server } from "@/types/manga.type";
+import { toSearchParamsString } from "@/utils/params.utils";
 
 export default async function MangaDetailsPage({
   params,
@@ -22,7 +23,7 @@ export default async function MangaDetailsPage({
   const paramID: number = Number(id || 0) || 0;
 
   const [mangaRes, commentsRes, isLikedRes] = await Promise.all([
-    getMangaDetails({ id: paramID, server }),
+    getMangaDetailsWithProgress({ manga_id: paramID, server }),
     listRootComments({ manga_id: paramID, server }),
     isMangaLiked({ manga_id: paramID, server }),
   ]);
@@ -38,7 +39,6 @@ export default async function MangaDetailsPage({
 
   const rootComments = commentsRes.ok ? commentsRes.value : [];
   const isLiked = isLikedRes.ok ? isLikedRes.value : false;
-
   const {
     manga_id = paramID,
     title = "Manga Not Found (404)",
@@ -51,6 +51,16 @@ export default async function MangaDetailsPage({
     page_files = [],
     chapters = [],
   } = mangaRes.value || MangaFallback;
+
+  const isChaptered = mangaRes.value?.chapters.length > 0;
+  const progress = mangaRes.value?.progress;
+
+  const baseHref = `/user/${server}/read/${manga_id}`;
+  const path = progress
+    ? `${progress.chapter && `/${progress.chapter}`}?${toSearchParamsString({ page: progress.page })}`
+    : isChaptered
+      ? `/${chapters[0].title}?${toSearchParamsString({ page: 1 })}`
+      : `?${toSearchParamsString({ page: 1 })}`;
 
   const InfoSection = (
     <div className="space-y-3">
@@ -81,9 +91,7 @@ export default async function MangaDetailsPage({
           initialLiked={isLiked}
         />
 
-        <LinkButton href={`user/${server}/read/${manga_id}?page=1`}>
-          Read{" "}
-        </LinkButton>
+        <LinkButton href={`${baseHref}${path}`}>Read </LinkButton>
       </div>
     </div>
   );
@@ -123,10 +131,10 @@ export default async function MangaDetailsPage({
           {/* Preview Pages */}
           <div className="w-full">
             <p className="text-xs fg-muted mb-2">
-              {chapters.length > 0 ? "Chapters" : "Pages Preview"} :
+              {isChaptered ? "Chapters" : "Pages Preview"} :
             </p>
 
-            {chapters.length > 0 ? (
+            {isChaptered ? (
               <ChaptersTable mangaId={manga_id} chapters={chapters} />
             ) : (
               <PagesPreviewSection

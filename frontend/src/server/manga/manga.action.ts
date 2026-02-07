@@ -9,7 +9,7 @@ import {
   ContinueManga,
   ContinueProgress,
   FullContinueManga,
-  Server
+  Server,
 } from "@/types/manga.type";
 import { AsyncResult } from "@/types/server.types";
 
@@ -145,7 +145,7 @@ export async function listContinueMangas({
 }
 
 // -------------------- Get Reader Mnaga With Progress --------------------
-export async function getReaderData({
+export async function getMangaDetailsWithProgress({
   manga_id,
   server,
 }: {
@@ -155,12 +155,7 @@ export async function getReaderData({
   const mangaRes = await getMangaById({ id: manga_id, server });
   if (!mangaRes.ok) return { ok: false, error: "INTERNAL_ERROR" };
 
-  let progress: ContinueProgress = {
-    chapter: "",
-    page: 1,
-    checkpoint: 0,
-    currTotalPages: 1,
-  };
+  let progress: ContinueProgress | null = null;
 
   const store = await cookies();
   const session = store.get("session")?.value;
@@ -174,7 +169,6 @@ export async function getReaderData({
       manga_id,
       server,
     });
-    console.log(progressRes);
 
     if (!progressRes.ok) {
       if (progressRes.error === "INTERNAL_ERROR")

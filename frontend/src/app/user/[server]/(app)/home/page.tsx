@@ -4,6 +4,9 @@ import MangaCard from "@/components/domain/manga/MangaCard";
 import ContinueMangaCard from "@/components/domain/manga/ContinueMangaCard";
 import { LinkButton } from "@/components/ui";
 import { Server } from "@/types/manga.type";
+import { fetchCurrentUser } from "@/server/auth/auth.actions";
+import { ShieldCheck } from "lucide-react";
+import Link from "next/link";
 
 import {
   listMangas,
@@ -19,13 +22,17 @@ export default async function HomePage({
   params: Promise<{ server: Server }>;
 }) {
   const { server } = await params;
-  const [newMangasRes, likedMangasRes, continueMangasRes] = await Promise.all([
-    listMangas({ page: 1, query: "", sort: "date", server }),
-    listLikedMangas({ page: 1, server }),
-    listContinueMangas({ page: 1, server }),
-  ]);
+  const [curreUserRes, newMangasRes, likedMangasRes, continueMangasRes] =
+    await Promise.all([
+      fetchCurrentUser(),
+      listMangas({ page: 1, query: "", sort: "date", server }),
+      listLikedMangas({ page: 1, server }),
+      listContinueMangas({ page: 1, server }),
+    ]);
+
   const baseHref = `/user/${server}`;
 
+  const user = curreUserRes.ok ? curreUserRes.value : null;
   let newMangas: Manga[] = [];
   let continueMangas: ContinueManga[] = [];
   let likedMangas: Manga[] = [];
@@ -33,6 +40,11 @@ export default async function HomePage({
   if (newMangasRes.ok) newMangas = newMangasRes.value.mangas;
   if (continueMangasRes.ok) continueMangas = continueMangasRes.value.mangas;
   if (likedMangasRes.ok) likedMangas = likedMangasRes.value.mangas;
+
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+
   return (
     <main className="max-w-7xl mx-auto px-4 py-4 space-y-2">
       {/* Greeting */}
@@ -43,19 +55,50 @@ export default async function HomePage({
           bg-card
           py-4
           text-center
-          space-y-2
+          flex flex-col 
+          justify-center items-center
+          space-y-1
           ambient-gradient
         "
       >
-        <p className="text-sm uppercase tracking-widest fg-muted">
-          Welcome back
-        </p>
+        {user ? (
+          <>
+            <p className="text-sm uppercase tracking-widest fg-muted">
+              Welcome back
+            </p>
 
-        <p className="text-xl font-semibold fg-primary">
-          Good evening, {"{ NAME }"}
-        </p>
+            <p className="text-2xl font-semibold fg-primary flex items-center gap-1">
+              {greeting}, {user.username}{" "}
+              {user.role === "ADMIN" && (
+                <ShieldCheck className="text-primary" />
+              )}
+            </p>
+            <p className="text-sm fg-muted">Your library is waiting.</p>
 
-        <p className="text-sm fg-muted">Your library is waiting.</p>
+            {user.role === "ADMIN" && (
+              <LinkButton href={"/admin"} variant="primary">
+                Open Admin Pannel
+              </LinkButton>
+            )}
+          </>
+        ) : (
+          <>
+            <p className="text-sm uppercase tracking-widest fg-muted">
+              Welcome
+            </p>
+
+            <p className="text-2xl font-semibold fg-primary">
+              Browse manga freely
+            </p>
+
+            <p className="text-sm fg-muted">
+              <LinkButton href={"/auth"} variant="ghost" className="p-1! ">
+                Sign in
+              </LinkButton>{" "}
+              to track progress.
+            </p>
+          </>
+        )}
       </section>
 
       {/* Continue Reading */}

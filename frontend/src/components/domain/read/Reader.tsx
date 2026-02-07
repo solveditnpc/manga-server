@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
 
 import { SafeImage } from "@/components/ui";
 import PageNavigator from "@/components/domain/read/PageNavigator";
@@ -10,97 +10,59 @@ import PageZoomControls from "@/components/domain/read/PageZoomControls";
 import { useServerContext } from "@/components/domain/server/ServerContext";
 
 import { saveProgress } from "@/server/manga/manga.action";
-import { clampCheckpoint } from "@/utils/mangas.utils";
 import { ContinueProgress, FullContinueManga } from "@/types/manga.type";
-
-function getProgress(pageEl: HTMLElement): number {
-  const rect = pageEl.getBoundingClientRect();
-  const viewportHeight = window.innerHeight;
-
-  const totalScrollable = rect.height - viewportHeight;
-  if (totalScrollable <= 0) return 1;
-
-  const scrolled = Math.min(Math.max(-rect.top, 0), totalScrollable);
-
-  return scrolled / totalScrollable;
-}
+import { getProgress, clampCheckpoint } from "@/utils/reader.utils";
+import { useSearchParams } from "next/navigation";
+import { useUpdateSearchParams } from "@/hooks/useUpdateSearchParam";
 
 export default function Reader({
   manga,
   pages,
-  urlPage = 1,
   chapterTitle = "",
 }: {
   manga: FullContinueManga;
   pages: string[];
-  urlPage?: number;
   chapterTitle?: string;
 }) {
   const [zoom, setZoom] = useState(1); // 1 = 100%
+  const [currentPage, setCurrentPage] = useState(1);
+  const { server } = useServerContext();
+  const urlPage = Number(useSearchParams().get("page"));
+  const updateSearchParams = useUpdateSearchParams();
 
+  const lastProgress = useRef<ContinueProgress>(
+    manga.progress ?? {
+      chapter: chapterTitle,
+      checkpoint: 0,
+      page: 1,
+      currTotalPages: pages.length,
+    },
+  );
+  const nextProgress = useRef<ContinueProgress | null>(null);
+  const progressCommitTimer = useRef<NodeJS.Timeout | null>(null);
   const readerContainer = useRef<HTMLDivElement>(null);
-
   const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const {server} = useServerContext();
 
-  let lastProgress = useRef<ContinueProgress>(manga.progress);
-  let nextProgress = useRef<ContinueProgress | null>(null);
-  let commitTimer = useRef<NodeJS.Timeout | null>(null);
+  const currentPageRef = useRef<number>(urlPage);
+  const urlChangeCommitTimer = useRef<NodeJS.Timeout | null>(null);
 
-  function commitSaveProgress(source: string) {
-    console.log(source);
-
+  // ===================  Progress Tracking  ===================
+  function commitSaveProgress() {
     if (!nextProgress.current) return;
 
-    if (commitTimer.current) {
-      clearTimeout(commitTimer.current);
-      commitTimer.current = null;
+    if (progressCommitTimer.current) {
+      clearTimeout(progressCommitTimer.current);
+      progressCommitTimer.current = null;
     }
-    const { checkpoint, page, chapter, currTotalPages } = nextProgress.current;
-    console.log("WROTE : \n", nextProgress.current);
 
     lastProgress.current = nextProgress.current;
     nextProgress.current = null;
 
     saveProgress({
       manga_id: manga.manga_id,
-      progress: { chapter, page, checkpoint, currTotalPages },
+      progress: lastProgress.current,
       server,
     });
-  }
-
-  // Current Page Ref :
-  const currentPageRef = useRef<number>(urlPage);
-  useEffect(() => {
-    currentPageRef.current = urlPage;
-  }, [urlPage]);
-
-  // Scroll Progress Logic :
-  function proceedToCommit(progress: number) {
-    const nextCheckpoint = clampCheckpoint(progress);
-
-    const { checkpoint: lastCheckpoint, page: lastPage } = lastProgress.current;
-    const currentPage = currentPageRef.current;
-
-    if (
-      lastPage > currentPage ||
-      (lastPage === currentPage && lastCheckpoint >= nextCheckpoint)
-    )
-      return;
-
-    if (commitTimer.current) clearTimeout(commitTimer.current);
-
-    nextProgress.current = {
-      checkpoint: nextCheckpoint,
-      page: currentPage,
-      chapter: chapterTitle,
-      currTotalPages: pages.length,
-    };
-
-    commitTimer.current = setTimeout(
-      () => commitSaveProgress("Scroll Timer"),
-      3000,
-    ); // 3s dwell
   }
 
   useEffect(() => {
@@ -110,32 +72,105 @@ export default function Reader({
 
       if (!pageRef) return;
       const progress = getProgress(pageRef);
-      proceedToCommit(progress);
+      const nextCheckpoint = clampCheckpoint(progress);
+
+      if (
+        lastProgress.current.page > currentPage ||
+        (lastProgress.current.page === currentPage &&
+          lastProgress.current.checkpoint >= nextCheckpoint)
+      )
+        return;
+
+      nextProgress.current = {
+        checkpoint: nextCheckpoint,
+        page: currentPage,
+        chapter: chapterTitle,
+        currTotalPages: pages.length,
+      };
+
+      progressCommitTimer.current = setTimeout(
+        () => commitSaveProgress(),
+        3000,
+      ); // 3s dwell
     }
 
-    const container = readerContainer.current;
-    if (!container) return;
-    container.addEventListener("scroll", onScroll);
+    const reader = readerContainer.current;
+    if (!reader) return;
+    reader.addEventListener("scroll", onScroll);
     return () => {
-      container.removeEventListener("scroll", onScroll);
+      reader.removeEventListener("scroll", onScroll);
     };
   }, []);
 
-  // Save Progress on Visibility Change
+  // ===================  Navigation actions ===================
+  function onPageChange(page: number) {
+    setCurrentPage(page);
+    currentPageRef.current = page;
+
+    if (urlChangeCommitTimer.current)
+      clearTimeout(urlChangeCommitTimer.current);
+
+    if (page === urlPage) return;
+
+    urlChangeCommitTimer.current = setTimeout(() => {
+      updateSearchParams({ page: String(page) });
+      urlChangeCommitTimer.current = null;
+    }, 500);
+  }
+
+  function scrollToPage(
+    page: number,
+    checkpoint = 0,
+    behavior: ScrollBehavior = "instant",
+  ) {
+    const container = readerContainer.current;
+    const el = pageRefs.current[page - 1];
+    if (!container || !el) return;
+
+    const pageTop = el.offsetTop;
+    const pageHeight = el.offsetHeight;
+    const viewportHeight = container.clientHeight;
+
+    const scrollable = Math.max(0, pageHeight - viewportHeight);
+    const target = pageTop + checkpoint * scrollable;
+
+    container.scrollTo({
+      top: target,
+      behavior, // always auto for correctness
+    });
+
+    onPageChange(page);
+  }
+
+  // ===================  First render effects ===================
+
   useEffect(() => {
-    const handler = () => {
-      console.log("Here 1");
-      if (document.hidden) commitSaveProgress("Visibility Change");
+    if (urlPage !== currentPageRef.current) onPageChange(urlPage);
+  }, []);
+
+  useLayoutEffect(() => {
+    const initialPage = urlPage || manga.progress?.page || 1;
+    const initialCheckpoint =
+      initialPage === manga.progress?.page
+        ? (manga.progress?.checkpoint ?? 0)
+        : 0;
+
+    const container = readerContainer.current;
+    const el = pageRefs.current[initialPage - 1];
+    if (!container || !el) return;
+
+    let lastHeight = 0;
+    const check = () => {
+      const h = el.offsetHeight;
+      if (h > 0 && h === lastHeight) {
+        scrollToPage(initialPage, initialCheckpoint, "instant");
+      } else {
+        lastHeight = h;
+        requestAnimationFrame(check);
+      }
     };
 
-    document.addEventListener("visibilitychange", handler);
-
-    return () => {
-      document.removeEventListener("visibilitychange", handler);
-      console.log("Here 2");
-
-      commitSaveProgress("Visibility Change - 2");
-    };
+    check();
   }, []);
 
   return (
@@ -156,8 +191,8 @@ export default function Reader({
             <div
               className="
                 w-full flex flex-col
-                max-w-225 px-3 py-6 gap-4
-                sm:max-w-180 sm:px-4 sm:py-8 sm:gap-6
+                max-w-225 px-3 py-6 gap-1
+                sm:max-w-180 sm:px-4 sm:py-8
                 md:max-w-200 md:px-6 
                 lg:max-w-225
                 "
@@ -165,9 +200,11 @@ export default function Reader({
               {pages.map((src, index) => {
                 const pageNumber = index + 1;
 
+                // Preload window of 5 images : 2 prev + 1 curr + 2 ahead
+                const isNear = Math.abs(pageNumber - currentPage) <= 2;
                 return (
                   <div
-                    key={pageNumber} // stable, semantic key
+                    key={pageNumber}
                     ref={(el) => {
                       pageRefs.current[index] = el;
                     }}
@@ -181,7 +218,7 @@ export default function Reader({
                       height={1200} // fake / nominal height
                       sizes="(max-width: 768px) 100vw, 900px"
                       style={{ height: "auto" }}
-                      loading="lazy"
+                      loading={isNear ? "eager" : "lazy"}
                       decoding="async"
                       quality={85}
                     />
@@ -205,8 +242,10 @@ export default function Reader({
         <PageNavigator
           total_pages={pages.length}
           pageRefs={pageRefs}
-          initialPage={urlPage}
-          initialCheckpoint={manga.progress?.checkpoint || 0}
+          currentPage={currentPageRef.current}
+          onPageChange={onPageChange}
+          readerContainer={readerContainer}
+          onPageJump={scrollToPage}
         />
 
         <PageZoomControls zoom={zoom} setZoom={setZoom} />

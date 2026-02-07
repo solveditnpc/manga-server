@@ -77,7 +77,7 @@ export default async function BrowsePage({
             <MangaCard
               key={manga.manga_id}
               manga={manga}
-              href={`user/${server}/manga/${manga.manga_id}`}
+              href={`/user/${server}/manga/${manga.manga_id}`}
             />
           ))
         ) : (

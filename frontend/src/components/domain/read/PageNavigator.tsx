@@ -1,118 +1,124 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { clampPage } from "@/utils/pagination.utils";
-import { useUpdateSearchParams } from "@/hooks/useUpdateSearchParam";
-import { ContinueProgress } from "@/types/manga.type";
+
 export default function PageNavigator({
+  currentPage,
   total_pages,
   visible,
   pageRefs,
-  initialPage,
-  initialCheckpoint,
+  readerContainer,
+  onPageChange,
+  onPageJump,
 }: {
+  currentPage: number;
   total_pages: number;
   visible?: boolean;
   pageRefs: React.RefObject<(HTMLDivElement | null)[]>;
-  initialPage: number;
-  initialCheckpoint: ContinueProgress["checkpoint"];
+  readerContainer: React.RefObject<HTMLDivElement | null>;
+  onPageChange?: (page: number) => void;
+  onPageJump?: (page: number) => void;
 }) {
   // States and Refs
-  const updateSearchParams = useUpdateSearchParams();
+  const [displayPage, setDisplayPage] = useState<string>(String(currentPage));
 
-  const suppressObserver = useRef(false);
-  const [displayPage, setDisplayPage] = useState<string>(String(initialPage));
-  const [currentPage, setCurrentPage] = useState<number>(initialPage);
+  const visiblePagesRef = useRef<Set<number>>(new Set());
 
-  const scrollToPage = (page: number, behavior: ScrollBehavior = "smooth") => {
-    suppressObserver.current = true;
-    pageRefs.current[page - 1]?.scrollIntoView({ behavior });
-
-    const timeout = setTimeout(() => (suppressObserver.current = false), 1000);
-    return () => clearTimeout(timeout);
-  };
-
-  // Initial scroll
-  useEffect(() => {
-    suppressObserver.current = true;
-
-    // 1. Scroll to page (no animation)
-    pageRefs.current[currentPage - 1]?.scrollIntoView({ behavior: "auto" });
-
-    // 2. Wait for layout + image decode
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (initialCheckpoint && initialCheckpoint > 0) {
-          const el = pageRefs.current[currentPage - 1];
-          if (!el) return;
-
-          const rect = el.getBoundingClientRect();
-          const viewportHeight = window.innerHeight;
-
-          const totalScrollable = rect.height - viewportHeight;
-          if (totalScrollable <= 0) return;
-
-          const targetScroll =
-            window.scrollY + rect.top + initialCheckpoint * totalScrollable;
-
-          window.scrollTo({ top: targetScroll, behavior: "auto" });
-        }
-
-        // 3. Re-enable observer after restore
-        setTimeout(() => {
-          suppressObserver.current = false;
-        }, 300);
-      });
-    });
-  }, []);
-
-  // Observer
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        let bestEntry: IntersectionObserverEntry | null = null;
-
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-
-          const isBestEntry =
-            !bestEntry || entry.intersectionRatio > bestEntry.intersectionRatio;
-          if (isBestEntry) bestEntry = entry;
-        }
-
-        if (bestEntry && !suppressObserver.current) {
-          const page = Number((bestEntry.target as HTMLElement).dataset.page);
-          setCurrentPage(page);
-        }
-      },
-      {
-        root: null,
-        threshold: [0.25, 0.5, 0.75],
-      },
-    );
-
-    pageRefs.current.forEach((el) => el && observer.observe(el));
-
-    return () => observer.disconnect();
-  }, []);
-
-  // URL update logic
-  useEffect(() => {
-    setDisplayPage(String(currentPage));
-
-    const debounce = setTimeout(
-      () => updateSearchParams({ page: String(currentPage) }),
-      1000,
-    );
-    return () => clearTimeout(debounce);
-  }, [currentPage]);
+  function updatePage(page: number) {
+    page = clampPage(page, total_pages, 1);
+    setDisplayPage(String(page));
+    onPageChange?.(page);
+  }
 
   // Page jump
   const handleJump = (e: React.FormEvent) => {
     e.preventDefault();
-    let jumpPage = clampPage(displayPage, total_pages, currentPage);
+    console.log("Called Jump");
+    const jumpPage = clampPage(displayPage, total_pages, currentPage);
     setDisplayPage(String(jumpPage));
-    scrollToPage(jumpPage);
+    onPageJump?.(jumpPage);
   };
+
+  function getDominantPage(): number | null {
+    const container = readerContainer.current;
+    if (!container) return null;
+    const containerRect = container.getBoundingClientRect();
+    const viewportHeight = container.clientHeight;
+    const viewportMid = viewportHeight / 2;
+
+    let dominantPage: number | null = null;
+
+    for (const page of visiblePagesRef.current) {
+      const el = pageRefs.current[page - 1];
+      if (!el) continue;
+
+      const rect = el.getBoundingClientRect();
+
+      // normalize page rect relative to container
+      const top = rect.top - containerRect.top;
+      const bottom = rect.bottom - containerRect.top;
+
+      // completely outside
+
+      if (bottom <= 0 || top >= viewportHeight) continue;
+
+      // check if mid of viewport is inside this page, then this is the dominant page
+
+      if (top <= viewportMid && bottom >= viewportMid) {
+        dominantPage = page;
+      }
+    }
+
+    return dominantPage;
+  }
+
+  useEffect(() => {
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+
+      const dominantPage = getDominantPage();
+      if (dominantPage !== null) updatePage(dominantPage);
+      ticking = false;
+    };
+
+    readerContainer.current?.addEventListener("scroll", onScroll, {
+      passive: true,
+    });
+    return () =>
+      readerContainer.current?.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    // observer will check the visibility of pages and maintain a set of visible pages
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          // calculate the page number of entry
+          const page = Number((entry.target as HTMLElement).dataset.page);
+
+          // if the page is entering the viewport
+          if (entry.isIntersecting) {
+            // add it to visible pages if not present
+            if (!visiblePagesRef.current.has(page))
+              visiblePagesRef.current.add(page);
+          } else {
+            // remove it from visible pages as it is leaving the viewport
+            if (visiblePagesRef.current.delete(page)) {
+            }
+          }
+        }
+      },
+      {
+        root: null,
+        threshold: 0,
+      },
+    );
+
+    pageRefs.current.forEach((el) => el && observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
 
   // Page Input Events :
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {

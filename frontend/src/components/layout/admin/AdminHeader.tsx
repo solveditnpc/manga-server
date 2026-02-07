@@ -7,7 +7,7 @@ export default function AdminHeader() {
         {/* Left: App Identity */}
         <div className="flex items-center gap-3">
           <LinkButton
-            href="/"
+            href="/user/S/home"
             className="text-lg! font-semibold fg-primary whitespace-nowrap"
             variant="ghost"
           >
@@ -19,7 +19,7 @@ export default function AdminHeader() {
 
         {/* Right: Session / Exit */}
         <div className="flex items-center gap-2">
-          <LinkButton href="/">Exit Admin</LinkButton>
+          <LinkButton href="/user/S/home">Exit Admin</LinkButton>
         </div>
       </div>
     </header>

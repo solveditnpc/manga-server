@@ -14,9 +14,11 @@ export async function fetchCurrentUser(): AsyncResult<
 
   const res = await validateSession(session);
 
-  if (!res.ok && res.error === "UNAUTHORIZED") store.delete("session");
-
-  return res;
+  try {
+    if (!res.ok && res.error === "UNAUTHORIZED") store.delete("session");
+  } finally {
+    return res;
+  }
 }
 
 // ---------------- Handle user login/register ----------------
