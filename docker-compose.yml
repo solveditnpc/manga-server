@@ -53,6 +53,7 @@ services:
         condition: service_completed_successfully
     volumes:
       - ./sqlite:/database
+    user: "1000:1000"
     environment:
       DATABASE_URL: file:/database/users_database.db
       ADMIN_USERNAME: admin
@@ -66,11 +67,12 @@ services:
       users-admin-seed:
         condition: service_completed_successfully
     volumes:
-      - ./mangas:/data
       - ./sqlite:/database
-      - ./suwayomi_standalone/data:/suwayomi_data:ro
+      - ./mangas:/app/public/data
+      - ./suwayomi_standalone/data:/app/public/suwayomi_data
     user: "1000:1000"
     environment:
       DATABASE_URL: file:/database/users_database.db
+      API_URL : "http://server:5001/api"
     ports:
       - "3000:3000"

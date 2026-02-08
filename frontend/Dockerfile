@@ -24,7 +24,7 @@ RUN npx prisma generate
 
 # ---------- Migrate ----------
 FROM prisma-cli AS users-db-migrate
-CMD ["npx", "prisma", "migrate", "deploy"]
+CMD ["sh", "-c", "npx prisma migrate deploy; chown -R 1000:1000 /database"]
 
 # ---------- ADD ADMIN ----------
 FROM prisma-cli AS users-admin-seed
@@ -49,18 +49,17 @@ FROM node:24.11-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-RUN groupadd -r nextjs 
-RUN useradd -r -g nextjs nextjs  
-
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 RUN mkdir /database
-RUN chown -R nextjs:nextjs /database 
+RUN mkdir -p /app/.next/cache 
 
-USER nextjs
+RUN chown -R 1000:1000 /database 
+RUN chown -R 1000:1000 /app
+
 EXPOSE 3000
 
-CMD ["sh", "-c", "chown -R 1000:1000 /database && exec node server.js"]
+CMD ["node", "server.js"]
