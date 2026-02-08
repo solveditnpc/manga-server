@@ -39,8 +39,6 @@ export default function AdminMangaRow({ manga, variant = "table" }: Props) {
       variant: "danger",
     });
 
-    console.log(res);
-
     if (res) deleteManga(manga_id);
   };
 
