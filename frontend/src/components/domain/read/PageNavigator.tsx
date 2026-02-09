@@ -33,7 +33,6 @@ export default function PageNavigator({
   // Page jump
   const handleJump = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Called Jump");
     const jumpPage = clampPage(displayPage, total_pages, currentPage);
     setDisplayPage(String(jumpPage));
     onPageJump?.(jumpPage);

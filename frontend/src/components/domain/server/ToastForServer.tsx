@@ -15,8 +15,6 @@ export default function ToastForServer({
   const fired = useRef(false);
   useEffect(() => {
     if (fired.current) return;
-    console.log("Firing toast");
-
     fired.current = true;
 
     // using timeout to avoid hydration error

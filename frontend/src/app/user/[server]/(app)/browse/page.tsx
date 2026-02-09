@@ -12,7 +12,6 @@ import { MangaPrams, Server } from "@/types/manga.type";
 import { isSortValid } from "@/utils/sorting.utils";
 import { toSearchParamsString } from "@/utils/params.utils";
 import { isPageValid, clampPage } from "@/utils/pagination.utils";
-import { headers } from "next/headers";
 
 export default async function BrowsePage({
   searchParams,
@@ -45,16 +44,17 @@ export default async function BrowsePage({
 
   const mangas = mangasRes.value.mangas;
   const total_pages = mangasRes.value.total_pages;
-  console.log(isPageValid(page, total_pages));
+
+  console.log(mangas);
+  
 
   if (!isSortValid(sort) || !isPageValid(page, total_pages)) {
-    const header = await headers();
     const search = {
       q: parsedParams.query,
-      page: parsedParams.page,
+      page: clampPage(page, total_pages, 1),
       sort: parsedParams.sort,
-    };
-    redirect(`${header.get("x-pathname")}?${toSearchParamsString(search)}`);
+    };    
+    redirect(`/user/${server}/browse?${toSearchParamsString(search)}`);
   }
 
   return (
