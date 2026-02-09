@@ -214,13 +214,9 @@ export default function Reader({
                     <SafeImage
                       src={src}
                       alt={`Page ${pageNumber}`}
-                      width={900} // nominal width (design width)
-                      height={1200} // fake / nominal height
-                      sizes="(max-width: 768px) 100vw, 900px"
-                      style={{ height: "auto" }}
+                      className="w-full h-auto"
                       loading={isNear ? "eager" : "lazy"}
                       decoding="async"
-                      quality={85}
                     />
                   </div>
                 );

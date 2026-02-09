@@ -28,9 +28,15 @@ export function parseManga({
       : (tags.find((t: any) => t?.type === "languages")?.name ?? _FB.language)
   ).toUpperCase();
 
-  const base_path = server === "S" ? `/` : `${m.download_path}/`;
   const download_path = toValidUrl(m?.download_path ?? "");
-  const cover_image = toValidUrl(m?.cover_image, base_path);
+
+  // Hack for supporting suwayomi fallback
+  const cover_base =
+    server === "S" && m.cover_image.startsWith("suwayomi_data")
+      ? "/"
+      : m.download_path;
+  console.log(m.cover_image, ", ", cover_base);
+  const cover_image = toValidUrl(m?.cover_image, cover_base);
 
   const res: Manga = {
     manga_id,
@@ -47,7 +53,9 @@ export function parseManga({
 
   if (!full) return res as Manga;
 
-  const page_files = m?.page_files.map((p: string) => `${base_path}${p}`);
+  const page_files = m?.page_files.map((p: string) =>
+    toValidUrl(p, m.download_path),
+  );
   const chapters =
     m?.chapters.map((ch: Chapter) => {
       const images = ch.images.map(

@@ -107,9 +107,7 @@ export default async function MangaDetailsPage({
               <SafeImage
                 src={cover_image}
                 alt={title}
-                fill
                 className="object-cover"
-                quality={40}
               />
             ) : (
               <div className="flex items-center justify-center w-full">

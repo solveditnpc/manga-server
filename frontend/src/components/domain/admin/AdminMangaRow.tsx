@@ -52,9 +52,6 @@ export default function AdminMangaRow({ manga, variant = "table" }: Props) {
       src={cover_image}
       alt={title}
       className="object-cover rounded-md"
-      quality={40}
-      width={40}
-      height={56}
     />
   );
 

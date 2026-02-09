@@ -54,13 +54,6 @@ export default function PagesPreviewSection({
                 <SafeImage
                   src={p}
                   alt={`Page ${pageIndex}`}
-                  fill
-                  quality={40}
-                  sizes="
-                    (max-width: 768px) 33vw,
-                    (max-width: 1024px) 20vw,
-                    120px
-                  "
                   fallbackMsg={`Unable to load page ${pageIndex}`}
                 />
               </Link>
