@@ -1,18 +1,22 @@
+"use client";
 import SearchBar from "@/components/domain/search/SearchBar";
 import APP_CONFIG from "@/config/app.config";
 import UserMenu from "../../domain/auth/UserMenu";
 import { Suspense } from "react";
 import { LinkButton } from "@/components/ui";
 import ServerToggle from "@/components/domain/server/ServerToogle";
+import { useServerContext } from "@/components/domain/server/ServerContext";
 
 export default function Header() {
+  const { routePrefix } = useServerContext();
+  const url = routePrefix ? `${routePrefix}/home` : "/user/S/home";
   return (
     <header className="fixed w-full top-0 z-40 bg-background border-b border-default">
       <div className="max-w-7xl mx-auto h-14 px-4 flex sm:justify-between items-center gap-2">
         {/* Left: App Name */}
         <div className="w-full sm:w-fit">
           <LinkButton
-            href="/user/S/home"
+            href={url}
             className="text-lg! font-semibold fg-primary whitespace-nowrap"
             variant="ghost"
           >
