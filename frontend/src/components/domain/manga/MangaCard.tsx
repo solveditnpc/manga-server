@@ -50,10 +50,7 @@ export default function MangaCard({ manga, href }: MangaCardProps) {
         <SafeImage
           src={cover_image}
           alt={title}
-          fill
-          sizes="(min-width: 1024px) 200px, (min-width: 768px) 180px, 160px"
-          className="object-fill"
-          quality={40}
+          className="h-full w-full object-cover"
           fallbackMsg="Unable to get cover"
         />
       </div>

@@ -18,18 +18,32 @@ export const toSearchParamsString = (updates: Params) => {
 };
 
 export function toValidUrl(path: string, base = "") {
-  const encodeSegments = (value: string) =>
-    value.split("/").filter(Boolean).map(encodeURIComponent).join("/");
+  const isAbsolute = (v: string) => /^https?:\/\//i.test(v);
 
-  const encodedBase = encodeSegments(base);
-  const encodedPath = encodeSegments(path);
+  if (isAbsolute(path)) return path;
 
-  if (!encodedBase && !encodedPath) return "/";
+  const encodePath = (v: string) =>
+    v
+      .split("?")[0]
+      .split("/")
+      .filter(Boolean)
+      .map(encodeURIComponent)
+      .join("/");
 
-  if (!encodedBase) return `/${encodedPath}`;
-  if (!encodedPath) return `/${encodedBase}`;
+  const [rawPath, query = ""] = path.split("?");
+  const encodedBase = encodePath(base);
+  const encodedPath = encodePath(rawPath);
 
-  return `/${encodedBase}/${encodedPath}`;
+  const fullPath =
+    encodedBase && encodedPath
+      ? `/${encodedBase}/${encodedPath}`
+      : encodedBase
+        ? `/${encodedBase}`
+        : encodedPath
+          ? `/${encodedPath}`
+          : "/";
+
+  return query ? `${fullPath}?${query}` : fullPath;
 }
 
 export function stripUserServerPrefix(pathname: string) {
